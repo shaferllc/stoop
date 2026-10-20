@@ -65,6 +65,11 @@ class SafetyTest extends TestCase
 
         $this->actingAs($user)->get('/')->assertRedirect(route('banned'));
         $this->actingAs($user)->get(route('banned'))->assertOk()->assertSee('Slurs');
+        $this->actingAs($user)->get(route('appeals.create', ['penalty' => $user->activeBan()->id]))->assertOk();
+        $this->assertSame('passed', (new \App\Http\Middleware\EnsureNotBanned)->handle(
+            tap(\Illuminate\Http\Request::create('/livewire/update', 'POST'), fn ($r) => $r->setUserResolver(fn () => $user)->setRouteResolver(fn () => app('router')->getRoutes()->getByName('default-livewire.update'))),
+            fn () => response('passed'),
+        )->getContent(), 'Banned users can still submit the appeal form through Livewire.');
 
         $user->delete();
         $again = User::factory()->create(['email' => 'TROLL@example.com']);

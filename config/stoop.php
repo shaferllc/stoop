@@ -84,6 +84,9 @@ return [
     // on a thread for an hour and flag it for moderators.
     'pile_on_threshold' => 15,
 
+    // Mark new accounts as verified on sign-up, skipping the email link.
+    'auto_verify' => env('STOOP_AUTO_VERIFY', true),
+
     // Turn on once posting is tied to magazine subscriptions.
     'require_subscription' => env('STOOP_REQUIRE_SUBSCRIPTION', false),
 

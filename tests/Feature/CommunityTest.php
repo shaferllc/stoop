@@ -94,6 +94,7 @@ class CommunityTest extends TestCase
         $user = User::where('username', 'newneighbor')->firstOrFail();
         $this->assertTrue($user->following()->where('username', 'stoop')->exists());
         $this->assertTrue($user->followers()->where('username', 'stoop')->exists());
+        $this->assertTrue($user->hasVerifiedEmail());
     }
 
     public function test_the_api_posts_with_the_same_rules_as_the_website(): void

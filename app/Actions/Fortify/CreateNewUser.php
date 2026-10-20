@@ -32,6 +32,11 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $input['password'],
         ]);
 
+        // For now every new account is verified on sign-up (STOOP_AUTO_VERIFY=false turns this off).
+        if (config('stoop.auto_verify')) {
+            $user->forceFill(['email_verified_at' => now()])->save();
+        }
+
         // Everyone's first friend: new accounts follow @stoop, and @stoop follows them back.
         $stoop = Bots::account('stoop');
         $user->following()->attach($stoop->id);

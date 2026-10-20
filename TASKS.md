@@ -2,7 +2,7 @@
 
 Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists everything /dev/null does and how each feature maps to Stoop.
 
-`[x]` means built and covered by the tests in `tests/Feature`. `[ ]` means not done yet.
+`[x]` means built. Most items are covered by `tests/Feature`; the browser-only parts (typing indicator, “Seen” receipts, hover cards, keyboard shortcuts, swipe, the installable app) were checked by hand, not by tests. `[ ]` means not done yet.
 
 ## Accounts
 - [x] Email sign-up and log-in, password reset, email verification, 2FA, passkeys (Livewire starter kit / Fortify)
@@ -91,6 +91,9 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Operations page for staff: activity, queue sizes, failed jobs
 - [ ] Search by meaning (embeddings); search is keyword-based with stemming for now
 - [ ] Move link-card fetching to a queued job if posting feels slow
+- [ ] Before a public launch, harden link-card fetching: check IPv6 addresses too and pin the resolved IP for the request, so DNS rebinding can’t reach internal addresses
+- [ ] Turn on Claude refusal fallbacks for the bot and translation once the PHP SDK documents them (a declined request falls back to the keyword answer or no translation today)
+- [ ] Run the scheduler in production (`php artisan schedule:run` every minute) so scheduled dispatches publish and deleted ones are erased
 
 ## Making money
 - [ ] Claimed places for restaurants and shops

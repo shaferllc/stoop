@@ -15,7 +15,7 @@ class EnsureNotBanned
     {
         $user = $request->user();
 
-        if ($user && ! $request->routeIs('banned', 'logout', 'appeals.create', 'profile.edit', 'livewire.*') && $user->activeBan()) {
+        if ($user && ! $request->routeIs('banned', 'logout', 'appeals.create', 'profile.edit', 'livewire.*', '*-livewire.*') && $user->activeBan()) {
             return $request->expectsJson()
                 ? response()->json(['message' => 'This account is banned.'], 403)
                 : redirect()->route('banned');
