@@ -7,6 +7,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -52,6 +53,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'is_staff' => 'boolean',
             'stops' => 'array',
             'muted_until' => 'datetime',
+            'accepted_rules_at' => 'datetime',
         ];
     }
 
@@ -87,6 +89,11 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->belongsToMany(self::class, 'silences', 'user_id', 'target_id')->withPivot('type')->withTimestamps();
     }
 
+    public function pinned(): BelongsTo
+    {
+        return $this->belongsTo(Dispatch::class, 'pinned_dispatch_id');
+    }
+
     public function marked(): BelongsToMany
     {
         return $this->belongsToMany(Dispatch::class, 'marks')->withPivot('kind')->withTimestamps();
@@ -102,6 +109,18 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return DB::table('silences')->where('user_id', $this->id)->pluck('target_id')
             ->merge(DB::table('silences')->where('target_id', $this->id)->where('type', 'block')->pluck('user_id'))
             ->unique()->values()->all();
+    }
+
+    /**
+     * Why this person can't post right now, or null when they can.
+     */
+    public function postingBlock(): ?string
+    {
+        if ($this->isMuted()) {
+            return 'You can’t post until '.$this->muted_until->format('M j, g:ia').'.';
+        }
+
+        return null;
     }
 
     public function isMuted(): bool

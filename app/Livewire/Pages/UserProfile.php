@@ -40,12 +40,23 @@ class UserProfile extends Component
             ->when($this->show === 'replies', fn ($q) => $q->whereNotNull('parent_id'), fn ($q) => $q->whereNull('parent_id'))
             ->latest()->take(50)->get();
 
+        $pinned = $this->show === 'dispatches' && $user->pinned_dispatch_id
+            ? $dispatches->firstWhere('id', $user->pinned_dispatch_id) ?? Dispatch::visibleTo($viewer)->forCards()->find($user->pinned_dispatch_id)
+            : null;
+        if ($pinned) {
+            $dispatches = $dispatches->reject(fn ($d) => $d->id === $pinned->id)->prepend($pinned);
+        }
+
         return view('livewire.pages.user-profile', [
             'user' => $user,
+            'pinnedId' => $pinned?->id,
             'dispatches' => $dispatches,
             'isFollowing' => $viewer?->following()->whereKey($user->id)->exists() ?? false,
             'followsYou' => $viewer ? $user->following()->whereKey($viewer->id)->exists() : false,
             'state' => $this->viewerState($dispatches),
-        ])->title($user->name.' (@'.$user->username.')');
+        ])->title($user->name.' (@'.$user->username.')')->layoutData([
+            'description' => $user->name.' on Stoop · '.$user->badge(),
+            'ogImage' => route('users.og', $user),
+        ]);
     }
 }

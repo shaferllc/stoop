@@ -23,6 +23,8 @@ trait HandlesDispatchActions
 
     public string $reportNote = '';
 
+    public ?int $undoId = null;
+
     /**
      * The signed-in user, or a redirect to log in for guests.
      */
@@ -72,6 +74,10 @@ trait HandlesDispatchActions
 
         $dispatch = $this->findVisible($id);
         $option = $dispatch->options()->findOrFail($optionId);
+
+        if ($dispatch->isClosed() || $dispatch->user_id === $user->id) {
+            return;
+        }
 
         DB::table('poll_votes')->insertOrIgnore([
             'dispatch_id' => $dispatch->id,
@@ -162,6 +168,9 @@ trait HandlesDispatchActions
         Flux::toast('Reported and hidden for you. A moderator will review it.');
     }
 
+    /**
+     * Soft-delete, with 30 seconds to undo. Replies under it survive under a tombstone.
+     */
     public function deleteDispatch(int $id): void
     {
         if (! $user = $this->actor()) {
@@ -172,7 +181,37 @@ trait HandlesDispatchActions
         abort_unless($dispatch->user_id === $user->id || $user->is_staff, 403);
 
         $dispatch->delete();
-        Flux::toast('Dispatch deleted.');
+        $this->undoId = $dispatch->id;
+    }
+
+    public function restoreDispatch(int $id): void
+    {
+        if (! $user = $this->actor()) {
+            return;
+        }
+
+        $dispatch = Dispatch::onlyTrashed()->findOrFail($id);
+        abort_unless($dispatch->user_id === $user->id || $user->is_staff, 403);
+
+        if ($dispatch->deleted_at->gt(now()->subSeconds(35))) {
+            $dispatch->restore();
+            Flux::toast('Restored.');
+        }
+
+        $this->undoId = null;
+    }
+
+    public function togglePin(int $id): void
+    {
+        if (! $user = $this->actor()) {
+            return;
+        }
+
+        $dispatch = $user->dispatches()->whereNull('parent_id')->where('status', 'approved')->findOrFail($id);
+        $pinned = $user->pinned_dispatch_id === $dispatch->id;
+        $user->forceFill(['pinned_dispatch_id' => $pinned ? null : $dispatch->id])->save();
+
+        Flux::toast($pinned ? 'Unpinned.' : 'Pinned to your profile.');
     }
 
     public function quote(int $id): void

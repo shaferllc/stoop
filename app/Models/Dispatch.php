@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Mentions;
 use Database\Factories\DispatchFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -10,15 +11,25 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\HtmlString;
 
 /**
  * A post on Stoop. Dispatches are never edited, only created and deleted.
  */
-#[Fillable(['user_id', 'parent_id', 'quote_id', 'type', 'line', 'stop', 'body', 'happening_at', 'status'])]
+#[Fillable(['user_id', 'parent_id', 'quote_id', 'type', 'line', 'stop', 'body', 'happening_at', 'status', 'publish_at', 'closes_at', 'link_preview_id'])]
 class Dispatch extends Model
 {
     /** @use HasFactory<DispatchFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+
+    protected function casts(): array
+    {
+        return [
+            'publish_at' => 'datetime',
+            'closes_at' => 'datetime',
+        ];
+    }
 
     public function user(): BelongsTo
     {
@@ -27,7 +38,7 @@ class Dispatch extends Model
 
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(self::class, 'parent_id');
+        return $this->belongsTo(self::class, 'parent_id')->withTrashed();
     }
 
     public function quoted(): BelongsTo
@@ -58,6 +69,16 @@ class Dispatch extends Model
     public function markers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'marks')->withPivot('kind')->withTimestamps();
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(DispatchImage::class);
+    }
+
+    public function linkPreview(): BelongsTo
+    {
+        return $this->belongsTo(LinkPreview::class);
     }
 
     public function reports(): HasMany
@@ -91,7 +112,7 @@ class Dispatch extends Model
      */
     public function scopeForCards(Builder $query): void
     {
-        $query->with(['user', 'quoted.user', 'options' => fn ($q) => $q->withCount('voters')])
+        $query->with(['user', 'quoted.user', 'images', 'linkPreview', 'options' => fn ($q) => $q->withCount('voters')])
             ->withCount([
                 'replies' => fn ($q) => $q->where('status', 'approved'),
                 'quotes' => fn ($q) => $q->where('status', 'approved'),
@@ -111,6 +132,24 @@ class Dispatch extends Model
             + $this->options->sum('voters_count') / 4;
 
         return ($engagement + 1) / 2 ** ($this->created_at->diffInMinutes(now()) / 180);
+    }
+
+    public function isClosed(): bool
+    {
+        return $this->closes_at?->isPast() ?? false;
+    }
+
+    public function bodyHtml(): HtmlString
+    {
+        return Mentions::render($this->body);
+    }
+
+    /**
+     * Long posts fold behind "Show more" in lists.
+     */
+    public function isLong(): bool
+    {
+        return mb_strlen($this->body) > 280 || substr_count($this->body, "\n") >= 8;
     }
 
     public function lineName(): string

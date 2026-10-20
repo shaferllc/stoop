@@ -1,4 +1,4 @@
-@props(['dispatch', 'state' => ['marks' => [], 'votes' => []], 'focus' => false])
+@props(['dispatch', 'state' => ['marks' => [], 'votes' => []], 'focus' => false, 'pinned' => false])
 
 @php
     $d = $dispatch;
@@ -6,14 +6,24 @@
     $marks = $state['marks'][$d->id] ?? [];
     $myVote = $state['votes'][$d->id] ?? null;
     $totalVotes = $d->options->sum('voters_count');
+    $showResults = $myVote !== null || $d->user_id === $me?->id || $d->isClosed() || ! $me;
     $btn = 'cursor-pointer hover:text-ink';
 @endphp
 
 <article wire:key="dispatch-{{ $d->id }}" id="d{{ $d->id }}" @class(['rounded-xl border bg-card px-4 py-3.5', 'border-ink' => $focus, 'border-rule' => ! $focus])>
     @if ($d->status !== 'approved')
         <div class="mb-2 rounded-md bg-chip px-2.5 py-1 text-xs text-mute">
-            {{ match ($d->status) { 'held' => 'Held for review. Only you and moderators can see this.', 'hidden' => 'Hidden after reports. A moderator is reviewing it.', default => 'Removed by a moderator.' } }}
+            {{ match ($d->status) {
+                'held' => 'Held for review. Only you and moderators can see this.',
+                'hidden' => 'Hidden after reports. A moderator is reviewing it.',
+                'scheduled' => 'Scheduled for '.$d->publish_at?->format('D M j, g:ia').'. Only you can see this.',
+                default => 'Removed by a moderator.',
+            } }}
         </div>
+    @endif
+
+    @if ($pinned)
+        <div class="mb-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-mute">Pinned</div>
     @endif
 
     <div class="flex flex-wrap items-center gap-2.5">
@@ -38,7 +48,32 @@
         <div class="mt-2 text-[12.5px] text-mute sm:ml-[46px]">Replying to <a href="{{ route('dispatches.show', $d->parent) }}" wire:navigate class="underline">{{ '@'.$d->parent->user->username }}</a></div>
     @endif
 
-    <div class="mt-2 whitespace-pre-line break-words sm:ml-[46px]">{{ $d->body }}</div>
+    @if ($d->body !== '')
+        <div class="mt-2 sm:ml-[46px]" x-data="{ more: false }">
+            <div class="whitespace-pre-line break-words" @if ($d->isLong() && ! $focus) :class="more ? '' : 'line-clamp-6'" @endif>{{ $d->bodyHtml() }}</div>
+            @if ($d->isLong() && ! $focus)
+                <button type="button" x-on:click="more = !more" x-text="more ? 'Show less' : 'Show more'" class="mt-1 text-[13px] font-medium text-flag"></button>
+            @endif
+        </div>
+    @endif
+
+    @if ($d->images->isNotEmpty())
+        <div @class(['mt-2 grid gap-1.5 overflow-hidden rounded-lg sm:ml-[46px]', 'grid-cols-2' => $d->images->count() > 1])>
+            @foreach ($d->images as $image)
+                <a href="{{ $image->url() }}" target="_blank" @class(['block', 'col-span-2' => $d->images->count() === 3 && $loop->first])>
+                    <img src="{{ $image->url() }}" alt="{{ $image->alt }}" loading="lazy" width="{{ $image->width }}" height="{{ $image->height }}" class="max-h-96 w-full bg-chip object-cover">
+                </a>
+            @endforeach
+        </div>
+    @endif
+
+    @if ($d->linkPreview)
+        <a href="{{ $d->linkPreview->url }}" target="_blank" rel="nofollow ugc noopener" class="mt-2 block rounded-lg border border-rule px-3 py-2 hover:border-ink sm:ml-[46px]">
+            <div class="text-[11px] uppercase tracking-wide text-mute">{{ $d->linkPreview->host() }}</div>
+            <div class="font-display text-[16px] font-bold leading-snug">{{ $d->linkPreview->title }}</div>
+            @if ($d->linkPreview->description)<div class="line-clamp-2 text-[13px] text-mute">{{ $d->linkPreview->description }}</div>@endif
+        </a>
+    @endif
 
     @if ($d->happening_at)
         <div class="mt-2 rounded-lg border border-rule px-3 py-2 text-sm text-mute sm:ml-[46px]"><b class="text-ink">{{ $d->happening_at }}</b> · {{ $d->going_count }} going</div>
@@ -53,7 +88,7 @@
     @if ($d->options->isNotEmpty())
         <div class="mt-2 space-y-1.5 sm:ml-[46px]">
             @foreach ($d->options as $option)
-                @if ($myVote === null && $d->user_id !== $me?->id)
+                @if (! $showResults)
                     <button type="button" wire:click="vote({{ $d->id }}, {{ $option->id }})" class="flex w-full justify-between rounded-lg border border-rule px-3 py-1.5 text-left hover:border-ink">
                         <span>{{ $option->label }}</span><span class="text-mute">Vote</span>
                     </button>
@@ -66,7 +101,11 @@
                     </div>
                 @endif
             @endforeach
-            <div class="text-[12.5px] text-mute">{{ number_format($totalVotes) }} {{ str('vote')->plural($totalVotes) }}{{ $myVote === null && $d->user_id !== $me?->id ? ' · vote to see results' : '' }}</div>
+            <div class="text-[12.5px] text-mute">
+                {{ number_format($totalVotes) }} {{ str('vote')->plural($totalVotes) }}
+                @if ($d->closes_at) · {{ $d->isClosed() ? 'Final results' : $d->closes_at->diffForHumans(['parts' => 1, 'syntax' => \Carbon\CarbonInterface::DIFF_ABSOLUTE]).' left' }} @endif
+                @unless ($showResults) · vote to see results @endunless
+            </div>
         </div>
     @endif
 
@@ -87,8 +126,11 @@
             <flux:dropdown position="bottom" align="start">
                 <button type="button" class="{{ $btn }}" aria-label="More actions">···</button>
                 <flux:menu>
+                    @if ($d->user_id === $me->id && ! $d->parent_id && $d->status === 'approved')
+                        <flux:menu.item wire:click="togglePin({{ $d->id }})">{{ $me->pinned_dispatch_id === $d->id ? 'Unpin from profile' : 'Pin to profile' }}</flux:menu.item>
+                    @endif
                     @if ($d->user_id === $me->id || $me->is_staff)
-                        <flux:menu.item wire:click="deleteDispatch({{ $d->id }})" wire:confirm="Delete this dispatch? This can’t be undone.">Delete</flux:menu.item>
+                        <flux:menu.item wire:click="deleteDispatch({{ $d->id }})">Delete</flux:menu.item>
                     @endif
                     @if ($d->user_id !== $me->id)
                         <flux:menu.item wire:click="startReport({{ $d->id }})">Report</flux:menu.item>

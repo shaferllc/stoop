@@ -5,6 +5,17 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{{ filled($title ?? null) ? $title.' · Stoop' : 'Stoop' }}</title>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <meta name="description" content="{{ $description ?? 'Stoop is a social network for DC, block by block.' }}">
+        <meta property="og:site_name" content="Stoop">
+        <meta property="og:title" content="{{ $title ?? 'Stoop' }}">
+        <meta property="og:description" content="{{ $description ?? 'A social network for DC, block by block.' }}">
+        <meta property="og:url" content="{{ url()->current() }}">
+        @isset($ogImage)
+            <meta property="og:image" content="{{ $ogImage }}">
+            <meta property="og:image:width" content="1200">
+            <meta property="og:image:height" content="630">
+        @endisset
+        <meta name="twitter:card" content="{{ isset($ogImage) ? 'summary_large_image' : 'summary' }}">
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=newsreader:500,700|public-sans:400,500,600,700|ibm-plex-mono:500&display=swap" rel="stylesheet" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])

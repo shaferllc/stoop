@@ -17,11 +17,16 @@ class ShowDispatch extends Component
 
     public int $dispatchId;
 
-    public function mount(Dispatch $dispatch): void
+    public function mount(int $dispatch): void
     {
-        abort_unless(Dispatch::visibleTo(Auth::user())->whereKey($dispatch->id)->exists(), 404);
+        $found = Dispatch::withTrashed()->findOrFail($dispatch);
 
-        $this->dispatchId = $dispatch->id;
+        abort_unless(
+            Dispatch::visibleTo(Auth::user())->whereKey($found->id)->exists() || ($found->trashed() && $found->replies()->exists()),
+            404,
+        );
+
+        $this->dispatchId = $found->id;
     }
 
     #[On('dispatch-filed')]
@@ -30,16 +35,21 @@ class ShowDispatch extends Component
     public function render(): View
     {
         $user = Auth::user();
-        $dispatch = Dispatch::visibleTo($user)->forCards()->with('parent.user')->find($this->dispatchId);
+        $dispatch = Dispatch::withTrashed()->forCards()->with('parent.user')->find($this->dispatchId);
 
         abort_unless($dispatch, 404);
 
         $replies = $dispatch->replies()->visibleTo($user)->forCards()->oldest()->get();
 
+        $title = $dispatch->trashed() ? 'Deleted dispatch' : str($dispatch->body)->limit(50).' · @'.$dispatch->user->username;
+
         return view('livewire.pages.show-dispatch', [
             'dispatch' => $dispatch,
             'replies' => $replies,
             'state' => $this->viewerState($replies->concat([$dispatch])),
-        ])->title(str($dispatch->body)->limit(50).' · '.$dispatch->user->username);
+        ])->title($title)->layoutData([
+            'description' => $dispatch->trashed() ? null : str($dispatch->body)->limit(160)->toString(),
+            'ogImage' => $dispatch->trashed() ? null : route('dispatches.og', $dispatch),
+        ]);
     }
 }

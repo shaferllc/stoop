@@ -51,4 +51,5 @@
     @endif
 
     @include('partials.report-dialog')
+    @include('partials.undo-bar')
 </div>
