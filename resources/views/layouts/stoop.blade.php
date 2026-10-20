@@ -70,6 +70,11 @@
                         Notifications
                         @if ($unread)<span class="ml-auto rounded-full bg-flag px-1.5 text-[11px] font-bold text-white">{{ $unread }}</span>@endif
                     </a>
+                    @php($unreadMessages = \App\Support\Messaging::unreadCount($me))
+                    <a href="{{ route('messages') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('messages*') ? 'bg-chip text-ink' : '' }}">
+                        Messages
+                        @if ($unreadMessages)<span class="ml-auto rounded-full bg-flag px-1.5 text-[11px] font-bold text-white">{{ $unreadMessages }}</span>@endif
+                    </a>
                     <a href="{{ route('saved') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('saved') ? 'bg-chip text-ink' : '' }}">Saved</a>
                     <a href="{{ route('users.show', $me) }}" wire:navigate class="{{ $navItem }}">Profile</a>
                     @if ($me->is_staff)

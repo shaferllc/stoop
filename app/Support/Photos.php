@@ -14,7 +14,7 @@ class Photos
     /**
      * @return array{path: string, width: int, height: int}
      */
-    public static function store(UploadedFile $file): array
+    public static function store(UploadedFile $file, string $disk = 'public', string $folder = 'dispatches'): array
     {
         $image = imagecreatefromstring(file_get_contents($file->getRealPath()));
 
@@ -33,8 +33,8 @@ class Photos
 
         ob_start();
         imagewebp($image, null, 82);
-        $path = 'dispatches/'.Str::random(32).'.webp';
-        Storage::disk('public')->put($path, ob_get_clean());
+        $path = $folder.'/'.Str::random(32).'.webp';
+        Storage::disk($disk)->put($path, ob_get_clean());
 
         return ['path' => $path, 'width' => imagesx($image), 'height' => imagesy($image)];
     }

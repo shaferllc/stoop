@@ -3,18 +3,22 @@
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\TransparencyController;
 use App\Livewire\Pages\AppealCreate;
+use App\Livewire\Pages\ConversationView;
 use App\Livewire\Pages\Feed;
+use App\Livewire\Pages\Inbox;
 use App\Livewire\Pages\Moderation;
 use App\Livewire\Pages\Notifications;
 use App\Livewire\Pages\Saved;
 use App\Livewire\Pages\ShowDispatch;
 use App\Livewire\Pages\UserProfile;
 use App\Models\Dispatch;
+use App\Models\MessageImage;
 use App\Models\User;
 use App\Support\RidershipGraph;
 use App\Support\ShareImage;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 // Guests can read the public feeds, threads and profiles...
 Route::livewire('/', Feed::class)->name('home');
@@ -55,6 +59,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('notifications', Notifications::class)->name('notifications');
     Route::livewire('moderation', Moderation::class)->name('moderation');
     Route::livewire('appeal', AppealCreate::class)->name('appeals.create');
+    Route::livewire('messages', Inbox::class)->name('messages');
+    Route::livewire('messages/{conversation}', ConversationView::class)->name('messages.show');
+    Route::get('messages/images/{image}', function (MessageImage $image) {
+        abort_unless($image->message->conversation->participants()->whereKey(auth()->id())->exists(), 404);
+
+        return response()->file(Storage::disk('local')->path($image->path), ['Cache-Control' => 'private, max-age=86400']);
+    })->name('messages.image');
     Route::get('banned', fn () => view('banned', ['ban' => auth()->user()->activeBan()]))->name('banned');
 });
 

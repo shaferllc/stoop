@@ -42,6 +42,22 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     use HasApiTokens, HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
+     * Defaults for new accounts, matching the database, so they hold before the first reload.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'replies_from' => 'everyone',
+        'dms_on' => true,
+        'message_requests' => false,
+        'read_receipts' => true,
+        'half_smokes_on' => false,
+        'is_bot' => false,
+        'is_staff' => false,
+        'is_native' => false,
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -57,6 +73,9 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'subscribed_until' => 'datetime',
             'half_smokes_on' => 'boolean',
             'is_bot' => 'boolean',
+            'dms_on' => 'boolean',
+            'message_requests' => 'boolean',
+            'read_receipts' => 'boolean',
             'live_until' => 'datetime',
             'accepted_rules_at' => 'datetime',
         ];

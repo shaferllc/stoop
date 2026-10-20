@@ -2,7 +2,7 @@
     <h1 class="font-display text-3xl font-bold">Moderation</h1>
 
     <div class="mt-3 mb-4 flex gap-0.5 border-b border-rule">
-        @foreach (['queue' => 'Queue ('.$queue->count().')', 'appeals' => 'Appeals ('.$appeals->count().')', 'penalties' => 'Timeouts & bans ('.$penalties->count().')'] as $key => $label)
+        @foreach (['queue' => 'Queue ('.$queue->count().')', 'appeals' => 'Appeals ('.$appeals->count().')', 'messages' => 'Messages ('.$messageReports->count().')', 'penalties' => 'Timeouts & bans ('.$penalties->count().')'] as $key => $label)
             <button type="button" wire:click="$set('view', '{{ $key }}')" @class(['border-b-2 px-3.5 py-2 text-sm font-medium', 'border-flag' => $view === $key, 'border-transparent text-mute' => $view !== $key])>{{ $label }}</button>
         @endforeach
     </div>
@@ -52,6 +52,27 @@
                 </div>
             @empty
                 <div class="rounded-xl border border-dashed border-rule p-8 text-center text-mute">No open appeals.</div>
+            @endforelse
+        </div>
+    @elseif ($view === 'messages')
+        <p class="mb-3 text-sm text-mute">Reported private messages, with a few messages either side for context. Read only what you need.</p>
+        <div class="space-y-3">
+            @forelse ($messageReports as $r)
+                <div wire:key="mr-{{ $r->id }}" class="rounded-xl border border-rule bg-card p-4 text-sm">
+                    <div><b>{{ '@'.$r->user->username }}</b> reported a message from <b>{{ '@'.($r->message->user?->username ?? 'deleted') }}</b> · {{ config("stoop.report_reasons.{$r->reason}") }}</div>
+                    <ol class="mt-2 space-y-1 rounded-lg bg-chip p-2.5">
+                        @foreach ($r->context as $m)
+                            <li @class(['font-semibold text-flag' => $m->id === $r->message_id])>{{ $m->user?->username ?? 'deleted' }}: {{ $m->body }}</li>
+                        @endforeach
+                    </ol>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <button type="button" wire:click="resolveMessageReport({{ $r->id }})" class="rounded-lg border border-rule px-3 py-1">Dismiss</button>
+                        <button type="button" wire:click="resolveMessageReport({{ $r->id }}, 24)" class="rounded-lg border border-rule px-3 py-1">Timeout sender 1 day</button>
+                        <button type="button" wire:click="resolveMessageReport({{ $r->id }}, 168)" class="rounded-lg border border-rule px-3 py-1">Timeout sender 7 days</button>
+                    </div>
+                </div>
+            @empty
+                <div class="rounded-xl border border-dashed border-rule p-8 text-center text-mute">No reported messages.</div>
             @endforelse
         </div>
     @else

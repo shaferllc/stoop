@@ -4,6 +4,7 @@ namespace App\Livewire\Pages;
 
 use App\Models\Appeal;
 use App\Models\Dispatch;
+use App\Models\MessageReport;
 use App\Models\Penalty;
 use App\Models\User;
 use App\Notifications\ModerationNotice;
@@ -114,6 +115,23 @@ class Moderation extends Component
         }.($penalty->type === 'warning' ? '' : ' You can appeal once.'), $dispatch));
     }
 
+    /**
+     * Close a message report, optionally putting the sender in a timeout.
+     */
+    public function resolveMessageReport(int $reportId, int $timeoutHours = 0): void
+    {
+        $moderator = $this->moderator();
+        $report = MessageReport::with('message.user')->findOrFail($reportId);
+        MessageReport::where('message_id', $report->message_id)->whereNull('resolved_at')->update(['resolved_at' => now()]);
+
+        if ($timeoutHours && $sender = $report->message->user) {
+            abort_unless(isset(Penalty::TIMEOUTS[$timeoutHours]), 422);
+            $this->penalize($sender, (string) $timeoutHours, config('stoop.report_reasons.'.$report->reason, 'Breaking the house rules in messages'), null, $moderator);
+        }
+
+        Flux::toast('Resolved.');
+    }
+
     public function lift(int $penaltyId): void
     {
         $this->moderator();
@@ -161,6 +179,11 @@ class Moderation extends Component
             'appeals' => Appeal::with(['user', 'penalty', 'dispatch'])->where('status', 'open')->oldest()->get()
                 ->reject(fn ($a) => $a->originalModeratorId() === $moderator->id),
             'penalties' => Penalty::with('user')->active()->whereIn('type', ['timeout', 'ban'])->latest()->get(),
+            'messageReports' => MessageReport::with(['user', 'message.user'])->whereNull('resolved_at')->oldest()->get()
+                ->unique('message_id')
+                ->each(fn ($r) => $r->context = $r->message->conversation->messages()->with('user')
+                    ->whereBetween('id', [$r->message_id - 50, $r->message_id + 50])->orderBy('id')->get()
+                    ->filter(fn ($m) => abs($m->id - $r->message_id) <= 3 || $m->id === $r->message_id)),
             'actingOn' => $this->acting ? Dispatch::with('user')->find($this->acting) : null,
         ]);
     }

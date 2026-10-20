@@ -9,7 +9,10 @@
                 </div>
             </div>
             @if (auth()->id() !== $user->id)
-                <button type="button" wire:click="toggleFollow({{ $user->id }})" @class(['ml-auto rounded-full border px-4 py-1.5 text-sm font-semibold', 'border-ink bg-ink text-paper' => $isFollowing, 'border-rule' => ! $isFollowing])>{{ $isFollowing ? 'Following' : 'Follow' }}</button>
+                @auth
+                    <a href="{{ route('messages', ['to' => $user->username]) }}" wire:navigate class="ml-auto rounded-full border border-rule px-4 py-1.5 text-sm">Message</a>
+                @endauth
+                <button type="button" wire:click="toggleFollow({{ $user->id }})" @class(['rounded-full border px-4 py-1.5 text-sm font-semibold', 'ml-auto' => ! auth()->check(), 'border-ink bg-ink text-paper' => $isFollowing, 'border-rule' => ! $isFollowing])>{{ $isFollowing ? 'Following' : 'Follow' }}</button>
             @else
                 <a href="{{ route('profile.edit') }}" wire:navigate class="ml-auto rounded-full border border-rule px-4 py-1.5 text-sm">Edit profile</a>
             @endif
