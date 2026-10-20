@@ -17,6 +17,10 @@ trait ProfileValidationRules
     {
         return [
             'name' => $this->nameRules(),
+            'username' => [
+                'required', 'string', 'min:2', 'max:30', 'regex:/^[A-Za-z0-9_]+$/',
+                $userId === null ? Rule::unique(User::class) : Rule::unique(User::class)->ignore($userId),
+            ],
             'email' => $this->emailRules($userId),
         ];
     }

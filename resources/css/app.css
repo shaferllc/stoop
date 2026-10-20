@@ -9,7 +9,9 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Newsreader', Georgia, serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --font-sans: 'Public Sans', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -22,6 +24,15 @@
     --color-zinc-800: #262626;
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
+
+    /* Stoop surfaces, switched for dark mode below */
+    --color-paper: var(--stoop-paper);
+    --color-card: var(--stoop-card);
+    --color-ink: var(--stoop-ink);
+    --color-mute: var(--stoop-mute);
+    --color-rule: var(--stoop-rule);
+    --color-chip: var(--stoop-chip);
+    --color-flag: var(--stoop-flag);
 
     --color-accent: var(--color-neutral-800);
     --color-accent-content: var(--color-neutral-800);
@@ -64,3 +75,23 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+:root {
+    --stoop-paper: #f2f3f1;
+    --stoop-card: #ffffff;
+    --stoop-ink: #16181a;
+    --stoop-mute: #5d6366;
+    --stoop-rule: #dde0de;
+    --stoop-chip: #e8ebe8;
+    --stoop-flag: #c8102e;
+}
+
+.dark {
+    --stoop-paper: #121416;
+    --stoop-card: #1b1e20;
+    --stoop-ink: #eceeed;
+    --stoop-mute: #9aa1a3;
+    --stoop-rule: #2b2f31;
+    --stoop-chip: #262a2c;
+    --stoop-flag: #ff5a6e;
+}
