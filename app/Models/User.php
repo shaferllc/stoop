@@ -19,6 +19,7 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
 /**
  * @property int $id
@@ -33,12 +34,12 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'username', 'email', 'password', 'is_native', 'dc_since', 'stops'])]
+#[Fillable(['name', 'username', 'email', 'password', 'is_native', 'dc_since', 'stops', 'half_smokes_on'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasApiTokens, HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
      * Get the attributes that should be cast.
@@ -54,6 +55,9 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'is_staff' => 'boolean',
             'stops' => 'array',
             'subscribed_until' => 'datetime',
+            'half_smokes_on' => 'boolean',
+            'is_bot' => 'boolean',
+            'live_until' => 'datetime',
             'accepted_rules_at' => 'datetime',
         ];
     }
@@ -167,12 +171,30 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return null;
     }
 
+    public function isLive(): bool
+    {
+        return $this->live_url && $this->live_until?->isFuture();
+    }
+
+    /**
+     * Half-smokes left to give today. The allowance resets at midnight DC time.
+     */
+    public function halfSmokesLeft(): int
+    {
+        $given = HalfSmoke::where('giver_id', $this->id)
+            ->where('created_at', '>=', now(config('stoop.timezone'))->startOfDay()->utc())
+            ->count();
+
+        return max(0, config('stoop.half_smokes_per_day') - $given);
+    }
+
     /**
      * The label shown next to a name: STAFF, NATIVE, TRANSPLANT ’19, or SUBSCRIBER.
      */
     public function badge(): string
     {
         return match (true) {
+            $this->is_bot => 'HOUSE ACCOUNT',
             $this->is_staff => 'STAFF',
             $this->is_native => 'NATIVE',
             $this->dc_since !== null => 'TRANSPLANT ’'.substr((string) $this->dc_since, -2),

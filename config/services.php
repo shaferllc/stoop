@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    // Optional. Without a key, @stoop answers from the knowledge base by keyword.
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+        'model' => env('STOOP_BOT_MODEL', 'claude-opus-5-5'),
+    ],
+
 ];

@@ -24,6 +24,8 @@ class Profile extends Component
 
     public bool $is_native = false;
 
+    public bool $half_smokes_on = false;
+
     public ?int $dc_since = null;
 
     /** @var array<int, string> */
@@ -38,6 +40,7 @@ class Profile extends Component
         $this->username = (string) Auth::user()->username;
         $this->email = Auth::user()->email;
         $this->is_native = (bool) Auth::user()->is_native;
+        $this->half_smokes_on = (bool) Auth::user()->half_smokes_on;
         $this->dc_since = Auth::user()->dc_since;
         $this->stops = Auth::user()->stops ?? [];
     }
@@ -52,6 +55,7 @@ class Profile extends Component
         $validated = $this->validate([
             ...$this->profileRules($user->id),
             'is_native' => ['boolean'],
+            'half_smokes_on' => ['boolean'],
             'dc_since' => ['nullable', 'integer', 'min:1940', 'max:'.now()->year],
             'stops' => ['array', 'max:3'],
             'stops.*' => [Rule::in(array_keys(config('stoop.stations')))],

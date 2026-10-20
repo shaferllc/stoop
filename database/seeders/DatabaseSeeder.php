@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Dispatch;
 use App\Models\User;
+use App\Support\Bots;
 use Illuminate\Database\Seeder;
 
 /**
@@ -67,5 +68,10 @@ class DatabaseSeeder extends Seeder
         });
 
         $people['you']->following()->attach([$people['food']->id, $people['mayaeats']->id]);
+        $people['you']->forceFill(['half_smokes_on' => true])->save();
+
+        $stoop = Bots::account('stoop');
+        Bots::account('dc');
+        $people->each(fn (User $u) => $u->following()->syncWithoutDetaching([$stoop->id]));
     }
 }

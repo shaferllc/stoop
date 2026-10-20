@@ -3,6 +3,7 @@
 namespace App\Livewire\Concerns;
 
 use App\Models\Dispatch;
+use App\Models\HalfSmoke;
 use App\Models\Report;
 use App\Models\User;
 use App\Notifications\StoopActivity;
@@ -86,6 +87,30 @@ trait HandlesDispatchActions
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+    }
+
+    /**
+     * Hand out one of today's half-smokes. Several can go to the same dispatch, never your own.
+     */
+    public function giveHalfSmoke(int $id): void
+    {
+        if (! $user = $this->actor()) {
+            return;
+        }
+
+        $dispatch = $this->findVisible($id);
+
+        if (! $user->half_smokes_on || $dispatch->user_id === $user->id) {
+            return;
+        }
+
+        if ($user->halfSmokesLeft() === 0) {
+            Flux::toast('You’re out of half-smokes for today. More at midnight.');
+
+            return;
+        }
+
+        HalfSmoke::create(['giver_id' => $user->id, 'dispatch_id' => $dispatch->id]);
     }
 
     public function toggleFollow(int $userId): void

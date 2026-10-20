@@ -27,13 +27,16 @@
     @endif
 
     <div class="flex flex-wrap items-center gap-2.5">
-        <a href="{{ route('users.show', $d->user) }}" wire:navigate class="grid size-9 shrink-0 place-items-center rounded-full text-[13px] font-semibold text-white" style="background: {{ $d->user->color() }}">{{ $d->user->initials() }}</a>
+        <a href="{{ $d->user->isLive() ? $d->user->live_url : route('users.show', $d->user) }}" @if ($d->user->isLive()) target="_blank" rel="noopener" title="On the scene: {{ $d->user->live_label }}" @else wire:navigate @endif
+            @class(['grid size-9 shrink-0 place-items-center rounded-full text-[13px] font-semibold text-white', 'ring-2 ring-flag ring-offset-2 ring-offset-card' => $d->user->isLive()])
+            style="background: {{ $d->user->color() }}">{{ $d->user->initials() }}</a>
         <div class="min-w-0">
             <span class="relative" x-data="hoverCard(@js(route('users.card', $d->user)))" x-on:mouseenter="show()" x-on:mouseleave="hide()">
                 <a href="{{ route('users.show', $d->user) }}" wire:navigate class="font-semibold hover:underline">{{ $d->user->name }}</a>
                 <div x-show="open" x-cloak x-html="html" class="absolute left-0 top-full z-20 mt-1 w-72"></div>
             </span>
             <span class="ml-1.5 rounded border border-rule px-1 text-[10px] font-bold tracking-wide text-mute">{{ $d->user->badge() }}</span>
+            @if ($d->user->isLive())<span class="ml-1 rounded bg-flag px-1 text-[10px] font-bold text-white">ON THE SCENE</span>@endif
             <div class="text-[12.5px] text-mute">
                 <a href="{{ route('users.show', $d->user) }}" wire:navigate>{{ '@'.$d->user->username }}</a>
                 · <a href="{{ route('dispatches.show', $d) }}" wire:navigate class="hover:underline" title="{{ $d->created_at->toDayDateTimeString() }}">{{ $d->created_at->shortAbsoluteDiffForHumans() }}</a>
@@ -126,6 +129,11 @@
             <button type="button" wire:click="quote({{ $d->id }})" class="{{ $btn }}">Quote {{ $d->quotes_count }}</button>
         @endunless
         <button type="button" wire:click="toggleMark({{ $d->id }}, 'save')" @class([$btn, 'font-semibold text-flag' => in_array('save', $marks)])>{{ in_array('save', $marks) ? 'Saved' : 'Save' }}</button>
+        @if ($me?->half_smokes_on && $d->user_id !== $me->id)
+            <button type="button" wire:click="giveHalfSmoke({{ $d->id }})" class="{{ $btn }}" title="Give a half-smoke ({{ $me->halfSmokesLeft() }} left today)">Half-smoke {{ $d->half_smokes_count ?: '' }}</button>
+        @elseif ($me?->half_smokes_on && $d->half_smokes_count)
+            <span>{{ $d->half_smokes_count }} {{ str('half-smoke')->plural($d->half_smokes_count) }}</span>
+        @endif
         @if ($d->type === 'been')
             <button type="button" wire:click="toggleMark({{ $d->id }}, 'been')" @class([$btn, 'font-semibold text-flag' => in_array('been', $marks)])>Been here {{ $d->been_count }}</button>
         @endif

@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Settings\ApiTokens;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Profile;
 use App\Livewire\Settings\Safety;
@@ -11,6 +12,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::livewire('settings/profile', Profile::class)->name('profile.edit');
     Route::livewire('settings/safety', Safety::class)->name('safety.edit');
+    Route::livewire('settings/tokens', ApiTokens::class)->name('tokens.edit');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

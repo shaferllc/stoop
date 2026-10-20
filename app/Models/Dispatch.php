@@ -85,6 +85,11 @@ class Dispatch extends Model
         return $this->belongsTo(LinkPreview::class);
     }
 
+    public function halfSmokes(): HasMany
+    {
+        return $this->hasMany(HalfSmoke::class);
+    }
+
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
@@ -122,6 +127,7 @@ class Dispatch extends Model
                 'quotes' => fn ($q) => $q->where('status', 'approved'),
                 'markers as been_count' => fn ($q) => $q->where('marks.kind', 'been'),
                 'markers as going_count' => fn ($q) => $q->where('marks.kind', 'going'),
+                'halfSmokes',
             ]);
     }
 

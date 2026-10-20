@@ -14,6 +14,13 @@
                 <a href="{{ route('profile.edit') }}" wire:navigate class="ml-auto rounded-full border border-rule px-4 py-1.5 text-sm">Edit profile</a>
             @endif
         </div>
+        @if ($user->isLive())
+            <a href="{{ $user->live_url }}" target="_blank" rel="noopener" class="mt-3 flex items-center gap-2 rounded-lg bg-flag/10 px-3 py-2 text-sm font-semibold text-flag">
+                <span class="size-2 animate-pulse rounded-full bg-flag motion-reduce:animate-none"></span>
+                On the scene{{ $user->live_label ? ': '.$user->live_label : '' }} · Watch
+            </a>
+        @endif
+
         <div class="mt-4 flex flex-wrap gap-5 text-sm text-mute">
             <span><b class="text-ink">{{ $user->followers_count }}</b> followers</span>
             <span><b class="text-ink">{{ $user->following_count }}</b> following</span>
@@ -22,6 +29,43 @@
             @endif
         </div>
     </section>
+
+    <section class="mt-3 rounded-xl border border-rule bg-card p-5">
+        <div class="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-sm text-mute">
+            <span class="font-display text-xl font-bold text-ink">{{ $rank }}</span>
+            <span><b class="text-ink tabular-nums">{{ number_format($xp) }}</b> XP</span>
+            <span><b class="text-ink">{{ $streaks['current'] }}</b>-day streak</span>
+            <span>Longest <b class="text-ink">{{ $streaks['longest'] }}</b></span>
+        </div>
+        <div class="mt-3 overflow-x-auto [&_svg]:max-w-none dark:[&_rect[fill='#e8ebe8']]:fill-[#262a2c]">{!! $graph !!}</div>
+        @if ($badges)
+            <ul class="mt-3 flex flex-wrap gap-1.5">
+                @foreach ($badges as $badge)
+                    <li class="rounded-full border border-rule px-2.5 py-0.5 text-[12.5px]" title="{{ $badge['description'] }}">{{ $badge['name'] }}</li>
+                @endforeach
+            </ul>
+        @endif
+        <p class="mt-2 text-[12px] text-mute">Embed this graph anywhere: <code class="font-mono">{{ route('users.ridership', $user) }}</code></p>
+    </section>
+
+    @if (auth()->id() === $user->id)
+        <details class="mt-3 rounded-xl border border-rule bg-card p-4 text-sm" @if ($errors->hasAny(['liveUrl', 'liveLabel', 'liveHours'])) open @endif>
+            <summary class="cursor-pointer font-semibold">{{ $user->isLive() ? 'You’re on the scene' : 'Go on the scene' }}</summary>
+            @if ($user->isLive())
+                <p class="mt-2 text-mute">Until {{ $user->live_until->format('g:ia') }}. <button type="button" wire:click="endLive" class="underline">End it now</button></p>
+            @else
+                <form wire:submit="goLive" class="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_auto_auto]">
+                    <input wire:model="liveUrl" placeholder="YouTube, Twitch or Instagram link" aria-label="Stream link" class="rounded-md border border-rule bg-paper px-2.5 py-1.5">
+                    <input wire:model="liveLabel" maxlength="80" placeholder="Where? (optional)" aria-label="Where" class="rounded-md border border-rule bg-paper px-2.5 py-1.5">
+                    <select wire:model="liveHours" aria-label="For how long" class="rounded-md border border-rule bg-paper px-2 py-1.5">
+                        @foreach ([1, 2, 3, 4, 6, 8, 12] as $h)<option value="{{ $h }}">{{ $h }} {{ str('hour')->plural($h) }}</option>@endforeach
+                    </select>
+                    <button type="submit" class="rounded-lg bg-flag px-3 py-1.5 font-semibold text-white">Go</button>
+                </form>
+                @error('liveUrl') <p class="mt-1 text-flag">{{ $message }}</p> @enderror
+            @endif
+        </details>
+    @endif
 
     <div class="mt-4 mb-3 flex gap-0.5 border-b border-rule">
         @foreach (['dispatches' => 'Dispatches', 'replies' => 'Replies'] as $key => $label)

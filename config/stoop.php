@@ -87,6 +87,14 @@ return [
     // Turn on once posting is tied to magazine subscriptions.
     'require_subscription' => env('STOOP_REQUIRE_SUBSCRIPTION', false),
 
+    // Days, streaks and half-smoke allowances follow DC time.
+    'timezone' => 'America/New_York',
+
+    'half_smokes_per_day' => 10,
+
+    // Hosts you can link when you go live from somewhere.
+    'live_hosts' => ['youtube.com', 'www.youtube.com', 'youtu.be', 'twitch.tv', 'www.twitch.tv', 'instagram.com', 'www.instagram.com'],
+
     'max_length' => 500,
 
     'posts_per_minute' => 10,

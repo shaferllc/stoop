@@ -15,6 +15,8 @@
                 <flux:input wire:model="dc_since" :label="__('Year you moved here')" type="number" placeholder="2019" />
             @endunless
 
+            <flux:checkbox wire:model="half_smokes_on" :label="__('Half-smokes')" :description="__('Get 10 a day to hand out to dispatches you love. Just for fun; they don’t affect rankings.')" />
+
             <flux:checkbox.group wire:model="stops" :label="__('Your stops (up to 3)')" :description="__('Near me shows dispatches tagged with these stations.')">
                 <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
                     @foreach (config('stoop.stations') as $code => $station)
