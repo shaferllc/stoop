@@ -15,6 +15,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
@@ -34,7 +35,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'username', 'email', 'password', 'is_native', 'dc_since', 'stops', 'half_smokes_on'])]
+#[Fillable(['name', 'username', 'email', 'password', 'is_native', 'dc_since', 'stops', 'half_smokes_on', 'translation_language'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
@@ -91,6 +92,38 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return Str::length($initials) > 1
             ? Str::substr($initials, 0, 1).Str::substr($initials, -1)
             : $initials;
+    }
+
+    /**
+     * Deleting an account erases everything about the person. Dispatches other people
+     * replied to stay as empty, authorless tombstones so those replies survive.
+     * Penalties are kept by email hash (see hashSubject).
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user) {
+            Dispatch::withTrashed()->where('user_id', $user->id)->with('images')->each(function (Dispatch $dispatch) use ($user) {
+                $dispatch->images->each(fn ($image) => Storage::disk('public')->delete($image->path));
+                $dispatch->images()->delete();
+
+                $othersReplied = Dispatch::withTrashed()->where('parent_id', $dispatch->id)->where('user_id', '!=', $user->id)->exists();
+
+                if ($othersReplied) {
+                    $dispatch->forceFill(['body' => '', 'safety' => null, 'happening_at' => null, 'deleted_at' => $dispatch->deleted_at ?? now()])->saveQuietly();
+                } else {
+                    $dispatch->forceDelete();
+                }
+            });
+
+            Message::where('user_id', $user->id)->with('images')->each(function (Message $message) {
+                $message->images->each(fn ($image) => Storage::disk('local')->delete($image->path));
+                $message->delete();
+            });
+
+            $user->notifications()->delete();
+            $user->tokens()->delete();
+            DB::table('notifications')->where('data->actor_id', $user->id)->delete();
+        });
     }
 
     public function dispatches(): HasMany

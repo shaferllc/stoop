@@ -35,6 +35,11 @@ return [
         ],
     ],
 
+    // Optional. Shows live Metro delays in the sidebar. Free key at developer.wmata.com.
+    'wmata' => [
+        'key' => env('WMATA_API_KEY'),
+    ],
+
     // Optional. Without a key, @stoop answers from the knowledge base by keyword.
     'anthropic' => [
         'key' => env('ANTHROPIC_API_KEY'),

@@ -178,7 +178,7 @@ class StoopTest extends TestCase
         $this->seed();
         $staff = User::where('username', 'food')->first();
 
-        foreach (['/', '/?tab=following', '/?tab=near', '/?line=red', '/?q=lunch', '/saved', '/notifications', '/moderation', '/@mayaeats', '/d/1', '/rules', '/settings/profile'] as $url) {
+        foreach (['/', '/?tab=following', '/?tab=near', '/?line=red', '/?q=lunch', '/saved', '/notifications', '/moderation', '/@mayaeats', '/d/1', '/rules', '/settings/profile', '/settings/safety', '/settings/tokens', '/messages', '/search?q=lunch', '/search?q=maya&tab=people', '/operations', '/transparency', '/@mayaeats/ridership.svg', '/feeds/latest.atom'] as $url) {
             $this->actingAs($staff)->get($url)->assertOk();
         }
     }

@@ -1,4 +1,4 @@
-@props(['dispatch', 'state' => ['marks' => [], 'votes' => []], 'focus' => false, 'pinned' => false])
+@props(['dispatch', 'state' => ['marks' => [], 'votes' => []], 'focus' => false, 'pinned' => false, 'translated' => null])
 
 @php
     $d = $dispatch;
@@ -51,12 +51,17 @@
     </div>
 
     @if ($d->parent_id && $d->relationLoaded('parent') && $d->parent)
-        <div class="mt-2 text-[12.5px] text-mute sm:ml-[46px]">Replying to <a href="{{ route('dispatches.show', $d->parent) }}" wire:navigate class="underline">{{ '@'.$d->parent->user->username }}</a></div>
+        <div class="mt-2 text-[12.5px] text-mute sm:ml-[46px]">Replying to <a href="{{ route('dispatches.show', $d->parent) }}" wire:navigate class="underline">{{ $d->parent->user ? '@'.$d->parent->user->username : 'a deleted dispatch' }}</a></div>
     @endif
 
     @if ($d->body !== '')
         <div class="mt-2 sm:ml-[46px]" x-data="{ more: false }">
-            <div class="whitespace-pre-line break-words" @if ($d->isLong() && ! $focus) :class="more ? '' : 'line-clamp-6'" @endif>{{ $d->bodyHtml() }}</div>
+            <div class="whitespace-pre-line break-words" @if ($d->isLong() && ! $focus) :class="more ? '' : 'line-clamp-6'" @endif>{{ $translated ?? $d->bodyHtml() }}</div>
+            @if ($translated)
+                <div class="mt-1 text-[12.5px] text-mute">Translated · <button type="button" wire:click="showOriginal({{ $d->id }})" class="underline">Show original</button></div>
+            @elseif ($me && \App\Support\Translator::offer($d->body, $me->translation_language ?? 'en'))
+                <button type="button" wire:click="translate({{ $d->id }})" class="mt-1 text-[12.5px] text-mute underline">Translate</button>
+            @endif
             @if ($d->isLong() && ! $focus)
                 <button type="button" x-on:click="more = !more" x-text="more ? 'Show less' : 'Show more'" class="mt-1 text-[13px] font-medium text-flag"></button>
             @endif

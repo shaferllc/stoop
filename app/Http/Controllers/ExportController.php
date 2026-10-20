@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Dispatch;
+use App\Models\Message;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\Response;
+
+/**
+ * Everything Stoop stores about you, as one JSON file.
+ */
+class ExportController extends Controller
+{
+    public function __invoke(Request $request): Response
+    {
+        $user = $request->user();
+
+        $data = [
+            'exported_at' => now()->toIso8601String(),
+            'profile' => $user->only(['name', 'username', 'email', 'is_native', 'dc_since', 'stops', 'replies_from', 'dms_on', 'message_requests', 'read_receipts', 'half_smokes_on', 'translation_language', 'created_at']),
+            'dispatches' => Dispatch::withTrashed()->where('user_id', $user->id)->with(['images', 'options'])->get()
+                ->map(fn ($d) => $d->only(['id', 'parent_id', 'quote_id', 'type', 'line', 'stop', 'body', 'happening_at', 'safety', 'status', 'created_at', 'deleted_at'])
+                    + ['photos' => $d->images->map->only(['path', 'alt']), 'poll_options' => $d->options->pluck('label')]),
+            'following' => $user->following()->pluck('username'),
+            'followers' => $user->followers()->pluck('username'),
+            'muted_and_blocked' => $user->silenced()->get()->map(fn ($u) => ['username' => $u->username, 'type' => $u->pivot->type]),
+            'marks' => DB::table('marks')->where('user_id', $user->id)->get(['dispatch_id', 'kind', 'created_at']),
+            'poll_votes' => DB::table('poll_votes')->where('user_id', $user->id)->get(['dispatch_id', 'poll_option_id', 'created_at']),
+            'half_smokes_given' => DB::table('half_smokes')->where('giver_id', $user->id)->get(['dispatch_id', 'created_at']),
+            'reports_filed' => DB::table('reports')->where('user_id', $user->id)->get(['dispatch_id', 'reason', 'note', 'created_at']),
+            'messages_sent' => Message::where('user_id', $user->id)->get()->map->only(['conversation_id', 'body', 'created_at']),
+            'notifications' => $user->notifications()->get(['data', 'created_at', 'read_at']),
+            'penalties' => $user->penalties()->get(['type', 'reason', 'ends_at', 'lifted_at', 'created_at']),
+            'api_tokens' => $user->tokens()->get(['name', 'last_used_at', 'created_at']),
+        ];
+
+        return response()->streamDownload(
+            fn () => print (json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)),
+            'stoop-'.$user->username.'-'.now()->format('Y-m-d').'.json',
+            ['Content-Type' => 'application/json'],
+        );
+    }
+}

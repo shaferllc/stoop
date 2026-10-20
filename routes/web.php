@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\TransparencyController;
 use App\Livewire\Pages\AppealCreate;
@@ -8,7 +9,9 @@ use App\Livewire\Pages\Feed;
 use App\Livewire\Pages\Inbox;
 use App\Livewire\Pages\Moderation;
 use App\Livewire\Pages\Notifications;
+use App\Livewire\Pages\Operations;
 use App\Livewire\Pages\Saved;
+use App\Livewire\Pages\Search;
 use App\Livewire\Pages\ShowDispatch;
 use App\Livewire\Pages\UserProfile;
 use App\Models\Dispatch;
@@ -25,6 +28,12 @@ Route::livewire('/', Feed::class)->name('home');
 Route::livewire('d/{dispatch}', ShowDispatch::class)->name('dispatches.show');
 Route::livewire('@{user:username}', UserProfile::class)->name('users.show');
 Route::view('rules', 'rules')->name('rules');
+Route::livewire('search', Search::class)->name('search');
+Route::get('stops/{code}', function (string $code) {
+    abort_unless(config('stoop.stations.'.strtoupper($code)), 404);
+
+    return redirect()->route('home', ['stop' => strtoupper($code)]);
+})->name('stops.show');
 Route::get('transparency', TransparencyController::class)->name('transparency');
 
 // Terminal posting script and Atom feeds...
@@ -59,6 +68,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('notifications', Notifications::class)->name('notifications');
     Route::livewire('moderation', Moderation::class)->name('moderation');
     Route::livewire('appeal', AppealCreate::class)->name('appeals.create');
+    Route::livewire('operations', Operations::class)->name('operations');
+    Route::get('settings/export', ExportController::class)->middleware('throttle:5,1')->name('export');
     Route::livewire('messages', Inbox::class)->name('messages');
     Route::livewire('messages/{conversation}', ConversationView::class)->name('messages.show');
     Route::get('messages/images/{image}', function (MessageImage $image) {

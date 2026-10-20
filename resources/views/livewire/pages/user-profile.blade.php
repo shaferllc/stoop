@@ -78,7 +78,7 @@
 
     <div class="space-y-2.5">
         @forelse ($dispatches as $dispatch)
-            <x-dispatch-card :dispatch="$dispatch" :state="$state" :pinned="$dispatch->id === $pinnedId" />
+            <x-dispatch-card :dispatch="$dispatch" :translated="$translations[$dispatch->id] ?? null" :state="$state" :pinned="$dispatch->id === $pinnedId" />
         @empty
             <div class="rounded-xl border border-dashed border-rule p-8 text-center text-mute">Nothing filed yet.</div>
         @endforelse

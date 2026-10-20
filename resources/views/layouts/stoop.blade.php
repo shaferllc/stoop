@@ -5,6 +5,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{{ filled($title ?? null) ? $title.' · Stoop' : 'Stoop' }}</title>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <link rel="manifest" href="/manifest.webmanifest">
+        <link rel="apple-touch-icon" href="/icons/icon-192.png">
+        <meta name="theme-color" content="#c8102e">
         <meta name="description" content="{{ $description ?? 'Stoop is a social network for DC, block by block.' }}">
         <meta property="og:site_name" content="Stoop">
         <meta property="og:title" content="{{ $title ?? 'Stoop' }}">
@@ -32,9 +35,9 @@
                     <span class="mt-0.5 block text-[9.5px] font-semibold uppercase tracking-[0.16em] text-mute">DC, block by block</span>
                 </a>
 
-                <form action="{{ route('home') }}" method="GET" class="hidden flex-1 sm:block sm:max-w-sm" role="search">
+                <form action="{{ route('search') }}" method="GET" class="hidden flex-1 sm:block sm:max-w-sm" role="search">
                     <label class="flex items-center gap-2 rounded-lg border border-rule bg-paper px-3 py-1.5 text-sm text-mute focus-within:border-ink">
-                        <input name="q" id="site-search" value="{{ request('q') }}" placeholder="Search dispatches" class="min-w-0 flex-1 bg-transparent text-ink outline-none" autocomplete="off">
+                        <input name="q" id="site-search" value="{{ request('q') }}" placeholder="Search dispatches, people, stations" class="min-w-0 flex-1 bg-transparent text-ink outline-none" autocomplete="off">
                         <kbd class="rounded border border-rule px-1.5 font-mono text-[11px]">/</kbd>
                     </label>
                 </form>
@@ -79,6 +82,7 @@
                     <a href="{{ route('users.show', $me) }}" wire:navigate class="{{ $navItem }}">Profile</a>
                     @if ($me->is_staff)
                         <a href="{{ route('moderation') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('moderation') ? 'bg-chip text-ink' : '' }}">Moderation</a>
+                        <a href="{{ route('operations') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('operations') ? 'bg-chip text-ink' : '' }}">Operations</a>
                     @endif
                 @endauth
 
@@ -131,5 +135,8 @@
             <form method="dialog" class="mt-4 text-right"><button class="rounded-lg border border-rule px-3 py-1.5 text-sm">Close</button></form>
         </dialog>
         @fluxScripts
+        <script>
+            if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+        </script>
     </body>
 </html>

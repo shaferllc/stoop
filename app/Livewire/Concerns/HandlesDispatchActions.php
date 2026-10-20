@@ -7,10 +7,12 @@ use App\Models\HalfSmoke;
 use App\Models\Report;
 use App\Models\User;
 use App\Notifications\StoopActivity;
+use App\Support\Translator;
 use Flux\Flux;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 
 /**
@@ -25,6 +27,9 @@ trait HandlesDispatchActions
     public string $reportNote = '';
 
     public ?int $undoId = null;
+
+    /** @var array<int, string> Translated text by dispatch id, for this page view. */
+    public array $translations = [];
 
     /**
      * The signed-in user, or a redirect to log in for guests.
@@ -252,6 +257,27 @@ trait HandlesDispatchActions
         $user->forceFill(['pinned_dispatch_id' => $pinned ? null : $dispatch->id])->save();
 
         Flux::toast($pinned ? 'Unpinned.' : 'Pinned to your profile.');
+    }
+
+    public function translate(int $id): void
+    {
+        if (! $user = $this->actor()) {
+            return;
+        }
+
+        if (! RateLimiter::attempt('translate:'.$user->id, 10, fn () => true)) {
+            Flux::toast('Too many translations. Try again in a minute.');
+
+            return;
+        }
+
+        $text = Translator::translate($this->findVisible($id)->body, $user->translation_language ?? 'en');
+        $text === null ? Flux::toast('Couldn’t translate that right now.') : $this->translations[$id] = $text;
+    }
+
+    public function showOriginal(int $id): void
+    {
+        unset($this->translations[$id]);
     }
 
     public function quote(int $id): void

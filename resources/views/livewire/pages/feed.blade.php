@@ -11,6 +11,14 @@
     ">
     @php($tabs = ['following' => 'Following', 'rush' => 'Rush Hour', 'latest' => 'Latest', 'near' => 'Near me'])
 
+    @if ($stop)
+        <div class="mb-3 rounded-xl border border-rule bg-card p-4">
+            <div class="font-mono text-[12px] text-mute">{{ $stop }}</div>
+            <h1 class="font-display text-2xl font-bold">{{ config("stoop.stations.$stop") }}</h1>
+            <a href="{{ route('feeds.stop', $stop) }}" class="text-[12.5px] text-mute underline">Follow this stop in a feed reader</a>
+        </div>
+    @endif
+
     <div class="mb-3 flex gap-0.5 overflow-x-auto border-b border-rule" role="tablist">
         @foreach ($tabs as $key => $label)
             <button type="button" role="tab" aria-selected="{{ $tab === $key ? 'true' : 'false' }}" wire:click="setTab('{{ $key }}')" @class([
@@ -54,7 +62,7 @@
 
     <div class="mt-3 space-y-2.5">
         @forelse ($this->dispatches as $dispatch)
-            <x-dispatch-card :dispatch="$dispatch" :state="$state" />
+            <x-dispatch-card :dispatch="$dispatch" :translated="$translations[$dispatch->id] ?? null" :state="$state" />
         @empty
             <div class="rounded-xl border border-dashed border-rule p-8 text-center text-mute">
                 {{ $tab === 'following' ? 'Follow some neighbors and their dispatches will show up here.' : 'Nothing here yet. File the first dispatch.' }}

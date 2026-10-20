@@ -12,6 +12,23 @@
     $people = $viewer ? App\Support\Suggestions::for($viewer, 3) : collect();
 @endphp
 
+@php($incidents = App\Support\Metro::incidents())
+@if ($incidents !== null)
+    <div class="rounded-xl border border-rule bg-card p-3.5">
+        <div class="mb-2 text-[10.5px] font-semibold uppercase tracking-[0.13em] text-mute">Metro delays</div>
+        <ul class="divide-y divide-dashed divide-rule text-[13px]">
+            @forelse (collect(config('stoop.lines'))->keys() as $line)
+                @php($hits = collect($incidents)->where('line', $line))
+                <li class="flex items-start gap-2 py-1.5">
+                    <span class="mt-1 size-2.5 shrink-0 rounded-full" style="background: {{ config("stoop.lines.$line.color") }}"></span>
+                    <span>{{ ucfirst($line) }} · @if ($hits->isEmpty())<span class="text-mute">No reported delays</span>@else{{ str($hits->first()['message'])->limit(90) }}@endif</span>
+                </li>
+            @empty
+            @endforelse
+        </ul>
+    </div>
+@endif
+
 @if ($people->isNotEmpty())
     <div class="rounded-xl border border-rule bg-card p-3.5">
         <div class="mb-2 text-[10.5px] font-semibold uppercase tracking-[0.13em] text-mute">Who to follow</div>

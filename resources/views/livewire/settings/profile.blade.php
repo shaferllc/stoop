@@ -15,6 +15,12 @@
                 <flux:input wire:model="dc_since" :label="__('Year you moved here')" type="number" placeholder="2019" />
             @endunless
 
+            <flux:select wire:model="translation_language" :label="__('Translate posts into')">
+                @foreach (\App\Support\Translator::LANGUAGES as $code => $language)
+                    <flux:select.option :value="$code">{{ $language }}</flux:select.option>
+                @endforeach
+            </flux:select>
+
             <flux:checkbox wire:model="half_smokes_on" :label="__('Half-smokes')" :description="__('Get 10 a day to hand out to dispatches you love. Just for fun; they don’t affect rankings.')" />
 
             <flux:checkbox.group wire:model="stops" :label="__('Your stops (up to 3)')" :description="__('Near me shows dispatches tagged with these stations.')">
@@ -46,6 +52,12 @@
                 <flux:button variant="primary" type="submit">{{ __('Save') }}</flux:button>
             </div>
         </form>
+
+        <div class="my-8">
+            <flux:heading>{{ __('Your data') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Download everything Stoop stores about you as a JSON file. Deleting your account below erases it, except that any timeout or ban stays in force.') }}</flux:text>
+            <flux:button class="mt-3" :href="route('export')">{{ __('Download my data') }}</flux:button>
+        </div>
 
         @if ($this->showDeleteUser)
             <livewire:settings.delete-user-form />

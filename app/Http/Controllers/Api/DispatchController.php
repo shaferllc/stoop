@@ -52,6 +52,23 @@ class DispatchController extends Controller
         ]]);
     }
 
+    /**
+     * How many dispatches link to an article, for a "12 neighbors are talking about this" line
+     * on the magazine's article pages.
+     */
+    public function discussions(Request $request): JsonResponse
+    {
+        $request->validate(['url' => ['required', 'url', 'max:2048']]);
+        $url = $request->query('url');
+
+        $count = Dispatch::visibleTo(null)
+            ->whereHas('linkPreview', fn ($q) => $q->where('url_hash', hash('sha256', $url)))
+            ->count();
+
+        return response()->json(['url' => $url, 'count' => $count, 'search' => route('search', ['q' => $url])])
+            ->header('Access-Control-Allow-Origin', '*');
+    }
+
     public function store(Request $request): JsonResponse
     {
         abort_unless($request->user()->tokenCan('dispatch:write'), 403, 'This token can’t post.');

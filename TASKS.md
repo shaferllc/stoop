@@ -2,118 +2,105 @@
 
 Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists everything /dev/null does and how each feature maps to Stoop.
 
-`[x]` means built and covered by `tests/Feature/StoopTest.php`. `[ ]` means not started.
+`[x]` means built and covered by the tests in `tests/Feature`. `[ ]` means not done yet.
 
-## Phase 1: core (built)
-
-### Accounts
+## Accounts
 - [x] Email sign-up and log-in, password reset, email verification, 2FA, passkeys (Livewire starter kit / Fortify)
-- [x] Username at sign-up, letters, numbers and underscores only
-- [x] Profile settings: NATIVE checkbox, year moved to DC, up to 3 home stops
-- [x] Badges: STAFF, NATIVE, TRANSPLANT ’YY, SUBSCRIBER
-- [ ] Tie sign-up to a real magazine subscription (posting requires an active subscriber; reading stays open)
+- [x] Username at sign-up; profile settings for NATIVE, year moved to DC, up to 3 home stops, translation language
+- [x] Badges: STAFF, NATIVE, TRANSPLANT ’YY, SUBSCRIBER, HOUSE ACCOUNT
+- [x] Verified email required to post
+- [x] Subscription gate, off by default (`STOOP_REQUIRE_SUBSCRIPTION=true` once `subscribed_until` is filled from the magazine’s subscriber system)
+- [ ] Connect `subscribed_until` to the real subscription system
 
-### Dispatches
-- [x] Types: Dispatch, Ask DC, Poll, Happening, Been here, Callout (staff only)
-- [x] Line (topic) on every dispatch, optional Metro stop (WMATA station code)
-- [x] 3–500 characters, live counter, ⌘/Ctrl+Enter to post
-- [x] Rate limit: 10 posts a minute per person
-- [x] Replies and thread page (`/d/{id}`)
-- [x] Quotes (Quote button loads the original into the composer)
-- [x] Polls with 2–4 options of up to 50 characters, one vote per person, results after voting
-- [x] Delete your own dispatch (staff can delete any)
+## Dispatches
+- [x] Types: Dispatch, Ask DC, Poll, Happening, Been here, Crime & safety, Callout (staff only)
+- [x] Line and Metro stop on every dispatch; 3–500 characters; ⌘/Ctrl+Enter to post; 10 a minute
+- [x] One shared posting action (`app/Actions/FileDispatch.php`) for the website, API and terminal
+- [x] Replies, threads, quotes
+- [x] Polls: 2–4 options, 1 hour to 7 days, one vote each, results after voting or closing
+- [x] @mentions with suggestions (thread people first, then people you follow) and notifications
+- [x] Show more on long posts
+- [x] Photos: up to 3, 10 MB, alt text, re-encoded so GPS and other EXIF data is never stored
+- [x] Link cards (fetched with private-address and redirect checks; no remote images shown)
+- [x] Scheduling up to 30 days ahead, 10 at a time
+- [x] Delete with 30-second undo; tombstones keep other people’s replies
+- [x] Pin one dispatch to your profile
+- [x] Share images (Open Graph PNGs) for dispatches and profiles
 - [x] Never editable after posting
-- [ ] Poll durations (1h / 1d / 3d / 7d) and closing
-- [ ] Happening with a real start and end time that drops off the feed after it ends
-- [ ] 30-second undo after delete; tombstone so replies survive
-- [ ] Fold long posts behind “Show more”
-- [ ] Images: up to 3, alt text, 10 MB each
-- [ ] Link cards
-- [ ] @mentions with suggestions and notifications
-- [ ] Draft preview and stashed drafts
-- [ ] Scheduled dispatches
 
-### Feeds
-- [x] Following, Rush Hour, Latest, Near me
-- [x] Rush Hour score: engagement weighed against age, halving every 3 hours (/dev/null’s Trending curve)
-- [x] Filter by line, by stop, and by search text
-- [x] Guests can read Rush Hour, Latest, threads and profiles
-- [x] Load more, 20 at a time
-- [ ] Count distinct people in the Rush Hour score (it currently counts actions)
+## Feeds and navigation
+- [x] Following, Rush Hour, Latest, Near me; last feed remembered; swipe between feeds on phones
+- [x] Rush Hour score halves every 3 hours (/dev/null’s Trending curve)
+- [x] “N new dispatches” button instead of shifting the feed (checks every 30 seconds)
+- [x] Filters by line and stop; stop pages
+- [x] Who to follow (sidebar and empty Following feed)
+- [x] Hover cards on names
+- [x] Keyboard shortcuts: j/k, o, c, /, g h/n/s/p, ? for help
+- [ ] Count distinct people in the Rush Hour score (it counts actions now)
 - [ ] Store the Rush Hour score and refresh it on a schedule once volume grows
-- [ ] “N new dispatches” prompt instead of jumping the feed (poll every 30 s)
-- [ ] Empty Following feed suggests people to follow
-- [ ] Remember the last feed opened
-- [ ] Stop pages (`/stops/E04`) and station search
 
-### Engagement
-- [x] Follow and unfollow, with follower and following counts
-- [x] Save (private bookmarks) and the Saved page
-- [x] Been here and Going taps with counts
-- [ ] Pin one dispatch to your profile
-- [ ] Who-to-follow suggestions
-- [ ] Hover cards on names
+## Engagement and fun
+- [x] Follow, Save, Been here, Going
+- [x] Half-smokes (Stoop’s pastéis): opt-in, 10 a day, reset at midnight DC time, no ranking effect
+- [x] Badges and XP worked out from activity, with Metro ranks from Tourist to Mayor; toast when a badge unlocks
+- [x] Ridership graph (activity graph) on profiles, streaks, embeddable SVG
+- [x] On the scene (Going live): YouTube, Twitch or Instagram link for 1–12 hours, red ring and marker
+- [x] House bots: @stoop answers questions (Claude when `ANTHROPIC_API_KEY` is set, knowledge-base lookup otherwise); @dc answers “hello DC”
+- [x] New accounts start out following @stoop, and @stoop follows them back
 
-### Notifications
-- [x] In-app notifications for replies, quotes and follows
-- [x] Unread count in the sidebar; opening the page marks them read
-- [ ] Group them (follows per day, replies per thread)
-- [ ] Filters by type
-- [ ] Moderation outcome notices
-- [ ] Decide on email (see open questions)
+## Notifications
+- [x] Replies, quotes, mentions, follows and moderation outcomes
+- [x] Grouped by thread and by day; filters; follow back; unread count
+- [ ] Decide on email notifications (see open questions)
 
-### Safety and moderation
-- [x] Pre-post nudge: “Would you say this to a neighbor?” on heated wording; post again to send
-- [x] Held-pattern screening: matching posts are held for review instead of published (`config/stoop.php`, list is empty by default)
-- [x] Report with a reason and an optional note; the post is hidden for the reporter right away
-- [x] Reports from 3 different people hide a post for everyone until review
-- [x] Mute (you stop seeing them) and block (neither of you sees the other; follows removed)
-- [x] Muted accounts can’t post until the mute ends
-- [x] Moderation queue for staff: approve, remove, mute the author for 24 hours or 7 days
-- [x] Public house rules page (`/rules`)
+## Messages (/dev/null “Remotes”)
+- [x] One-to-one messages with people who follow you; optional message requests
+- [x] Group chats up to 100, admins can rename, add and remove
+- [x] Encrypted at rest, up to 2,000 characters, can’t be edited or deleted
+- [x] Private photos served only to the conversation’s members
+- [x] Replies, reactions (up to 12 per person per message), read receipts (both sides opt in), typing indicator, archive
+- [x] Block from a conversation; report a message; timeouts stop sending
+- [ ] Real-time delivery with Reverb instead of polling every 5 seconds
+
+## Safety and moderation
+- [x] Rules prompt before your first post; public rules page
+- [x] “Would you say this to a neighbor?” nudge (website and API)
+- [x] Crime & safety form that rejects race- or gender-only descriptions of a person
+- [x] Held-pattern screening (`config/stoop.php`, empty by default)
+- [x] Report → hidden for you at once, hidden for everyone at 3 reports
+- [x] Mute and block, with a Safety settings page to undo them
+- [x] Reply limits (people you follow) and hiding replies on your own threads
+- [x] Pile-on detection: pauses replies for an hour and flags the thread
+- [x] Moderation queue: approve, remove with a reason sent to the author, penalty ladder (warning, timeouts of 1h/1d/3d/7d/30d, ban)
+- [x] Ban page; bans and timeouts survive account deletion (kept by a hash of the email)
+- [x] Appeals, decided by a different moderator
+- [x] Reported messages queue with context
+- [x] Public monthly transparency report
 - [ ] Replace the keyword lists with a moderation model; hold anything it isn’t sure about
-- [ ] Structured crime and safety form: what, where, when, and no race-only descriptions
-- [ ] Penalty ladder tracking: warnings, strikes, permanent bans with a ban page
-- [ ] Penalties survive account deletion (kept by subscriber id)
-- [ ] Appeals, reviewed by a different moderator
-- [ ] Rejection reason sent to the author
-- [ ] Safety settings page to list and undo mutes and blocks
-- [ ] Reply limits (followers only) and hide replies on your own posts
-- [ ] Pile-on detection: slow replies and alert a moderator on sudden spikes
-- [ ] Public monthly transparency report
-- [ ] Signup screening (verified email plus an active subscription)
+- [ ] Moderator training, rotation and an outside advisory group (people, not code)
 
-## Phase 2: DMs (/dev/null “Remotes”)
-- [ ] One-to-one messages, encrypted at rest, up to 2,000 characters
-- [ ] Contact policy: message people who follow you; optional message requests
-- [ ] Reactions, read receipts, archive
-- [ ] Group chats up to 100 people
-- [ ] Report a message
+## Platform
+- [x] Search with stemming across dispatches and replies, plus people and stations; recent searches stay in the browser
+- [x] Translation into the reader’s language (needs `ANTHROPIC_API_KEY`), cached 7 days
+- [x] Public read API, posting API with personal tokens, terminal script at `/dispatch`
+- [x] Atom feeds: latest, per line, per stop, per person
+- [x] Article discussion counts for the magazine (`/api/discussions?url=…`)
+- [x] Live Metro delays in the sidebar (needs `WMATA_API_KEY`)
+- [x] Installable app (manifest, icons, offline page)
+- [x] Data export (JSON) and account deletion that erases everything except penalties
+- [x] Operations page for staff: activity, queue sizes, failed jobs
+- [ ] Search by meaning (embeddings); search is keyword-based with stemming for now
+- [ ] Move link-card fetching to a queued job if posting feels slow
 
-## Phase 3: platform
-- [ ] Data export (JSON) and account deletion that erases everything
-- [ ] Public read API and Atom feeds per line and per stop
-- [ ] Open Graph images for dispatches and profiles
-- [ ] Installable PWA
-- [ ] Keyboard shortcuts beyond `/` for search (`c` to compose, `j`/`k` to move)
-- [ ] Live Metro delays in the sidebar (WMATA API)
-- [ ] Magazine story cards: attach an article and show a discussion count on the article page
-- [ ] Translation
-- [ ] Semantic search (search by meaning, not exact words)
-- [ ] Admin operations page: failed jobs, traffic, product metrics
-
-## Phase 4: making money
+## Making money
 - [ ] Claimed places for restaurants and shops
 - [ ] Sponsored stops, clearly labeled
 - [ ] Sponsored callouts, approved by editors
 - [ ] Ticketed Happening posts
 - [ ] Aggregated reader-insights report (no individual data)
 
-## Dropped from /dev/null
-Pastéis, achievements and XP, activity graphs and README embeds, terminal and GitHub Action posting, the @world and Tom bots, code blocks, GitHub issue links, Going live, GitHub sign-in and follow import.
-
 ## Open questions
 - Can guests read Stoop, or does the magazine paywall cover it?
-- Email notifications or in-app only? /dev/null deliberately sends none.
-- Who owns moderation: audience team, editorial, or a contractor?
-- /dev/null is MIT according to its composer.json and README, but the repo has no LICENSE file. Stoop copies ideas and limits only, no code.
+- Email notifications, or in-app only? /dev/null deliberately sends none.
+- Who owns moderation: the audience team, editorial, or a contractor?
+- /dev/null’s composer.json and README say MIT, but the repo has no LICENSE file. Stoop copies ideas and limits only, no code.
