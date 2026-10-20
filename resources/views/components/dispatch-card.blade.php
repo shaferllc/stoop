@@ -10,7 +10,7 @@
     $btn = 'cursor-pointer hover:text-ink';
 @endphp
 
-<article wire:key="dispatch-{{ $d->id }}" id="d{{ $d->id }}" @class(['rounded-xl border bg-card px-4 py-3.5', 'border-ink' => $focus, 'border-rule' => ! $focus])>
+<article wire:key="dispatch-{{ $d->id }}" id="d{{ $d->id }}" tabindex="-1" data-dispatch data-href="{{ route('dispatches.show', $d) }}" @class(['rounded-xl border bg-card px-4 py-3.5', 'border-ink' => $focus, 'border-rule' => ! $focus])>
     @if ($d->status !== 'approved')
         <div class="mb-2 rounded-md bg-chip px-2.5 py-1 text-xs text-mute">
             {{ match ($d->status) {
@@ -29,7 +29,10 @@
     <div class="flex flex-wrap items-center gap-2.5">
         <a href="{{ route('users.show', $d->user) }}" wire:navigate class="grid size-9 shrink-0 place-items-center rounded-full text-[13px] font-semibold text-white" style="background: {{ $d->user->color() }}">{{ $d->user->initials() }}</a>
         <div class="min-w-0">
-            <a href="{{ route('users.show', $d->user) }}" wire:navigate class="font-semibold hover:underline">{{ $d->user->name }}</a>
+            <span class="relative" x-data="hoverCard(@js(route('users.card', $d->user)))" x-on:mouseenter="show()" x-on:mouseleave="hide()">
+                <a href="{{ route('users.show', $d->user) }}" wire:navigate class="font-semibold hover:underline">{{ $d->user->name }}</a>
+                <div x-show="open" x-cloak x-html="html" class="absolute left-0 top-full z-20 mt-1 w-72"></div>
+            </span>
             <span class="ml-1.5 rounded border border-rule px-1 text-[10px] font-bold tracking-wide text-mute">{{ $d->user->badge() }}</span>
             <div class="text-[12.5px] text-mute">
                 <a href="{{ route('users.show', $d->user) }}" wire:navigate>{{ '@'.$d->user->username }}</a>

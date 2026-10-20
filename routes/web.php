@@ -26,6 +26,10 @@ Route::get('d/{dispatch}/og.png', function (Dispatch $dispatch) {
         ->header('Content-Type', 'image/png')->header('Cache-Control', 'public, max-age=86400');
 })->name('dispatches.og');
 
+Route::get('@{user:username}/card', fn (User $user) => view('partials.hover-card', [
+    'user' => $user->loadCount(['followers', 'following']),
+]))->middleware('throttle:120,1')->name('users.card');
+
 Route::get('@{user:username}/og.png', fn (User $user) => response(Cache::remember("og:u:{$user->id}", now()->addDay(), fn () => ShareImage::forUser($user)))
     ->header('Content-Type', 'image/png')->header('Cache-Control', 'public, max-age=86400'))->name('users.og');
 

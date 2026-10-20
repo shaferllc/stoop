@@ -9,7 +9,25 @@
     $happening = Dispatch::topLevel()->visibleTo($viewer)
         ->where('type', 'happening')->where('created_at', '>=', now()->subDay())
         ->latest()->take(3)->get();
+    $people = $viewer ? App\Support\Suggestions::for($viewer, 3) : collect();
 @endphp
+
+@if ($people->isNotEmpty())
+    <div class="rounded-xl border border-rule bg-card p-3.5">
+        <div class="mb-2 text-[10.5px] font-semibold uppercase tracking-[0.13em] text-mute">Who to follow</div>
+        <ul class="space-y-2 text-[13.5px]">
+            @foreach ($people as $person)
+                <li class="flex items-center gap-2">
+                    <span class="grid size-7 shrink-0 place-items-center rounded-full text-[10px] font-bold text-white" style="background: {{ $person->color() }}">{{ $person->initials() }}</span>
+                    <span class="min-w-0">
+                        <a href="{{ route('users.show', $person) }}" wire:navigate class="block truncate font-semibold hover:underline">{{ $person->name }}</a>
+                        <span class="block truncate text-[12px] text-mute">{{ $person->reason }}</span>
+                    </span>
+                </li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 
 <div class="rounded-xl border border-rule bg-card p-3.5">
     <div class="mb-2 text-[10.5px] font-semibold uppercase tracking-[0.13em] text-mute">Being argued about</div>

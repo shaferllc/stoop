@@ -1,4 +1,14 @@
-<div>
+<div wire:poll.30s.visible
+    x-data="{ x: null }"
+    x-on:touchstart="x = $event.touches[0].clientX"
+    x-on:touchend="
+        if (x === null) return;
+        const dx = $event.changedTouches[0].clientX - x; x = null;
+        if (Math.abs(dx) < 80 || $event.target.closest('input, textarea, select, [role=tablist]')) return;
+        const order = @js(auth()->check() ? ['following', 'rush', 'latest', 'near'] : ['rush', 'latest']);
+        const next = order[order.indexOf(@js($tab)) + (dx < 0 ? 1 : -1)];
+        if (next) $wire.setTab(next);
+    ">
     @php($tabs = ['following' => 'Following', 'rush' => 'Rush Hour', 'latest' => 'Latest', 'near' => 'Near me'])
 
     <div class="mb-3 flex gap-0.5 overflow-x-auto border-b border-rule" role="tablist">
@@ -36,6 +46,12 @@
         </div>
     @endif
 
+    @if ($this->newCount)
+        <button type="button" wire:click="showNew" class="mt-3 w-full rounded-lg bg-ink py-2 text-sm font-semibold text-paper">
+            Show {{ $this->newCount }} new {{ str('dispatch')->plural($this->newCount) }}
+        </button>
+    @endif
+
     <div class="mt-3 space-y-2.5">
         @forelse ($this->dispatches as $dispatch)
             <x-dispatch-card :dispatch="$dispatch" :state="$state" />
@@ -43,6 +59,20 @@
             <div class="rounded-xl border border-dashed border-rule p-8 text-center text-mute">
                 {{ $tab === 'following' ? 'Follow some neighbors and their dispatches will show up here.' : 'Nothing here yet. File the first dispatch.' }}
             </div>
+            @if ($tab === 'following')
+                <div class="space-y-2">
+                    @foreach ($this->suggestedPeople as $person)
+                        <div wire:key="suggest-{{ $person->id }}" class="flex items-center gap-3 rounded-xl border border-rule bg-card p-3">
+                            <div class="grid size-9 place-items-center rounded-full text-xs font-bold text-white" style="background: {{ $person->color() }}">{{ $person->initials() }}</div>
+                            <div class="min-w-0 flex-1">
+                                <a href="{{ route('users.show', $person) }}" wire:navigate class="font-semibold">{{ $person->name }}</a>
+                                <div class="text-[12.5px] text-mute">{{ '@'.$person->username }} · {{ $person->reason }}</div>
+                            </div>
+                            <button type="button" wire:click="toggleFollow({{ $person->id }})" class="rounded-full border border-rule px-3 py-1 text-sm font-semibold">Follow</button>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         @endforelse
     </div>
 

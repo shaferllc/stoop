@@ -95,3 +95,7 @@ select:focus[data-flux-control] {
     --stoop-chip: #262a2c;
     --stoop-flag: #ff5a6e;
 }
+
+[x-cloak] {
+    display: none !important;
+}

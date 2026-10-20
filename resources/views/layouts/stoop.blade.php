@@ -21,8 +21,8 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @fluxAppearance
     </head>
-    <body class="min-h-screen bg-paper font-sans text-[15px] text-ink antialiased">
-        @php($me = auth()->user())
+    @php($me = auth()->user())
+    <body class="min-h-screen bg-paper font-sans text-[15px] text-ink antialiased" data-profile="{{ $me ? route('users.show', $me, false) : '' }}">
         @php($unread = $me?->unreadNotifications()->count() ?? 0)
 
         <header class="sticky top-0 z-20 border-b border-rule bg-card">
@@ -103,7 +103,8 @@
                     <p class="mb-1.5"><b class="text-ink">No attacks on people for who they are.</b> Argue about places, not neighbors.</p>
                     <p class="mb-1.5"><b class="text-ink">No networking posts.</b> This isn't LinkedIn for lobbyists.</p>
                     <p class="mb-1.5"><b class="text-ink">No campaign spam.</b> Talk about the city, not the Hill.</p>
-                    <a href="{{ route('rules') }}" wire:navigate class="underline">Full rules</a>
+                    <a href="{{ route('rules') }}" wire:navigate class="underline">Full rules</a> ·
+                    <button type="button" onclick="document.getElementById('shortcuts').showModal()" class="underline">Keyboard shortcuts</button>
                 </div>
             </aside>
         </div>
@@ -114,14 +115,15 @@
             </flux:toast.group>
         @endpersist
 
-        <script>
-            document.addEventListener('keydown', (e) => {
-                if (e.key === '/' && !e.target.closest('input, textarea, select, [contenteditable]')) {
-                    e.preventDefault();
-                    document.getElementById('site-search')?.focus();
-                }
-            });
-        </script>
+        <dialog id="shortcuts" class="m-auto w-full max-w-sm rounded-xl border border-rule bg-card p-5 text-ink backdrop:bg-black/40">
+            <h2 class="font-display text-xl font-bold">Keyboard shortcuts</h2>
+            <dl class="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+                @foreach (['j / k' => 'Next / previous dispatch', 'o or Enter' => 'Open the selected dispatch', 'c' => 'Write a dispatch', '/' => 'Search', 'g then h' => 'Front Stoop', 'g then n' => 'Notifications', 'g then s' => 'Saved', 'g then p' => 'Your profile', '⌘ Enter' => 'Post from the composer', '?' => 'This list'] as $keys => $what)
+                    <dt><kbd class="rounded border border-rule px-1.5 font-mono text-xs">{{ $keys }}</kbd></dt><dd class="text-mute">{{ $what }}</dd>
+                @endforeach
+            </dl>
+            <form method="dialog" class="mt-4 text-right"><button class="rounded-lg border border-rule px-3 py-1.5 text-sm">Close</button></form>
+        </dialog>
         @fluxScripts
     </body>
 </html>

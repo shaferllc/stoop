@@ -4,6 +4,9 @@ namespace App\Livewire\Pages;
 
 use App\Livewire\Concerns\HandlesDispatchActions;
 use App\Models\Dispatch;
+use App\Models\User;
+use App\Support\Suggestions;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -20,8 +23,8 @@ class Feed extends Component
 {
     use HandlesDispatchActions;
 
-    #[Url]
-    public string $tab = 'rush';
+    #[Url(except: '')]
+    public string $tab = '';
 
     #[Url]
     public ?string $line = null;
@@ -34,11 +37,21 @@ class Feed extends Component
 
     public int $limit = 20;
 
+    /** Dispatches newer than this wait behind the "N new" button instead of shifting the feed. */
+    public ?string $since = null;
+
     public function mount(): void
     {
+        // With no tab in the URL, reopen the feed this person used last.
+        if ($this->tab === '') {
+            $this->tab = session('stoop.tab', 'rush');
+        }
+
         if (! in_array($this->tab, ['rush', 'latest', 'following', 'near'], true)) {
             $this->tab = 'rush';
         }
+
+        $this->since = now()->toDateTimeString();
 
         if (! Auth::check() && in_array($this->tab, ['following', 'near'], true)) {
             $this->tab = 'rush';
@@ -53,6 +66,38 @@ class Feed extends Component
 
         $this->tab = $tab;
         $this->limit = 20;
+        $this->since = now()->toDateTimeString();
+        session(['stoop.tab' => $tab]);
+    }
+
+    public function showNew(): void
+    {
+        $this->since = now()->toDateTimeString();
+        unset($this->dispatches);
+    }
+
+    /**
+     * How many dispatches arrived since the feed was loaded. Polled every 30 seconds.
+     */
+    #[Computed]
+    public function newCount(): int
+    {
+        if (! in_array($this->tab, ['latest', 'following'], true)) {
+            return 0;
+        }
+
+        return $this->baseQuery()->where('dispatches.created_at', '>', $this->since)->count();
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    #[Computed]
+    public function suggestedPeople(): Collection
+    {
+        $user = Auth::user();
+
+        return $user ? Suggestions::for($user, 3) : collect();
     }
 
     public function loadMore(): void
@@ -66,6 +111,8 @@ class Feed extends Component
         if ($this->tab === 'rush') {
             $this->tab = 'latest';
         }
+
+        $this->since = now()->toDateTimeString();
     }
 
     /**
@@ -74,16 +121,8 @@ class Feed extends Component
     #[Computed]
     public function dispatches(): Collection
     {
-        $user = Auth::user();
-
-        $query = Dispatch::topLevel()->visibleTo($user)->forCards()
-            ->when($this->line, fn ($q) => $q->where('line', $this->line))
-            ->when($this->stop, fn ($q) => $q->where('stop', $this->stop))
-            ->when(mb_strlen(trim($this->q)) >= 2, fn ($q) => $q->where('body', 'like', '%'.trim($this->q).'%'))
-            ->when($this->tab === 'following' && $user, fn ($q) => $q->where(fn ($q) => $q
-                ->where('user_id', $user->id)
-                ->orWhereIn('user_id', $user->following()->select('users.id'))))
-            ->when($this->tab === 'near' && $user, fn ($q) => $q->whereIn('stop', $user->stops ?: ['']));
+        $query = $this->baseQuery()->forCards()
+            ->when($this->tab !== 'rush', fn ($q) => $q->where('dispatches.created_at', '<=', $this->since));
 
         if ($this->tab === 'rush') {
             // ponytail: scores the last week in PHP; move to a stored, periodically updated score past ~5k posts a week
@@ -93,6 +132,23 @@ class Feed extends Component
         }
 
         return $query->latest()->latest('id')->take($this->limit)->get();
+    }
+
+    /**
+     * @return Builder<Dispatch>
+     */
+    protected function baseQuery(): Builder
+    {
+        $user = Auth::user();
+
+        return Dispatch::topLevel()->visibleTo($user)
+            ->when($this->line, fn ($q) => $q->where('line', $this->line))
+            ->when($this->stop, fn ($q) => $q->where('stop', $this->stop))
+            ->when(mb_strlen(trim($this->q)) >= 2, fn ($q) => $q->where('body', 'like', '%'.trim($this->q).'%'))
+            ->when($this->tab === 'following' && $user, fn ($q) => $q->where(fn ($q) => $q
+                ->where('user_id', $user->id)
+                ->orWhereIn('user_id', $user->following()->select('users.id'))))
+            ->when($this->tab === 'near' && $user, fn ($q) => $q->whereIn('stop', $user->stops ?: ['']));
     }
 
     public function render(): View

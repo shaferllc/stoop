@@ -35,6 +35,7 @@ class StoopActivity extends Notification
             'actor_id' => $this->actor->id,
             'actor' => $this->actor->username,
             'dispatch_id' => $this->dispatch?->id,
+            'thread_id' => $this->dispatch ? ($this->dispatch->parent_id ?? $this->dispatch->quote_id ?? $this->dispatch->id) : null,
             'excerpt' => $this->dispatch ? str($this->dispatch->body)->limit(80)->toString() : null,
         ];
     }
