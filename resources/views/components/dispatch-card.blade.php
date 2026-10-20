@@ -17,7 +17,7 @@
                 'held' => 'Held for review. Only you and moderators can see this.',
                 'hidden' => 'Hidden after reports. A moderator is reviewing it.',
                 'scheduled' => 'Scheduled for '.$d->publish_at?->format('D M j, g:ia').'. Only you can see this.',
-                default => 'Removed by a moderator.',
+                default => 'Removed by a moderator'.($d->moderation_reason ? ': '.$d->moderation_reason : '').'. You can appeal from the ··· menu.',
             } }}
         </div>
     @endif
@@ -58,6 +58,14 @@
                 <button type="button" x-on:click="more = !more" x-text="more ? 'Show less' : 'Show more'" class="mt-1 text-[13px] font-medium text-flag"></button>
             @endif
         </div>
+    @endif
+
+    @if ($d->safety)
+        <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 rounded-lg border border-rule px-3 py-2 text-[13px] sm:ml-[46px]">
+            @foreach (['when' => 'When', 'block' => 'Where', 'person' => 'Description'] as $field => $label)
+                @isset($d->safety[$field])<dt class="text-mute">{{ $label }}</dt><dd>{{ $d->safety[$field] }}</dd>@endisset
+            @endforeach
+        </dl>
     @endif
 
     @if ($d->images->isNotEmpty())
@@ -131,6 +139,12 @@
                 <flux:menu>
                     @if ($d->user_id === $me->id && ! $d->parent_id && $d->status === 'approved')
                         <flux:menu.item wire:click="togglePin({{ $d->id }})">{{ $me->pinned_dispatch_id === $d->id ? 'Unpin from profile' : 'Pin to profile' }}</flux:menu.item>
+                    @endif
+                    @if ($d->parent_id && $d->parent?->user_id === $me->id && $d->user_id !== $me->id)
+                        <flux:menu.item wire:click="toggleHideReply({{ $d->id }})">{{ $d->hidden_by_author ? 'Unhide reply' : 'Hide reply' }}</flux:menu.item>
+                    @endif
+                    @if ($d->status === 'removed' && $d->user_id === $me->id)
+                        <flux:menu.item :href="route('appeals.create', ['dispatch' => $d->id])" wire:navigate>Appeal this decision</flux:menu.item>
                     @endif
                     @if ($d->user_id === $me->id || $me->is_staff)
                         <flux:menu.item wire:click="deleteDispatch({{ $d->id }})">Delete</flux:menu.item>

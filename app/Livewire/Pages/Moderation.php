@@ -2,67 +2,166 @@
 
 namespace App\Livewire\Pages;
 
+use App\Models\Appeal;
 use App\Models\Dispatch;
+use App\Models\Penalty;
 use App\Models\User;
+use App\Notifications\ModerationNotice;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('layouts::stoop')]
 #[Title('Moderation')]
 class Moderation extends Component
 {
+    #[Url(except: 'queue')]
+    public string $view = 'queue';
+
+    /** The dispatch a moderator is acting on, with the reason and penalty they picked. */
+    public ?int $acting = null;
+
+    public string $reason = '';
+
+    public string $note = '';
+
+    public string $penalty = 'none';
+
     public function mount(): void
     {
         abort_unless(Auth::user()?->is_staff, 403);
     }
 
+    protected function moderator(): User
+    {
+        abort_unless(Auth::user()?->is_staff, 403);
+
+        return Auth::user();
+    }
+
     /**
-     * Put a dispatch back up and close its reports.
+     * Put a dispatch back up and close its reports. Approvals don't notify anyone.
      */
     public function approve(int $id): void
     {
-        abort_unless(Auth::user()->is_staff, 403);
-
+        $moderator = $this->moderator();
         $dispatch = Dispatch::findOrFail($id);
-        $dispatch->update(['status' => 'approved']);
+        $dispatch->forceFill(['status' => 'approved', 'flagged_at' => null, 'moderated_by' => $moderator->id])->save();
         $dispatch->reports()->whereNull('resolved_at')->update(['resolved_at' => now()]);
         Flux::toast('Approved.');
     }
 
-    public function remove(int $id): void
+    public function startAction(int $id): void
     {
-        abort_unless(Auth::user()->is_staff, 403);
-
-        $dispatch = Dispatch::findOrFail($id);
-        $dispatch->update(['status' => 'removed']);
-        $dispatch->reports()->whereNull('resolved_at')->update(['resolved_at' => now()]);
-        Flux::toast('Removed.');
+        $this->moderator();
+        $this->acting = $id;
+        $this->reason = config('stoop.rule_reasons.0');
+        $this->note = '';
+        $this->penalty = 'none';
     }
 
     /**
-     * Penalty ladder: a 24-hour mute, then 7 days. Bans are a separate, manual step.
+     * Remove a dispatch, tell the author why, and optionally apply the next step on the penalty ladder.
      */
-    public function muteAuthor(int $id, int $hours): void
+    public function remove(): void
     {
-        abort_unless(Auth::user()->is_staff && in_array($hours, [24, 168], true), 403);
+        $moderator = $this->moderator();
 
-        $user = User::findOrFail(Dispatch::findOrFail($id)->user_id);
-        $user->forceFill(['muted_until' => now()->addHours($hours)])->save();
-        Flux::toast("Muted @{$user->username} for ".($hours === 24 ? '24 hours.' : '7 days.'));
+        $this->validate([
+            'reason' => ['required', Rule::in(config('stoop.rule_reasons'))],
+            'note' => ['nullable', 'string', 'max:200'],
+            'penalty' => ['required', Rule::in(['none', 'warning', 'ban', ...array_map('strval', array_keys(Penalty::TIMEOUTS))])],
+        ]);
+
+        $dispatch = Dispatch::with('user')->findOrFail($this->acting);
+        $why = trim($this->reason.($this->note ? '. '.$this->note : ''));
+
+        $dispatch->forceFill(['status' => 'removed', 'flagged_at' => null, 'moderated_by' => $moderator->id, 'moderation_reason' => $why])->save();
+        $dispatch->reports()->whereNull('resolved_at')->update(['resolved_at' => now()]);
+        $dispatch->user->notify(new ModerationNotice('A moderator removed your dispatch: '.$why.'. You can appeal once.', $dispatch));
+
+        if ($this->penalty !== 'none') {
+            $this->penalize($dispatch->user, $this->penalty, $why, $dispatch, $moderator);
+        }
+
+        $this->acting = null;
+        Flux::toast('Removed.');
+    }
+
+    protected function penalize(User $user, string $type, string $reason, ?Dispatch $dispatch, User $moderator): void
+    {
+        $hours = is_numeric($type) ? (int) $type : null;
+
+        $penalty = Penalty::create([
+            'user_id' => $user->id,
+            'subject_hash' => $user->subjectHash(),
+            'type' => $hours ? 'timeout' : $type,
+            'reason' => $reason,
+            'dispatch_id' => $dispatch?->id,
+            'moderator_id' => $moderator->id,
+            'ends_at' => $hours ? now()->addHours($hours) : null,
+        ]);
+
+        $user->notify(new ModerationNotice(match ($penalty->type) {
+            'warning' => 'You received a warning: '.$reason.'.',
+            'ban' => 'Your account was banned: '.$reason.'.',
+            default => 'You’re in a timeout for '.Penalty::TIMEOUTS[$hours].': '.$reason.'.',
+        }.($penalty->type === 'warning' ? '' : ' You can appeal once.'), $dispatch));
+    }
+
+    public function lift(int $penaltyId): void
+    {
+        $this->moderator();
+        Penalty::findOrFail($penaltyId)->update(['lifted_at' => now()]);
+        Flux::toast('Lifted.');
+    }
+
+    /**
+     * Appeals go to a different moderator than the one who made the call.
+     */
+    public function decide(int $appealId, bool $grant): void
+    {
+        $moderator = $this->moderator();
+        $appeal = Appeal::with(['penalty', 'dispatch'])->where('status', 'open')->findOrFail($appealId);
+        abort_if($appeal->originalModeratorId() === $moderator->id, 403);
+
+        $appeal->update(['status' => $grant ? 'granted' : 'denied', 'decided_by' => $moderator->id, 'decided_at' => now()]);
+
+        if ($grant) {
+            $appeal->penalty?->update(['lifted_at' => now()]);
+            $appeal->dispatch?->forceFill(['status' => 'approved', 'moderation_reason' => null])->save();
+        }
+
+        $appeal->user->notify(new ModerationNotice($grant
+            ? 'Your appeal was granted. We’ve reversed the decision.'
+            : 'Your appeal was reviewed by a second moderator and the decision stands.', $appeal->dispatch));
+
+        Flux::toast($grant ? 'Appeal granted.' : 'Appeal denied.');
     }
 
     public function render(): View
     {
+        $moderator = Auth::user();
+
         $queue = Dispatch::with(['user', 'reports.user'])
             ->where(fn ($q) => $q->whereIn('status', ['held', 'hidden'])
+                ->orWhereNotNull('flagged_at')
                 ->orWhereHas('reports', fn ($q) => $q->whereNull('resolved_at')))
-            ->whereNotIn('status', ['removed'])
-            ->latest()->take(50)->get();
+            ->where('status', '!=', 'removed')
+            ->latest()->take(50)->get()
+            ->each(fn ($d) => $d->strikes = $d->user->penalties()->count());
 
-        return view('livewire.pages.moderation', ['queue' => $queue]);
+        return view('livewire.pages.moderation', [
+            'queue' => $queue,
+            'appeals' => Appeal::with(['user', 'penalty', 'dispatch'])->where('status', 'open')->oldest()->get()
+                ->reject(fn ($a) => $a->originalModeratorId() === $moderator->id),
+            'penalties' => Penalty::with('user')->active()->whereIn('type', ['timeout', 'ban'])->latest()->get(),
+            'actingOn' => $this->acting ? Dispatch::with('user')->find($this->acting) : null,
+        ]);
     }
 }

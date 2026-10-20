@@ -55,6 +55,7 @@ return [
         'poll' => 'Poll',
         'happening' => 'Happening',
         'been' => 'Been here',
+        'safety' => 'Crime & safety',
         'callout' => 'Callout',
     ],
 
@@ -68,6 +69,23 @@ return [
 
     // Distinct reports that hide a dispatch for everyone until a moderator reviews it.
     'report_threshold' => 3,
+
+    // Reasons moderators pick from when removing a post or issuing a penalty.
+    'rule_reasons' => [
+        'Attacking people for who they are',
+        'Profiling someone by race or identity',
+        'Threats or harassment',
+        'Campaign or candidate promotion',
+        'Spam or networking pitches',
+        'Sharing someone’s private information',
+    ],
+
+    // Replies in 10 minutes from people who don't follow the author that pause replies
+    // on a thread for an hour and flag it for moderators.
+    'pile_on_threshold' => 15,
+
+    // Turn on once posting is tied to magazine subscriptions.
+    'require_subscription' => env('STOOP_REQUIRE_SUBSCRIPTION', false),
 
     'max_length' => 500,
 

@@ -12,11 +12,16 @@
             @php
                 $data = $group['latest']->data;
                 $names = $group['actors'];
-                $who = '@'.$names->first().($names->count() > 1 ? ' and '.($names->count() - 1).' '.str('other')->plural($names->count() - 1) : '');
+                $names = $names->filter()->values();
+                $who = $names->isEmpty() ? 'Stoop moderators' : '@'.$names->first().($names->count() > 1 ? ' and '.($names->count() - 1).' '.str('other')->plural($names->count() - 1) : '');
             @endphp
             <li wire:key="n-{{ $key }}" @class(['px-4 py-3 text-sm', 'bg-chip/50' => $group['unread']])>
                 <div class="flex flex-wrap items-center gap-x-1.5">
-                    <a href="{{ route('users.show', $names->first()) }}" wire:navigate class="font-semibold">{{ $who }}</a>
+                    @if ($names->isEmpty())
+                        <b>{{ $who }}</b>
+                    @else
+                        <a href="{{ route('users.show', $names->first()) }}" wire:navigate class="font-semibold">{{ $who }}</a>
+                    @endif
                     <span>{{ match ($group['kind']) {
                         'reply' => $names->count() > 1 ? 'replied in your thread' : 'replied to your dispatch',
                         'quote' => 'quoted your dispatch',

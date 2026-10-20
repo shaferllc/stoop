@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\TransparencyController;
+use App\Livewire\Pages\AppealCreate;
 use App\Livewire\Pages\Feed;
 use App\Livewire\Pages\Moderation;
 use App\Livewire\Pages\Notifications;
@@ -17,6 +19,7 @@ Route::livewire('/', Feed::class)->name('home');
 Route::livewire('d/{dispatch}', ShowDispatch::class)->name('dispatches.show');
 Route::livewire('@{user:username}', UserProfile::class)->name('users.show');
 Route::view('rules', 'rules')->name('rules');
+Route::get('transparency', TransparencyController::class)->name('transparency');
 
 // Share images for link previews, cached for a day...
 Route::get('d/{dispatch}/og.png', function (Dispatch $dispatch) {
@@ -38,6 +41,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('saved', Saved::class)->name('saved');
     Route::livewire('notifications', Notifications::class)->name('notifications');
     Route::livewire('moderation', Moderation::class)->name('moderation');
+    Route::livewire('appeal', AppealCreate::class)->name('appeals.create');
+    Route::get('banned', fn () => view('banned', ['ban' => auth()->user()->activeBan()]))->name('banned');
 });
 
 require __DIR__.'/settings.php';

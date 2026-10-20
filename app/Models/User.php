@@ -6,6 +6,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -52,7 +53,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'is_native' => 'boolean',
             'is_staff' => 'boolean',
             'stops' => 'array',
-            'muted_until' => 'datetime',
+            'subscribed_until' => 'datetime',
             'accepted_rules_at' => 'datetime',
         ];
     }
@@ -112,20 +113,58 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
+     * Penalties follow the email address, so they outlive a deleted account.
+     */
+    public static function hashSubject(string $email): string
+    {
+        return hash_hmac('sha256', strtolower(trim($email)), (string) config('app.key'));
+    }
+
+    public function subjectHash(): string
+    {
+        return self::hashSubject($this->email);
+    }
+
+    /**
+     * @return Builder<Penalty>
+     */
+    public function penalties(): Builder
+    {
+        return Penalty::where('subject_hash', $this->subjectHash());
+    }
+
+    public function activeBan(): ?Penalty
+    {
+        return $this->penalties()->active()->where('type', 'ban')->latest()->first();
+    }
+
+    public function activeTimeout(): ?Penalty
+    {
+        return $this->penalties()->active()->where('type', 'timeout')->orderByDesc('ends_at')->first();
+    }
+
+    /**
      * Why this person can't post right now, or null when they can.
      */
     public function postingBlock(): ?string
     {
-        if ($this->isMuted()) {
-            return 'You can’t post until '.$this->muted_until->format('M j, g:ia').'.';
+        if ($this->activeBan()) {
+            return 'Your account is banned from posting.';
+        }
+
+        if ($timeout = $this->activeTimeout()) {
+            return 'You’re in a timeout until '.$timeout->ends_at->format('M j, g:ia').': '.$timeout->reason;
+        }
+
+        if (! $this->hasVerifiedEmail()) {
+            return 'Verify your email address to post.';
+        }
+
+        if (config('stoop.require_subscription') && ! $this->is_staff && ! $this->subscribed_until?->isFuture()) {
+            return 'Posting is for subscribers. Reading is free.';
         }
 
         return null;
-    }
-
-    public function isMuted(): bool
-    {
-        return $this->muted_until?->isFuture() ?? false;
     }
 
     /**

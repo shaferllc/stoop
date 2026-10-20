@@ -201,6 +201,21 @@ trait HandlesDispatchActions
         $this->undoId = null;
     }
 
+    /**
+     * The author of a thread can hide replies under it. Moderators still see them.
+     */
+    public function toggleHideReply(int $id): void
+    {
+        if (! $user = $this->actor()) {
+            return;
+        }
+
+        $reply = Dispatch::whereNotNull('parent_id')->findOrFail($id);
+        abort_unless($reply->parent?->user_id === $user->id, 403);
+
+        $reply->forceFill(['hidden_by_author' => ! $reply->hidden_by_author])->save();
+    }
+
     public function togglePin(int $id): void
     {
         if (! $user = $this->actor()) {

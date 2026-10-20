@@ -55,6 +55,13 @@ class Composer extends Component
 
     public bool $warned = false;
 
+    /** Crime & safety form: when it happened, the block, and an optional description of a person. */
+    public string $safetyWhen = '';
+
+    public string $safetyBlock = '';
+
+    public string $safetyPerson = '';
+
     public function updatedBody(): void
     {
         $this->warned = false;
@@ -149,7 +156,30 @@ class Composer extends Component
             'photos' => ['array', 'max:3'],
             'photos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:10240', 'dimensions:max_width=6000,max_height=6000'],
             'alts.*' => ['nullable', 'string', 'max:1000'],
-        ], [], ['happeningAt' => 'when', 'options.*' => 'option', 'publishAt' => 'scheduled time', 'photos.*' => 'photo']);
+            'safetyWhen' => [Rule::requiredIf($this->type === 'safety' && $topLevel), 'nullable', 'string', 'max:60'],
+            'safetyBlock' => ['nullable', 'string', 'max:80'],
+            'safetyPerson' => ['nullable', 'string', 'max:280'],
+        ], [], ['happeningAt' => 'when', 'options.*' => 'option', 'publishAt' => 'scheduled time', 'photos.*' => 'photo', 'safetyWhen' => 'when it happened']);
+
+        if ($this->type === 'safety' && $topLevel) {
+            if (! $this->stop) {
+                $this->addError('stop', 'Pick the nearest stop so neighbors know where this happened.');
+
+                return;
+            }
+
+            if ($this->safetyPerson !== '' && Civility::isIdentityOnly($this->safetyPerson)) {
+                $this->addError('safetyPerson', 'Describe clothing, height, a vehicle or what they did. Race or gender alone doesn’t help anyone identify a person, and it isn’t allowed here.');
+
+                return;
+            }
+        }
+
+        if ($this->parentId && $reason = $this->replyBlock($user)) {
+            $this->addError('body', $reason);
+
+            return;
+        }
 
         $options = array_values(array_unique(array_filter(array_map('trim', $this->options))));
         if ($this->type === 'poll' && $topLevel && count($options) < 2) {
@@ -196,6 +226,9 @@ class Composer extends Component
                 'publish_at' => $publishAt,
                 'closes_at' => ! $parent && $this->type === 'poll' ? ($publishAt ?? now())->copy()->addHours($this->pollHours) : null,
                 'link_preview_id' => $preview?->id,
+                'safety' => ! $parent && $this->type === 'safety'
+                    ? array_filter(['when' => $this->safetyWhen, 'block' => $this->safetyBlock, 'person' => $this->safetyPerson])
+                    : null,
             ]);
 
             if (! $parent && $this->type === 'poll') {
@@ -215,7 +248,11 @@ class Composer extends Component
 
         AnnounceDispatch::run($dispatch);
 
-        $this->reset('body', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours');
+        if ($parent) {
+            $this->checkPileOn($parent);
+        }
+
+        $this->reset('body', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson');
         $this->type = 'dispatch';
         $this->dispatch('dispatch-filed', id: $dispatch->id);
 
@@ -224,6 +261,49 @@ class Composer extends Component
             'scheduled' => 'Scheduled for '.$dispatch->publish_at->format('M j, g:ia').'.',
             default => $parent ? 'Reply posted.' : 'Dispatch filed.',
         });
+    }
+
+    /**
+     * Why this person can't reply to the parent dispatch, or null when they can.
+     */
+    protected function replyBlock(User $user): ?string
+    {
+        $parent = Dispatch::find($this->parentId);
+
+        if (! $parent || $parent->user_id === $user->id) {
+            return null;
+        }
+
+        if ($parent->replies_locked_until?->isFuture()) {
+            return 'Replies are paused on this thread for a little while.';
+        }
+
+        if ($parent->user->replies_from === 'following' && ! $parent->user->following()->whereKey($user->id)->exists()) {
+            return 'Only people '.$parent->user->name.' follows can reply.';
+        }
+
+        return null;
+    }
+
+    /**
+     * A sudden flood of replies from people who don't follow the author pauses the thread
+     * for an hour and puts it in front of moderators.
+     */
+    protected function checkPileOn(Dispatch $parent): void
+    {
+        if ($parent->flagged_at) {
+            return;
+        }
+
+        $strangers = $parent->replies()
+            ->where('created_at', '>=', now()->subMinutes(10))
+            ->whereNotIn('user_id', $parent->user->followers()->select('users.id'))
+            ->where('user_id', '!=', $parent->user_id)
+            ->distinct()->count('user_id');
+
+        if ($strangers >= config('stoop.pile_on_threshold')) {
+            $parent->forceFill(['replies_locked_until' => now()->addHour(), 'flagged_at' => now()])->save();
+        }
     }
 
     public function render(): View

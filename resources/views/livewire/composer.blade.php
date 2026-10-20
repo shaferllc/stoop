@@ -41,6 +41,7 @@
                         'happening' => 'What’s happening, and where?',
                         'been' => 'Where did you go, and what should people order?',
                         'callout' => 'What do you want readers to tell the newsroom?',
+                        'safety' => 'What happened?',
                         default => 'What’s happening on your block?',
                     } }}"
                     class="w-full resize-none bg-transparent outline-none"></textarea>
@@ -87,6 +88,17 @@
                 </label>
             @endif
 
+            @if ($type === 'safety' && ! $parentId)
+                <div class="mt-2 space-y-1.5 rounded-lg border border-rule bg-paper p-2.5 text-sm">
+                    <p class="text-[13px] text-mute">Say what happened, where and when. If you describe a person, describe clothing, height, a vehicle or what they did. Race or gender alone isn’t allowed.</p>
+                    <div class="grid gap-1.5 sm:grid-cols-2">
+                        <input wire:model="safetyWhen" maxlength="60" placeholder="When? For example: Today, about 3pm" aria-label="When it happened" class="rounded-md border border-rule bg-card px-2.5 py-1.5">
+                        <input wire:model="safetyBlock" maxlength="80" placeholder="Block or intersection (optional)" aria-label="Block or intersection" class="rounded-md border border-rule bg-card px-2.5 py-1.5">
+                    </div>
+                    <input wire:model="safetyPerson" maxlength="280" placeholder="Description of a person, if it helps (optional)" aria-label="Description of a person" class="w-full rounded-md border border-rule bg-card px-2.5 py-1.5">
+                </div>
+            @endif
+
             @if ($type === 'happening' && ! $parentId)
                 <input wire:model="happeningAt" maxlength="60" placeholder="When? For example: Tonight · 8pm" aria-label="When" class="mt-2 w-full rounded-md border border-rule bg-paper px-2.5 py-1.5 text-sm">
             @endif
@@ -97,7 +109,7 @@
                 </div>
             @endif
 
-            @foreach (['body', 'options', 'happeningAt', 'type', 'line', 'stop', 'publishAt', 'photos', 'photos.*', 'alts.*'] as $field)
+            @foreach (['body', 'options', 'happeningAt', 'type', 'line', 'stop', 'publishAt', 'photos', 'photos.*', 'alts.*', 'safetyWhen', 'safetyPerson'] as $field)
                 @error($field) <p class="mt-1 text-sm text-flag">{{ $message }}</p> @enderror
             @endforeach
 

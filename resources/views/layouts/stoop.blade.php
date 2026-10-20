@@ -104,6 +104,7 @@
                     <p class="mb-1.5"><b class="text-ink">No networking posts.</b> This isn't LinkedIn for lobbyists.</p>
                     <p class="mb-1.5"><b class="text-ink">No campaign spam.</b> Talk about the city, not the Hill.</p>
                     <a href="{{ route('rules') }}" wire:navigate class="underline">Full rules</a> ·
+                    <a href="{{ route('transparency') }}" wire:navigate class="underline">Transparency</a> ·
                     <button type="button" onclick="document.getElementById('shortcuts').showModal()" class="underline">Keyboard shortcuts</button>
                 </div>
             </aside>

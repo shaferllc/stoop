@@ -6,6 +6,7 @@ use App\Livewire\Composer;
 use App\Livewire\Pages\Feed;
 use App\Livewire\Pages\Moderation;
 use App\Models\Dispatch;
+use App\Models\Penalty;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -80,10 +81,10 @@ class StoopTest extends TestCase
         $this->assertDatabaseCount('dispatches', 1);
     }
 
-    public function test_muted_users_cannot_post(): void
+    public function test_users_in_a_timeout_cannot_post(): void
     {
         $user = User::factory()->create();
-        $user->forceFill(['muted_until' => now()->addDay()])->save();
+        Penalty::create(['user_id' => $user->id, 'subject_hash' => $user->subjectHash(), 'type' => 'timeout', 'reason' => 'Spam', 'ends_at' => now()->addDay()]);
 
         Livewire::actingAs($user)->test(Composer::class)
             ->set('body', 'Can anyone hear me')

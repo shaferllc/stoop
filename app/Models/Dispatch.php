@@ -17,7 +17,7 @@ use Illuminate\Support\HtmlString;
 /**
  * A post on Stoop. Dispatches are never edited, only created and deleted.
  */
-#[Fillable(['user_id', 'parent_id', 'quote_id', 'type', 'line', 'stop', 'body', 'happening_at', 'status', 'publish_at', 'closes_at', 'link_preview_id'])]
+#[Fillable(['user_id', 'parent_id', 'quote_id', 'type', 'line', 'stop', 'body', 'happening_at', 'status', 'publish_at', 'closes_at', 'link_preview_id', 'safety'])]
 class Dispatch extends Model
 {
     /** @use HasFactory<DispatchFactory> */
@@ -28,6 +28,10 @@ class Dispatch extends Model
         return [
             'publish_at' => 'datetime',
             'closes_at' => 'datetime',
+            'replies_locked_until' => 'datetime',
+            'flagged_at' => 'datetime',
+            'hidden_by_author' => 'boolean',
+            'safety' => 'array',
         ];
     }
 
