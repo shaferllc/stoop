@@ -33,6 +33,8 @@ Optional settings in `.env`:
 - `STOOP_MODEL_MODERATION=false`: turn off the Claude check on new posts while keeping the bot and translation. The model defaults to `claude-opus-5-5`; `STOOP_MODERATION_MODEL` changes it.
 - `STOOP_AUTO_VERIFY=false`: require the email link again.
 
+House bots live in `app/Bots`, one class each, and register their own schedules. @ask links unanswered Ask DC questions (2+ hours old) to similar answered ones; @welcome sends each new account one in-app note with tips for their home stops and people to follow; @recap posts “Your stop this week” for the 5 busiest stops on Sunday mornings; reply `@translate to Spanish` in a thread to translate the post above; @calm posts one neighborly reminder when a pile-on-flagged thread reopens. Only @ask (one framing sentence) and @translate use Claude, and both work or say so without `ANTHROPIC_API_KEY`.
+
 Embed on magazine article pages:
 
 ```html
