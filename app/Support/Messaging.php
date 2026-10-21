@@ -41,7 +41,16 @@ class Messaging
             return 'direct';
         }
 
-        return $to->message_requests ? 'request' : $to->name.' only accepts messages from people they follow.';
+        if (! $to->message_requests) {
+            return $to->name.' only accepts messages from people they follow.';
+        }
+
+        // New accounts can't cold-message people, which slows down spam and harassment accounts.
+        if ($from->created_at?->gt(now()->subHours(config('stoop.new_account_dm_hours'))) && ! $from->is_staff) {
+            return 'New accounts can message people who follow them. Message requests open up after '.(config('stoop.new_account_dm_hours') / 24).' days.';
+        }
+
+        return 'request';
     }
 
     /**

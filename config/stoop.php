@@ -111,6 +111,13 @@ return [
     // ponytail: regex lists miss a lot, swap in a moderation model when traffic is real
     'held_patterns' => [],
 
+    // Screen every new dispatch with Claude before it goes public (needs ANTHROPIC_API_KEY).
+    'model_moderation' => env('STOOP_MODEL_MODERATION', true),
+
+    // New accounts: how long before they can send message requests, and a daily post cap for their first week.
+    'new_account_dm_hours' => 72,
+    'new_account_daily_posts' => 20,
+
     'nudge_pattern' => '/\b(idiots?|stupid|morons?|trash people|go back to|shut up|losers?|scum|hate (you|them|these))\b/i',
 
 ];

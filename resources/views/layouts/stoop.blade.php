@@ -115,6 +115,8 @@
                     <p class="mb-1.5"><b class="text-ink">No campaign spam.</b> Talk about the city, not the Hill.</p>
                     <a href="{{ route('rules') }}" wire:navigate class="underline">Full rules</a> ·
                     <a href="{{ route('transparency') }}" wire:navigate class="underline">Transparency</a> ·
+                    <a href="{{ route('privacy') }}" wire:navigate class="underline">Privacy</a> ·
+                    <a href="{{ route('terms') }}" wire:navigate class="underline">Terms</a> ·
                     <button type="button" onclick="document.getElementById('shortcuts').showModal()" class="underline">Keyboard shortcuts</button>
                 </div>
             </aside>

@@ -42,8 +42,11 @@ class MessagingTest extends TestCase
 
     public function test_message_requests_wait_for_acceptance_and_allow_one_message(): void
     {
-        [$me, $them] = User::factory()->count(2)->create();
+        [$me, $them] = User::factory()->count(2)->create(['created_at' => now()->subMonth()]);
         $them->forceFill(['message_requests' => true])->save();
+
+        $newcomer = User::factory()->create();
+        $this->assertStringContainsString('New accounts', Messaging::access($newcomer, $them));
 
         $conversation = Messaging::start($me, [$them]);
         Messaging::send($me, $conversation->fresh('participants'), 'Hi, I saw your post about the flea market.');

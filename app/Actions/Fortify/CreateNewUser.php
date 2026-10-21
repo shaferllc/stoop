@@ -6,6 +6,7 @@ use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\User;
 use App\Support\Bots;
+use App\Support\Turnstile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -24,7 +25,12 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
-        ])->validate();
+            'cf-turnstile-response' => [config('services.turnstile.secret') ? 'required' : 'nullable', 'string', function ($attribute, $value, $fail) {
+                if (config('services.turnstile.secret') && ! Turnstile::passes($value)) {
+                    $fail('We couldn’t confirm you’re a person. Try again.');
+                }
+            }],
+        ], ['cf-turnstile-response.required' => 'Complete the check that you’re a person.'])->validate();
 
         $user = User::create([
             'name' => $input['name'],

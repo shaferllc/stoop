@@ -1,11 +1,13 @@
 <?php
 
 use App\Actions\AnnounceDispatch;
+use App\Jobs\ModerateDispatch;
 use App\Mail\WeeklyDigest;
 use App\Models\Dispatch;
 use App\Models\User;
 use App\Support\Civility;
 use App\Support\Magazine;
+use App\Support\ModerationModel;
 use App\Support\Newsletter;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -19,11 +21,12 @@ Artisan::command('inspire', function () {
 
 Artisan::command('stoop:publish-scheduled', function () {
     Dispatch::where('status', 'scheduled')->where('publish_at', '<=', now())->each(function (Dispatch $dispatch) {
+        $pending = ModerationModel::enabled() && ! $dispatch->user->is_staff;
         $dispatch->forceFill([
-            'status' => Civility::shouldHold($dispatch->body) ? 'held' : 'approved',
+            'status' => Civility::shouldHold($dispatch->body) ? 'held' : ($pending ? 'pending' : 'approved'),
             'created_at' => $dispatch->publish_at,
         ])->save();
-        AnnounceDispatch::run($dispatch);
+        $pending ? ModerateDispatch::dispatch($dispatch) : AnnounceDispatch::run($dispatch);
     });
 })->purpose('Publish scheduled dispatches whose time has come');
 

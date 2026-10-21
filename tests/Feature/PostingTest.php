@@ -125,6 +125,11 @@ class PostingTest extends TestCase
         $this->assertFalse(LinkPreviews::isPublic('http://10.0.0.5/'));
         $this->assertFalse(LinkPreviews::isPublic('file:///etc/passwd'));
         $this->assertFalse(LinkPreviews::isPublic('http://169.254.169.254/latest/meta-data'));
+        $this->assertFalse(LinkPreviews::isPublic('http://[::1]/'));
+        $this->assertFalse(LinkPreviews::isPublic('http://[fd00::1]/'));
+        $this->assertFalse(LinkPreviews::isPublic('http://[::ffff:10.0.0.1]/'));
+        $this->assertFalse(LinkPreviews::isPublic('http://localhost/'));
+        $this->assertFalse(LinkPreviews::isPublic('http://example.com:8080/'));
 
         Livewire::actingAs(User::factory()->create())->test(Composer::class)
             ->set('body', 'Agree with this list https://example.com/pizza')

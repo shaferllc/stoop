@@ -176,6 +176,7 @@ class Moderation extends Component
 
         $queue = Dispatch::with(['user', 'reports.user'])
             ->where(fn ($q) => $q->whereIn('status', ['held', 'hidden'])
+                ->orWhere(fn ($q) => $q->where('status', 'pending')->where('created_at', '<', now()->subMinutes(10)))
                 ->orWhereNotNull('flagged_at')
                 ->orWhereHas('reports', fn ($q) => $q->whereNull('resolved_at')))
             ->where('status', '!=', 'removed')

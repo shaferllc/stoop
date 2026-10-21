@@ -170,6 +170,7 @@ class Composer extends Component
 
         Flux::toast(match ($dispatch->status) {
             'held' => 'Held for review. A moderator will check it before it goes up.',
+            'pending' => 'Filed. It goes up once it passes a quick check.',
             'scheduled' => 'Scheduled for '.$dispatch->publish_at->format('M j, g:ia').'.',
             default => $this->parentId ? 'Reply posted.' : 'Dispatch filed.',
         });

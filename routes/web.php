@@ -34,6 +34,8 @@ Route::livewire('/', Feed::class)->name('home');
 Route::livewire('d/{dispatch}', ShowDispatch::class)->name('dispatches.show');
 Route::livewire('@{user:username}', UserProfile::class)->name('users.show');
 Route::view('rules', 'rules')->name('rules');
+Route::view('privacy', 'privacy')->name('privacy');
+Route::view('terms', 'terms')->name('terms');
 Route::livewire('search', Search::class)->name('search');
 Route::livewire('places', PlacesIndex::class)->name('places');
 Route::livewire('places/{place}', PlaceShow::class)->name('places.show');

@@ -8,12 +8,25 @@
     </div>
 
     @if ($view === 'queue')
-        <p class="mb-3 text-sm text-mute">Held posts, posts hidden after reports, flagged pile-ons, and anything with open reports.</p>
-        <div class="space-y-3">
+        <p class="mb-3 text-sm text-mute">Held posts, posts hidden after reports, flagged pile-ons, and anything with open reports. Keys: <kbd class="font-mono">j</kbd>/<kbd class="font-mono">k</kbd> to move, <kbd class="font-mono">a</kbd> to approve, <kbd class="font-mono">r</kbd> to remove, <kbd class="font-mono">o</kbd> to open the thread.</p>
+        <div class="space-y-3" x-data x-on:keydown.window="
+            if ($event.metaKey || $event.ctrlKey || $event.altKey || $event.target.closest('input, textarea, select') || $wire.acting) return;
+            const items = [...$el.querySelectorAll('[data-mod-item]')];
+            if (!items.length) return;
+            const current = document.activeElement.closest('[data-mod-item]');
+            const i = items.indexOf(current);
+            const go = (n) => { const next = items[Math.max(0, Math.min(items.length - 1, n))]; next.focus(); next.scrollIntoView({ block: 'center' }); };
+            if ($event.key === 'j') { $event.preventDefault(); go(i + 1); }
+            if ($event.key === 'k') { $event.preventDefault(); go(i - 1); }
+            if (!current) return;
+            if ($event.key === 'a') { $event.preventDefault(); $wire.approve(Number(current.dataset.modItem)); }
+            if ($event.key === 'r') { $event.preventDefault(); $wire.startAction(Number(current.dataset.modItem)); }
+            if ($event.key === 'o') { $event.preventDefault(); window.open(current.dataset.href, '_blank'); }
+        ">
             @forelse ($queue as $d)
-                <div wire:key="mod-{{ $d->id }}" class="rounded-xl border border-rule bg-card p-4">
+                <div wire:key="mod-{{ $d->id }}" data-mod-item="{{ $d->id }}" data-href="{{ route('dispatches.show', $d) }}" tabindex="-1" class="rounded-xl border border-rule bg-card p-4 outline-none focus:border-ink focus:ring-2 focus:ring-ink">
                     <div class="flex flex-wrap items-center gap-2 text-sm">
-                        <a href="{{ route('users.show', $d->user) }}" class="font-semibold">{{ '@'.$d->user->username }}</a>
+                        <a href="{{ route('admin.users.show', $d->user) }}" wire:navigate class="font-semibold" title="Account, notes and history">{{ '@'.$d->user->username }}</a>
                         <span class="rounded bg-chip px-1.5 text-[11px] font-bold uppercase">{{ $d->status }}</span>
                         @if ($d->flagged_at) <span class="rounded bg-flag/10 px-1.5 text-[11px] font-bold uppercase text-flag">pile-on</span> @endif
                         <span class="text-mute">{{ $d->created_at->diffForHumans() }} · {{ $d->strikes }} prior {{ str('penalty')->plural($d->strikes) }}</span>

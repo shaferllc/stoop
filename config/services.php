@@ -35,6 +35,12 @@ return [
         ],
     ],
 
+    // Cloudflare Turnstile on sign-up. Leave empty to skip the check (local development).
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY'),
+        'secret' => env('TURNSTILE_SECRET'),
+    ],
+
     // Shared secret the magazine's subscription system signs webhooks with.
     'subscriptions' => [
         'secret' => env('STOOP_SUBSCRIPTION_SECRET'),
@@ -49,6 +55,7 @@ return [
     'anthropic' => [
         'key' => env('ANTHROPIC_API_KEY'),
         'model' => env('STOOP_BOT_MODEL', 'claude-opus-5-5'),
+        'moderation_model' => env('STOOP_MODERATION_MODEL', 'claude-opus-5-5'),
     ],
 
 ];

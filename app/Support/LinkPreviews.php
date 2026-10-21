@@ -36,11 +36,17 @@ class LinkPreviews
         // ponytail: fetched inline with a short timeout; move to a queued job if posting feels slow
         try {
             for ($hop = 0; $hop < 3; $hop++) {
-                if (! self::isPublic($url)) {
+                if (! $ip = self::publicAddress($url)) {
                     return null;
                 }
 
-                $response = Http::withOptions(['allow_redirects' => false])
+                // Pin the connection to the address we checked, so a second DNS lookup can't
+                // point the request somewhere internal (DNS rebinding).
+                $parts = parse_url($url);
+                $port = $parts['port'] ?? ($parts['scheme'] === 'https' ? 443 : 80);
+                $pin = $parts['host'].':'.$port.':'.(str_contains($ip, ':') ? '['.$ip.']' : $ip);
+
+                $response = Http::withOptions(['allow_redirects' => false, 'curl' => [CURLOPT_RESOLVE => [$pin]]])
                     ->withHeaders(['User-Agent' => 'StoopBot/1.0 (+link previews)', 'Accept' => 'text/html'])
                     ->timeout(4)->get($url);
 
@@ -93,21 +99,44 @@ class LinkPreviews
 
     public static function isPublic(string $url): bool
     {
-        $parts = parse_url($url);
-        $host = $parts['host'] ?? null;
+        return self::publicAddress($url) !== null;
+    }
 
-        if (! in_array($parts['scheme'] ?? '', ['http', 'https'], true) || ! $host || ! in_array($parts['port'] ?? 0, [0, 80, 443], true)) {
-            return false;
+    /**
+     * The address to connect to, when the URL is http(s) on a standard port and every
+     * address its host resolves to (IPv4 and IPv6) is public. Null otherwise.
+     */
+    public static function publicAddress(string $url): ?string
+    {
+        $parts = parse_url($url);
+        $host = trim($parts['host'] ?? '', '[]');
+
+        if (! in_array($parts['scheme'] ?? '', ['http', 'https'], true) || $host === '' || ! in_array($parts['port'] ?? 0, [0, 80, 443], true)) {
+            return null;
         }
 
-        $ips = filter_var($host, FILTER_VALIDATE_IP) ? [$host] : (gethostbynamel($host) ?: []);
+        $ips = filter_var($host, FILTER_VALIDATE_IP) ? [$host] : self::resolve($host);
 
         foreach ($ips as $ip) {
-            if (! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                return false;
+            // Unwrap IPv4-mapped IPv6 (::ffff:10.0.0.1) so it's checked as the IPv4 address it is.
+            $check = preg_match('/^::ffff:(\d+\.\d+\.\d+\.\d+)$/i', $ip, $m) ? $m[1] : $ip;
+
+            if (! filter_var($check, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return null;
             }
         }
 
-        return $ips !== [];
+        return $ips[0] ?? null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected static function resolve(string $host): array
+    {
+        $records = @dns_get_record($host, DNS_A | DNS_AAAA) ?: [];
+        $ips = array_values(array_filter(array_map(fn ($r) => $r['ip'] ?? $r['ipv6'] ?? null, $records)));
+
+        return $ips ?: (gethostbynamel($host) ?: []);
     }
 }

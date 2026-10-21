@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Exceptions\NudgeRequired;
+use App\Jobs\ModerateDispatch;
 use App\Jobs\RunBots;
 use App\Models\Dispatch;
 use App\Models\Place;
@@ -10,6 +11,7 @@ use App\Models\User;
 use App\Support\Civility;
 use App\Support\LinkPreviews;
 use App\Support\Mentions;
+use App\Support\ModerationModel;
 use App\Support\Photos;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -117,6 +119,11 @@ class FileDispatch
             throw new NudgeRequired;
         }
 
+        if (! $user->is_staff && ! $user->is_bot && $user->created_at?->gt(now()->subWeek())
+            && $user->dispatches()->where('created_at', '>=', now()->subDay())->count() >= config('stoop.new_account_daily_posts')) {
+            $fail('body', 'New accounts can post '.config('stoop.new_account_daily_posts').' times a day for their first week. Try again tomorrow.');
+        }
+
         if (! RateLimiter::attempt('dispatch:'.$user->id, config('stoop.posts_per_minute'), fn () => true)) {
             $fail('body', 'Slow down a little. Try again in a minute.');
         }
@@ -135,7 +142,7 @@ class FileDispatch
                 'line' => $parent?->line ?? ($type === 'ask' ? 'yellow' : $input['line']),
                 'body' => $input['body'],
                 'happening_at' => $type === 'happening' ? $input['happeningAt'] : null,
-                'status' => $publishAt ? 'scheduled' : (Civility::shouldHold($input['body']) ? 'held' : 'approved'),
+                'status' => $publishAt ? 'scheduled' : self::initialStatus($user, $input['body']),
                 'publish_at' => $publishAt,
                 'closes_at' => $type === 'poll' ? ($publishAt ?? now())->copy()->addHours((int) $input['pollHours']) : null,
                 'link_preview_id' => $preview?->id,
@@ -163,17 +170,31 @@ class FileDispatch
             return $dispatch;
         });
 
-        AnnounceDispatch::run($dispatch);
-
         if ($parent) {
             self::checkPileOn($parent);
         }
 
-        if ($dispatch->status === 'approved') {
+        if ($dispatch->status === 'pending') {
+            ModerateDispatch::dispatch($dispatch);
+        } elseif ($dispatch->status === 'approved') {
+            AnnounceDispatch::run($dispatch);
             RunBots::dispatch($dispatch);
         }
 
-        return $dispatch;
+        return $dispatch->fresh();
+    }
+
+    /**
+     * Held if it matches a held pattern; pending a model check when model moderation is on,
+     * except for staff and house accounts; otherwise approved.
+     */
+    protected static function initialStatus(User $user, string $body): string
+    {
+        if (Civility::shouldHold($body)) {
+            return 'held';
+        }
+
+        return ModerationModel::enabled() && ! $user->is_staff && ! $user->is_bot ? 'pending' : 'approved';
     }
 
     /**

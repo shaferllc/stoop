@@ -14,6 +14,7 @@
     @if ($d->status !== 'approved')
         <div class="mb-2 rounded-md bg-chip px-2.5 py-1 text-xs text-mute">
             {{ match ($d->status) {
+                'pending' => 'Checking against the house rules. It goes up in a moment.',
                 'held' => 'Held for review. Only you and moderators can see this.',
                 'hidden' => 'Hidden after reports. A moderator is reviewing it.',
                 'scheduled' => 'Scheduled for '.$d->publish_at?->format('D M j, g:ia').'. Only you can see this.',

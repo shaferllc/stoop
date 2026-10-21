@@ -65,6 +65,14 @@
                 viewable
             />
 
+            @if (config('services.turnstile.site_key'))
+                <div class="cf-turnstile" data-sitekey="{{ config('services.turnstile.site_key') }}"></div>
+                <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+            @endif
+            @error('cf-turnstile-response') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+
+            <p class="text-sm text-zinc-500">{{ __('By joining you agree to the') }} <a href="{{ route('terms') }}" class="underline" target="_blank">{{ __('terms') }}</a>, <a href="{{ route('privacy') }}" class="underline" target="_blank">{{ __('privacy policy') }}</a> {{ __('and') }} <a href="{{ route('rules') }}" class="underline" target="_blank">{{ __('house rules') }}</a>.</p>
+
             <div class="flex items-center justify-end">
                 <flux:button type="submit" variant="primary" class="w-full" data-test="register-user-button">
                     {{ __('Create account') }}
