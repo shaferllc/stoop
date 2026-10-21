@@ -153,7 +153,7 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [ ] A public list of ballots (each ballot is reachable from its link only; announce it with a callout)
 - [x] Events from the magazine (Admin → Magazine events): the weekly “Things to Do” roundups in the article feed post as Happenings from @magazine, hourly (`stoop:import-events`) or on “Import now”; the day comes from each listing’s note (“(Sat, $35, Shaw)”), the stop from a known place or a station in the text, the line from the magazine’s keywords (else Orange); never posted twice, start time moves when the listing changes; CSV upload as the fallback. The site has no events feed, iCal or Event JSON-LD (checked Oct 2026)
 - [ ] Listings rarely give a time, so those events sit on the calendar at noon (the card shows the day only); switch to a real events feed if the magazine adds one
-- [ ] Show a “From Washingtonian” label on the dispatch card from `details.magazine_event` (the body carries it for now)
+- [ ] When a listing’s day changes, the start time moves but the post’s text still shows the old note
 - [ ] Push notifications and the installable app need HTTPS; try them once the site is served over HTTPS
 
 ## Newsroom

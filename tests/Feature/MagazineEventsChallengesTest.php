@@ -17,6 +17,7 @@ use App\Support\Stations;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 use Livewire\Livewire;
@@ -84,6 +85,26 @@ class MagazineEventsChallengesTest extends TestCase
 
         // The magazine's stops never count toward mayor.
         $this->assertSame([], Stations::points(now()->subDay())->all());
+    }
+
+    public function test_long_listings_fit_and_overlapping_imports_wait(): void
+    {
+        $long = '<li><strong>Fall festival.</strong> '.str_repeat('Hayrides, cider and a pumpkin patch. ', 20).'<em>(Sat, free, Shaw)</em></li>';
+        $feed = '<?xml version="1.0"?><rss xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><item><title>Things</title>'
+            .'<link>https://magazine.example/ttd</link><guid>p9</guid><pubDate>Mon, 19 Oct 2026 19:36:48 +0000</pubDate><category>Things to Do</category>'
+            .'<content:encoded><![CDATA['.$long.']]></content:encoded></item></channel></rss>';
+        Http::fake(['magazine.example/feed' => Http::response($feed), '*' => Http::response('', 404)]);
+
+        $lock = Cache::lock('stoop:magazine-events', 300);
+        $lock->get();
+        $this->assertSame('An import is already running.', MagazineEvents::import()['error']);
+        $lock->release();
+
+        $this->assertSame(1, MagazineEvents::import()['posted']);
+        $post = Dispatch::where('type', 'happening')->firstOrFail();
+        $this->assertLessThanOrEqual(500, mb_strlen($post->body));
+        $this->assertSame('From Washingtonian', $post->details['magazine_event']['source']);
+        $this->actingAs(User::factory()->create())->get(route('dispatches.show', $post))->assertOk()->assertSee('From Washingtonian');
     }
 
     public function test_station_matching(): void

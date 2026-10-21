@@ -74,7 +74,7 @@ class MagazineEvents
             }
 
             return self::finish($result);
-        }) ?? [...$result, 'error' => 'An import is already running.'];
+        }) ?: [...$result, 'error' => 'An import is already running.'];
     }
 
     /**
@@ -249,7 +249,8 @@ class MagazineEvents
             RateLimiter::clear('dispatch:'.$account->id);
             $dispatch = FileDispatch::handle($account, [
                 'type' => 'happening',
-                'body' => Str::limit($text, config('stoop.max_length') - mb_strlen($suffix), '…').$suffix,
+                // Str::limit adds the ellipsis after the limit, hence the - 1.
+                'body' => Str::limit($text, config('stoop.max_length') - mb_strlen($suffix) - 1, '…').$suffix,
                 'line' => self::lineFor($text),
                 'stop' => self::stationFor($text, $event['venue']),
                 'happeningAt' => $when,

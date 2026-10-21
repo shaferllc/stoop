@@ -134,6 +134,10 @@
         </div>
     @endif
 
+    @isset($d->details['magazine_event'])
+        <a href="{{ $d->details['magazine_event']['url'] }}" target="_blank" rel="noopener" class="mt-1 inline-block text-[11px] font-semibold uppercase tracking-wide text-flag hover:underline sm:ml-[46px]">{{ $d->details['magazine_event']['source'] }}</a>
+    @endisset
+
     @if ($article = $d->details['article'] ?? null)
         {{-- A magazine article posted from the feed. --}}
         @php($articleUrl = $d->linkPreview?->url ?? \App\Support\Mentions::firstUrl($d->body))
