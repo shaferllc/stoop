@@ -23,7 +23,7 @@ Seeded logins (password `password`): `demo@example.com` (regular user) and `food
 Optional settings in `.env`:
 
 - `ANTHROPIC_API_KEY`: lets @stoop answer with Claude and turns on translation. Without it, @stoop answers from `resources/knowledge/stoop.md` and the Translate button is hidden.
-- `WMATA_API_KEY`: shows live Metro delays in the sidebar.
+- `WMATA_API_KEY`: shows live Metro delays in the sidebar, and lets @metro post major disruptions and answer “@metro next <station>”.
 - `STOOP_REQUIRE_SUBSCRIPTION=true`: only subscribers can post.
 - `STOOP_MAGAZINE_FEED`: the magazine’s RSS or Atom feed. New articles post to Stoop automatically.
 - `STOOP_SUBSCRIPTION_SECRET`: shared secret for the subscription webhook (`POST /api/subscriptions`, see `app/Http/Controllers/Api/SubscriptionWebhookController.php`).
@@ -33,9 +33,15 @@ Optional settings in `.env`:
 - `STOOP_MODEL_MODERATION=false`: turn off the Claude check on new posts while keeping the bot and translation. The model defaults to `claude-opus-5-5`; `STOOP_MODERATION_MODEL` changes it.
 - `STOOP_AUTO_VERIFY=false`: require the email link again.
 
+<<<<<<< HEAD
 - `STOOP_MAGAZINE_ORIGINS`: comma-separated sites allowed to call the embed APIs from a browser (default `https://www.washingtonian.com,https://washingtonian.com`).
 
 Embeds for magazine article pages (any combination, one script):
+=======
+City bots in `app/Bots` (all keyless except @metro): @metro (WMATA disruptions, next trains), @bikeshare (Capital Bikeshare docks near a stop or neighborhood), @weather (6:30am forecast and NWS alerts from api.weather.gov; suggests Snow Day mode to staff, never turns it on), @cherry (NPS Bloom Watch stages, March 1 to April 15) and @311 (how to report a problem, plus a Sunday summary from DC’s open 311 data).
+
+Embed on magazine article pages:
+>>>>>>> worktree-agent-ad66da2e7879c6f34
 
 ```html
 <div data-stoop-discussion></div>               <!-- neighbors talking about this article -->

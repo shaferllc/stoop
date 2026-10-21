@@ -47,10 +47,16 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] On the scene (Going live): YouTube, Twitch or Instagram link for 1–12 hours, red ring and marker
 - [x] House bots: @stoop answers questions (Claude when `ANTHROPIC_API_KEY` is set, knowledge-base lookup otherwise); @dc answers “hello DC”
 - [x] New accounts start out following @stoop, and @stoop follows them back
+<<<<<<< HEAD
 - [x] @eats (place picks from the magazine’s lists), @weekend (Friday round-up with editors’ picks), @history (On this day in DC, staff-edited at Admin → History), @quizmaster (The Daily, streak leaders, cheers for shared results)
 - [ ] Editors: check the seeded @history entries (marked VERIFY) so they start posting
 - [ ] A public-stats opt-out for the quiz streak leaderboard (everyone who plays is listed now, by username)
 - [ ] Ticketed events: a real field on events and Happening posts (@weekend guesses from the word “ticket”)
+=======
+- [x] City bots: @metro (major WMATA incidents once each, quiet 10pm–6am except closures and suspensions; “@metro next <station>”), @bikeshare, @weather (morning forecast, NWS alerts, Snow Day suggestion to staff), @cherry (NPS bloom stages in season, links an open Peak Bloom contest, asks staff to settle it at peak), @311 (request-type guide and a Sunday summary near busy stops)
+- [ ] @cherry parses the NPS Bloom Watch page’s table; switch to a feed if NPS publishes one
+- [ ] @311’s weekly summary uses a fixed list of busy stops; rank by ridership or Stoop activity if it matters
+>>>>>>> worktree-agent-ad66da2e7879c6f34
 
 ## Notifications
 - [x] Replies, quotes, mentions, follows and moderation outcomes
