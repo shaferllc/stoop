@@ -56,6 +56,6 @@ class StationLiveTest extends TestCase
 
         $this->assertSame(['14th & Irving St NW'], array_column($docks, 'name'));
         $this->assertSame(2, $docks[0]['ebikes']);
-        Livewire::withoutLazyLoading()->test(StationLive::class, ['code' => 'E04'])->assertSee('14th & Irving St NW')->assertSee('DC 311');
+        Livewire::withoutLazyLoading()->test(StationLive::class, ['code' => 'E04'])->assertSee('14th & Irving St NW')->assertSee('1 min walk')->assertSeeText('2 e-bikes')->assertSee('DC 311');
     }
 }
