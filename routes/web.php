@@ -25,6 +25,7 @@ use App\Models\Sponsorship;
 use App\Models\User;
 use App\Support\Newsletter;
 use App\Support\RidershipGraph;
+use App\Support\Rivalries;
 use App\Support\ShareImage;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Http\Request;
@@ -98,6 +99,12 @@ Route::get('@{user:username}/ridership.svg', fn (User $user) => response(Cache::
 
 Route::get('@{user:username}/og.png', fn (User $user) => response(Cache::remember("og:u:{$user->id}", now()->addDay(), fn () => ShareImage::forUser($user)))
     ->header('Content-Type', 'image/png')->header('Cache-Control', 'public, max-age=86400'))->name('users.og');
+
+Route::get('rivalries', fn () => view('rivalries', [
+    'current' => Rivalries::matchups(Rivalries::weekStart()),
+    'last' => Rivalries::matchups(Rivalries::weekStart()->subWeek()),
+    'lines' => Rivalries::lineStandings(),
+]))->name('rivalries');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::redirect('dashboard', '/')->name('dashboard');

@@ -26,6 +26,14 @@ Week of {{ $digest['week_of'] }}{{ $digest['new_people'] ? ' · '.$digest['new_p
 @endforeach
 @endif
 
+@if (($digest['rivalries'] ?? collect())->isNotEmpty())
+## Rivalry results
+
+@foreach ($digest['rivalries'] as $m)
+- **{{ config('stoop.stations.'.$m['leader']) }}** won {{ $m['title'] }}, {{ implode('–', array_values($m['stops'])) }}.
+@endforeach
+@endif
+
 @if ($digest['places']->isNotEmpty())
 ## Where people went
 

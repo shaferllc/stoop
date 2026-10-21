@@ -74,6 +74,7 @@
                 <a href="{{ route('home') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('home') && ! request('line') && ! request('stop') ? 'bg-chip text-ink' : '' }}">Front Stoop</a>
                 <a href="{{ route('places') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('places*') ? 'bg-chip text-ink' : '' }}">Places</a>
                 <a href="{{ route('quiz') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('quiz') ? 'bg-chip text-ink' : '' }}">The Daily</a>
+                <a href="{{ route('rivalries') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('rivalries') ? 'bg-chip text-ink' : '' }}">Rivalries</a>
                 <a href="{{ route('passports') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('passports') ? 'bg-chip text-ink' : '' }}">Passports</a>
                 @auth
                     <a href="{{ route('notifications') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('notifications') ? 'bg-chip text-ink' : '' }}">

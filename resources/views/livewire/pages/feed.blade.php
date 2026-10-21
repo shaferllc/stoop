@@ -20,7 +20,9 @@
                     <span class="h-1.5 w-5 rounded-full" style="background: {{ config("stoop.lines.$l.color") }}" title="{{ ucfirst($l) }} line"></span>
                 @endforeach
             </div>
-            <h1 class="font-display text-2xl font-bold">{{ config("stoop.stations.$stop") }}</h1>
+            @php($crown = \App\Support\Rivalries::crownFor($stop))
+            <h1 class="font-display text-2xl font-bold">{{ config("stoop.stations.$stop") }} @if ($crown)<span title="Won last week: {{ $crown['title'] }}">👑</span>@endif</h1>
+            @if ($crown)<p class="text-sm font-semibold text-flag">Won last week’s rivalry: {{ $crown['title'] }}, {{ implode('–', array_values($crown['stops'])) }}.</p>@endif
             <p class="text-sm text-mute">
                 @if ($mayor)
                     Mayor: <a href="{{ route('users.show', $mayor) }}" wire:navigate class="font-semibold text-ink">{{ '@'.$mayor->username }}</a>, the most helpful neighbor here this month.

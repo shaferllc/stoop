@@ -45,6 +45,7 @@ class Newsletter
             'polls' => $polls,
             'talk' => $talk && $talk->replies_count > 0 ? $talk : null,
             'places' => $places,
+            'rivalries' => Rivalries::matchups(Rivalries::weekStart()->subWeek())->filter(fn ($m) => $m['leader']),
             'new_people' => DB::table('users')->where('created_at', '>=', $since)->where('is_bot', false)->count(),
         ];
     }
