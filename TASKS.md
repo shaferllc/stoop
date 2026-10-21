@@ -224,6 +224,11 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Nearby DC 311 requests on DC stop pages (DC GIS open data, last 90 days, no key; `STOOP_DC_311=false` turns it off) and a Pepco outage map link (no scraping)
 - [x] ANC meeting summaries (Admin → ANC): staff paste notes, Claude drafts, staff edit and publish from @stoop at every station in the ward
 - [ ] Decide whether ANC summaries should post once per ward instead of once per station (Ward 2 gets 12 identical posts in Latest)
+- [x] DC sports (`/sports`, a Sports tab in Play): Commanders, Nationals, Wizards, Capitals, Mystics, D.C. United, Spirit, Georgetown men’s basketball and Maryland football and basketball from ESPN’s public JSON (`config/sports.php`, `stoop:sync-sports` every 5 minutes, ESPN only hourly unless a game is live); standings; team pages with fans; game pages with the venue’s Metro stop, next trains near game time and official ticket links
+- [x] @gameday: a pick thread on the morning of every DC game (Going Out, at the venue’s stop), picks settle from the final score (10 XP, Called It), the final posted once in the thread; “@gameday Caps” for the live score, last result or next game
+- [x] Favorite DC teams in profile settings (badges on profiles, “Fan of” counts), Rally reaction on game threads, season pick’em leaderboard per league, Happenings as watch parties for a game (“Watch parties near Metro” on the game page and thread)
+- [ ] Sports: show Rally counts in the app API's dispatch counts; let staff hide a team or league from the Sports page without a deploy
+- [ ] Sports: check the venue stops in `config/sports.php` before launch (Northwest Stadium is mapped to Downtown Largo as asked; Morgan Boulevard is the closer walk)
 - [ ] Grow the quiz bank from the magazine’s archive
 - [ ] Real prizes and fulfillment for contests and passport stamps
 

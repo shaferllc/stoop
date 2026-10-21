@@ -54,7 +54,7 @@ trait HandlesDispatchActions
 
     public function toggleMark(int $id, string $kind): void
     {
-        abort_unless(in_array($kind, ['save', 'been', 'going', 'interested', 'mumbo'], true), 422);
+        abort_unless(in_array($kind, ['save', 'been', 'going', 'interested', 'mumbo', 'rally'], true), 422);
 
         if (! $user = $this->actor()) {
             return;

@@ -12,7 +12,7 @@
                 </li>
             @endforeach
         </ul>
-        <p class="mt-1 text-[12.5px] text-mute">Right picks are worth 10 XP each. Five right picks earn the Called It badge.</p>
+        <p class="mt-1 text-[12.5px] text-mute">Right picks are worth 10 XP each. Five right picks earn the Called It badge. <a href="{{ route('sports') }}" wire:navigate class="underline">Scores, schedules and pick’em leaders</a></p>
     </section>
 @endif
 

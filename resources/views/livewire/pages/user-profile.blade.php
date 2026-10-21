@@ -30,6 +30,9 @@
             @if ($user->stops)
                 <span>Stops: {{ collect($user->stops)->map(fn ($c) => $c.' · '.config("stoop.stations.$c"))->join(', ') }}</span>
             @endif
+            @foreach (\App\Support\Sports::favorites($user) as $key)
+                @include('partials.team-badge')
+            @endforeach
         </div>
     </section>
 

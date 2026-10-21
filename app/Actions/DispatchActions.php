@@ -21,7 +21,9 @@ class DispatchActions
      */
     public static function toggleMark(User $user, Dispatch $dispatch, string $kind): bool
     {
-        abort_unless(in_array($kind, ['save', 'been', 'going', 'interested', 'mumbo'], true), 422);
+        abort_unless(in_array($kind, ['save', 'been', 'going', 'interested', 'mumbo', 'rally'], true), 422);
+        // Rally is the game-day cheer, only on game threads.
+        abort_if($kind === 'rally' && empty($dispatch->details['game']), 422);
 
         $query = DB::table('marks')->where(['user_id' => $user->id, 'dispatch_id' => $dispatch->id, 'kind' => $kind]);
 

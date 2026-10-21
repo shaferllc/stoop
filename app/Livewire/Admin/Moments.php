@@ -91,7 +91,10 @@ class Moments extends Component
             ]);
             [$team, $opponent] = $dispatch->options()->createMany([['label' => $data['team']], ['label' => $data['opponent']]]);
 
-            return Game::create([...$data, 'starts_at' => $startsAt, 'dispatch_id' => $dispatch->id, 'team_option_id' => $team->id, 'opponent_option_id' => $opponent->id]);
+            $game = Game::create([...$data, 'starts_at' => $startsAt, 'dispatch_id' => $dispatch->id, 'team_option_id' => $team->id, 'opponent_option_id' => $opponent->id]);
+            $dispatch->forceFill(['details' => ['game' => $game->id]])->save(); // Marks it as a game thread (Rally, the score box).
+
+            return $game;
         });
 
         Audit::log('game.created', $game);
