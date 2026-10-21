@@ -16,6 +16,7 @@ use App\Support\Bingo;
 use App\Support\DailyQuiz;
 use App\Support\Happenings;
 use App\Support\ReadersPicks;
+use App\Support\Referrals;
 use App\Support\Rivalries;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -43,7 +44,7 @@ Route::get('happenings/{dispatch}/tickets', function (Dispatch $dispatch) {
     abort_unless($dispatch->status === 'approved' && $happening?->ticket_url, 404);
     $happening->increment('ticket_clicks');
 
-    return redirect()->away($happening->ticket_url);
+    return Referrals::go($happening->ticket_url, 'tickets', dispatchId: $dispatch->id);
 })->middleware('throttle:30,1')->name('happenings.tickets');
 
 // The personal calendar feed. Calendar apps can't log in, so the secret token is the key.

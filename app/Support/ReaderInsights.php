@@ -124,7 +124,7 @@ class ReaderInsights
      *
      * @return Collection<int, object{user_id: int, line: string, stop: ?string, body: string}>
      */
-    protected static function posts(CarbonInterface $from, CarbonInterface $to): Collection
+    public static function posts(CarbonInterface $from, CarbonInterface $to): Collection
     {
         // ponytail: loads the period's posts into memory; move to SQL aggregates past ~100k posts a period.
         return DB::table('dispatches')->whereIn('user_id', self::readers())
@@ -136,7 +136,7 @@ class ReaderInsights
     /**
      * Ids of the people who count: everyone but bots, staff and the magazine's account.
      */
-    protected static function readers(): Builder
+    public static function readers(): Builder
     {
         return DB::table('users')->select('id')->where('is_bot', false)->where('is_staff', false)
             ->where('username', '!=', config('stoop.magazine_account'));

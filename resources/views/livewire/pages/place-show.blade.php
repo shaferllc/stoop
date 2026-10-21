@@ -22,6 +22,8 @@
             @endif
         </div>
 
+        <div class="mt-3"><livewire:place-reservation :place-id="$place->id" :key="'reserve-'.$place->id" /></div>
+
         @if ($claiming)
             <form wire:submit="claim" class="mt-3 space-y-2 rounded-lg border border-rule bg-paper p-3 text-sm">
                 <p class="text-mute">Owners and managers can reply as the business and post specials. Tell us how we can confirm you work here.</p>

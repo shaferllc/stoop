@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 /**
  * A restaurant, bar or shop people can tag in a dispatch.
  */
-#[Fillable(['name', 'slug', 'category', 'neighborhood', 'stop', 'address', 'website', 'blurb', 'list_name', 'list_rank', 'article_url', 'owner_id'])]
+#[Fillable(['name', 'slug', 'category', 'neighborhood', 'stop', 'address', 'website', 'blurb', 'list_name', 'list_rank', 'article_url', 'owner_id', 'reservation_url'])]
 class Place extends Model
 {
     public const CATEGORIES = ['Restaurant', 'Bar', 'Coffee', 'Bakery', 'Market', 'Shop', 'Venue', 'Park', 'Other'];

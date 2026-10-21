@@ -2,12 +2,13 @@
     <h1 class="mb-2 font-display text-3xl font-bold">Places</h1>
     @include('partials.admin-nav')
 
+    @php($sales = auth()->user()->hasRole('sales'))
     <div class="mb-3 flex gap-2 text-sm">
         <button type="button" wire:click="$set('tab', 'places')" @class(['rounded-full border px-3 py-0.5', 'border-ink' => $tab === 'places', 'border-transparent bg-chip text-mute' => $tab !== 'places'])>Places</button>
-        <button type="button" wire:click="$set('tab', 'claims')" @class(['rounded-full border px-3 py-0.5', 'border-ink' => $tab === 'claims', 'border-transparent bg-chip text-mute' => $tab !== 'claims'])>Claims ({{ $claims->count() }})</button>
+        @if ($sales)<button type="button" wire:click="$set('tab', 'claims')" @class(['rounded-full border px-3 py-0.5', 'border-ink' => $tab === 'claims', 'border-transparent bg-chip text-mute' => $tab !== 'claims'])>Claims ({{ $claims->count() }})</button>@endif
     </div>
 
-    @if ($tab === 'claims')
+    @if ($tab === 'claims' && $sales)
         <div class="space-y-3">
             @forelse ($claims as $c)
                 <div wire:key="claim-{{ $c->id }}" class="rounded-xl border border-rule bg-card p-4 text-sm">
@@ -25,13 +26,13 @@
         </div>
     @else
         <div class="grid gap-3 lg:grid-cols-2">
-            <form wire:submit="import" class="rounded-xl border border-rule bg-card p-4 text-sm">
+            @if ($sales)<form wire:submit="import" class="rounded-xl border border-rule bg-card p-4 text-sm">
                 <h2 class="font-semibold">Import a list</h2>
                 <p class="mt-1 text-mute">CSV with a header row. Columns: <code class="font-mono text-[12px]">{{ implode(', ', \App\Livewire\Admin\Places::COLUMNS) }}</code>. Only <code>name</code> is required. Re-importing the same list updates it.</p>
                 <input type="file" wire:model="csv" accept=".csv,text/csv" class="mt-2 block text-sm">
                 @error('csv') <p class="mt-1 text-flag">{{ $message }}</p> @enderror
                 <button class="mt-2 rounded-lg bg-flag px-3 py-1.5 font-semibold text-white" wire:loading.attr="disabled">Import</button>
-            </form>
+            </form>@endif
             <div class="flex flex-col gap-2 rounded-xl border border-rule bg-card p-4 text-sm">
                 <input type="search" wire:model.live.debounce.300ms="q" placeholder="Find a place" aria-label="Find a place" class="rounded-lg border border-rule bg-paper px-3 py-1.5">
                 <button type="button" wire:click="edit" class="self-start rounded-lg border border-rule px-3 py-1.5">Add a place</button>
@@ -41,7 +42,7 @@
         @if ($editing !== null)
             <form wire:submit="save" class="mt-3 grid gap-2 rounded-xl border border-ink bg-card p-4 text-sm sm:grid-cols-2">
                 <h2 class="font-semibold sm:col-span-2">{{ $editing ? 'Edit place' : 'New place' }}</h2>
-                @foreach (['name' => 'Name', 'neighborhood' => 'Neighborhood', 'address' => 'Address', 'website' => 'Website', 'list_name' => 'List', 'list_rank' => 'Rank on list', 'article_url' => 'Magazine article URL'] as $field => $label)
+                @foreach (['name' => 'Name', 'neighborhood' => 'Neighborhood', 'address' => 'Address', 'website' => 'Website', 'list_name' => 'List', 'list_rank' => 'Rank on list', 'article_url' => 'Magazine article URL', 'reservation_url' => 'Reservation link (OpenTable, Resy, Tock or own site)'] as $field => $label)
                     <label>{{ $label }}<input wire:model="form.{{ $field }}" class="mt-0.5 block w-full rounded-md border border-rule bg-paper px-2 py-1">@error("form.$field")<span class="text-flag">{{ $message }}</span>@enderror</label>
                 @endforeach
                 <label>Kind<select wire:model="form.category" class="mt-0.5 block w-full rounded-md border border-rule bg-paper px-2 py-1"><option value="">None</option>@foreach (\App\Models\Place::CATEGORIES as $c)<option>{{ $c }}</option>@endforeach</select></label>
@@ -61,7 +62,7 @@
                             <td class="px-4 py-2 text-mute">{{ $p->listLabel() }}</td>
                             <td class="px-4 py-2 tabular-nums">{{ $p->dispatches_count }}</td>
                             <td class="px-4 py-2">{{ $p->owner ? '@'.$p->owner->username : '' }}</td>
-                            <td class="whitespace-nowrap px-4 py-2 text-right"><button type="button" wire:click="edit({{ $p->id }})" class="underline">Edit</button> <button type="button" wire:click="delete({{ $p->id }})" wire:confirm="Delete {{ $p->name }}? Posts that tag it stay but lose the tag." class="ml-2 text-flag underline">Delete</button></td>
+                            <td class="whitespace-nowrap px-4 py-2 text-right"><button type="button" wire:click="edit({{ $p->id }})" class="underline">Edit</button> @if ($sales)<button type="button" wire:click="delete({{ $p->id }})" wire:confirm="Delete {{ $p->name }}? Posts that tag it stay but lose the tag." class="ml-2 text-flag underline">Delete</button>@endif</td>
                         </tr>
                     @endforeach
                 </tbody>

@@ -39,6 +39,12 @@ Optional settings in `.env`:
 
 Ads (sales role): Admin → Ads makes sponsored dispatches and Best of Washington party ticket promotions, and lists every running and upcoming placement with delivery, clicks, CTR and CSVs (also in the Mac app). Ads live apart from dispatches, show at most once per 10 posts, are matched only to the stop or topic being read, count an impression once per person per day (a keyed hash of the account or session and the day, no extra cookie), and click through `/ad/{kind}/{id}` to their stored link only. There is no paid ad-free option.
 
+Reservations, classifieds and area reports:
+
+- Places can have a Reserve link (OpenTable, Resy, Tock or the place’s own site), set in Admin → Places (sales, editors) or by the claimed owner on the place page. Reserve and Get tickets go through `/places/{place}/reserve` and `/happenings/{id}/tickets`, which send people to the stored link only and count clicks per place or happening, provider and DC day (Admin → Referrals, with CSV). Partner parameters come from `OPENTABLE_PARTNER_ID`, `RESY_AFFILIATE_ID`, `TOCK_AFFILIATE_ID` and `EVENTBRITE_AFFILIATE_ID` (`config/referrals.php`); only links that carry one get `rel="sponsored"` and “Stoop may earn a commission”.
+- `/classifieds`: jobs, apartments and rooms, roommates and for sale, priced per category in `config/classifieds.php`. `STRIPE_SECRET` must be a Stripe test key (`sk_test_…`); without one, paid categories show “Coming soon” and only for-sale items can be posted. Payment is confirmed by asking Stripe for the Checkout session when the buyer returns (no webhook yet). Listings run 30 days, are screened like posts, and wait in Admin → Classifieds when held or reported.
+- Admin → Area reports (sales): monthly reports on groups of stations (seeded with DC’s BIDs, marked VERIFY) with the same k-anonymity as Reader insights; printable, CSV, and a share link that expires (1 to 30 days) for clients without a login.
+
 Staff pages for this area: Admin → Real estate (sales import status, open houses, the sponsored label) and Admin → Insights (the k-anonymous reader report for advertisers, with CSV and printable views).
 
 Happenings, Lost & found and games: `/happenings` (calendar, .ics, a private feed link at `/calendar/<token>.ics`), `/lost-and-found`, `/bingo`, `/hunts` and `/line-cup`. Editors create hunts in Admin → Hunts and pull readers’ picks (CSV) from Admin → Readers’ picks. Ticketed happenings link out to the host’s ticket page; Stoop takes no payments.

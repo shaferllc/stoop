@@ -12,8 +12,8 @@
         @if ($h?->isTicketed())
             <div class="mt-1.5 flex flex-wrap items-center gap-2">
                 <span class="rounded border border-rule px-1 text-[10px] font-bold">TICKETED{{ $h->priceLabel() ? ' · '.$h->priceLabel() : '' }}</span>
-                <a href="{{ route('happenings.tickets', $d) }}" target="_blank" rel="sponsored noopener" class="rounded-lg bg-ink px-2.5 py-0.5 text-[12.5px] font-semibold text-paper">Get tickets</a>
-                <span class="text-[12px]">Sold by the host on their own site.</span>
+                <a href="{{ route('happenings.tickets', $d) }}" target="_blank" rel="{{ \App\Support\Referrals::rel($h->ticket_url, 'tickets') }}" class="rounded-lg bg-ink px-2.5 py-0.5 text-[12.5px] font-semibold text-paper">Get tickets</a>
+                <span class="text-[12px]">Sold by the host on their own site.@if (\App\Support\Referrals::earns($h->ticket_url, 'tickets')) {{ \App\Support\Referrals::COMMISSION }}.@endif</span>
             </div>
         @endif
     </div>

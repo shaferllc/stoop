@@ -196,6 +196,17 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [ ] Moderation queue for owner deals (they skip the dispatch pipeline; only the swearing filter runs)
 - [ ] Aggregated reader-insights report (no individual data)
 - [ ] Self-serve sponsorship booking and billing
+- [x] Reserve links on places (OpenTable, Resy, Tock or the place’s own site), set by sales and editors in Admin → Places and by claimed owners on the place page; a Reserve button on place pages and in @eats replies
+- [x] Referral layer: per-provider partner parameters in `config/referrals.php` (env), added only when set; every Reserve and Get tickets click goes through a Stoop redirect to the stored link only and is counted per place or happening, provider and DC day; `rel="sponsored"` and “Stoop may earn a commission” only on partner links
+- [x] Admin → Referrals (sales): clicks by provider and day, top places and happenings, CSV
+- [ ] VERIFY each partner program’s parameter name against the signed agreement before setting its env value
+- [x] Classifieds at `/classifieds`: jobs, apartments and rooms, roommates, for sale; filters by category, stop or line and price; detail pages; 30 days, renew, mark filled or sold; contact through Stoop messages only; no phone numbers or emails; screened like posts (swearing, watch phrases, OpenAI holds) and reportable; fair-housing check on housing ads; pay range required on jobs; Admin → Classifieds (moderators); `/api/app/classifieds`
+- [x] Paid classifieds through Stripe Checkout in test mode (`STRIPE_SECRET` = `sk_test_…`); without it paid categories show “Coming soon”
+- [ ] Stripe webhook (`checkout.session.completed`) so a payment counts even if the buyer closes the tab before returning; refunds are by hand in Stripe for now
+- [ ] Classifieds in the Stoop Admin Mac app and the iOS app
+- [x] Area reports for BIDs and developers (Admin → Area reports, sales): station groups seeded with DC’s BIDs (marked VERIFY), monthly activity trend, top topics, Been here by kind of place, sentiment, happenings and RSVPs, home sales and city comparison, with the reader-insights k-anonymity rules; printable/PDF, CSV and expiring signed share links
+- [ ] VERIFY the BID station groups against each district’s boundaries
+- [ ] Revoking an area report share link before it expires
 
 ## Admin
 - [x] Overview with what needs attention, activity numbers and failed jobs
