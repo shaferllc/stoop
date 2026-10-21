@@ -105,7 +105,7 @@ class Metro
             ->values()->all();
     }
 
-    protected static function meters(float $lat1, float $lon1, float $lat2, float $lon2): float
+    public static function meters(float $lat1, float $lon1, float $lat2, float $lon2): float
     {
         $rad = M_PI / 180;
         $a = sin(($lat2 - $lat1) * $rad / 2) ** 2 + cos($lat1 * $rad) * cos($lat2 * $rad) * sin(($lon2 - $lon1) * $rad / 2) ** 2;

@@ -33,6 +33,8 @@ Optional settings in `.env`:
 - `STOOP_MODEL_MODERATION=false`: turn off the Claude check on new posts while keeping the bot and translation. The model defaults to `claude-opus-5-5`; `STOOP_MODERATION_MODEL` changes it.
 - `STOOP_AUTO_VERIFY=false`: require the email link again.
 
+Home sales on station pages come from DC GIS’s public property records (no key). `php artisan stoop:import-home-sales` loads the last 120 days of market sales; the scheduler runs it nightly at 3:30.
+
 Embed on magazine article pages:
 
 ```html

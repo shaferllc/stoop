@@ -9,6 +9,7 @@ use App\Models\Dispatch;
 use App\Models\User;
 use App\Support\Bots;
 use App\Support\Civility;
+use App\Support\HomeSales;
 use App\Support\Later;
 use App\Support\Magazine;
 use App\Support\ModerationModel;
@@ -53,6 +54,10 @@ Artisan::command('stoop:import-articles', function () {
     $this->info('Posted '.Magazine::import().' new articles.');
 })->purpose('Post new magazine articles from the site feed');
 
+Artisan::command('stoop:import-home-sales', function () {
+    $this->info('Stored '.HomeSales::import().' home sales near stations.');
+})->purpose('Import recent DC home sales from the city\'s property records');
+
 Artisan::command('stoop:send-newsletter {--to= : Send one copy to this email instead of every subscriber}', function () {
     $digest = Newsletter::digest();
     if ($to = $this->option('to')) {
@@ -84,6 +89,7 @@ Artisan::command('stoop:go-go-friday', function () {
 
 Schedule::command('stoop:go-go-friday')->fridays()->at('10:00')->timezone('America/New_York');
 Schedule::command('stoop:import-articles')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('stoop:import-home-sales')->dailyAt('3:30')->timezone('America/New_York')->withoutOverlapping();
 Schedule::command('stoop:send-newsletter')->weeklyOn(1, '8:00')->timezone('America/New_York');
 Schedule::command('stoop:publish-scheduled')->everyMinute()->withoutOverlapping();
 Schedule::command('stoop:purge-deleted')->everyMinute()->withoutOverlapping();

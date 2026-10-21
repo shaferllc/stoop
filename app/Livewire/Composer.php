@@ -77,6 +77,9 @@ class Composer extends Component
 
     public ?string $plowed = null;
 
+    /** Open house form: block, date, from, to, price, url, agent. */
+    public array $openHouse = [];
+
     public function selectPlace(?int $id): void
     {
         $this->placeId = $id;
@@ -165,7 +168,7 @@ class Composer extends Component
 
         try {
             $dispatch = FileDispatch::handle($user, [
-                ...$this->only(['type', 'body', 'line', 'stop', 'happeningAt', 'options', 'pollHours', 'publishAt', 'photos', 'alts', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'quoteId', 'placeId', 'asBusiness', 'sponsor', 'eventId', 'rating', 'snowInches', 'plowed']),
+                ...$this->only(['type', 'body', 'line', 'stop', 'happeningAt', 'options', 'pollHours', 'publishAt', 'photos', 'alts', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'quoteId', 'placeId', 'asBusiness', 'sponsor', 'eventId', 'rating', 'snowInches', 'plowed', 'openHouse']),
                 'parentId' => $this->parentId,
             ], confirmed: $this->warned);
         } catch (NudgeRequired) {
@@ -174,7 +177,7 @@ class Composer extends Component
             return;
         }
 
-        $this->reset('body', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'placeId', 'placeQuery', 'asBusiness', 'sponsor', 'showPlace', 'eventId', 'rating', 'snowInches', 'plowed');
+        $this->reset('body', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'placeId', 'placeQuery', 'asBusiness', 'sponsor', 'showPlace', 'eventId', 'rating', 'snowInches', 'plowed', 'openHouse');
         $this->type = 'dispatch';
         $this->dispatch('dispatch-filed', id: $dispatch->id);
 

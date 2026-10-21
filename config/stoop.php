@@ -23,6 +23,7 @@ return [
         'been' => 'Been here',
         'safety' => 'Crime & safety',
         'snow' => 'Snow report',
+        'openhouse' => 'Open house',
         'callout' => 'Callout',
     ],
 

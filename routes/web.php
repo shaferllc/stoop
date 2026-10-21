@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FeedController;
+use App\Http\Controllers\InsightsController;
 use App\Http\Controllers\TransparencyController;
 use App\Livewire\Admin;
 use App\Livewire\Pages\AppealCreate;
@@ -149,6 +150,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('audit', Admin\AuditLog::class)->name('.audit');
         Route::livewire('quiz', Admin\QuizQuestions::class)->name('.quiz');
         Route::livewire('moments', Admin\Moments::class)->name('.moments');
+        Route::livewire('real-estate', Admin\RealEstate::class)->name('.real-estate');
+        Route::livewire('insights', Admin\Insights::class)->name('.insights');
+        Route::get('insights.csv', [InsightsController::class, 'csv'])->middleware('throttle:20,1')->name('.insights.csv');
+        Route::get('insights/print', [InsightsController::class, 'print'])->middleware('throttle:20,1')->name('.insights.print');
     });
     Route::get('settings/export', ExportController::class)->middleware('throttle:5,1')->name('export');
     // Push notification sign-ups from a browser or the installed app...

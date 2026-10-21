@@ -118,7 +118,10 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Sponsored stops and lines, labeled, with view and click counts
 - [x] Sponsored callouts (staff only), labeled
 - [ ] Ticketed Happening posts
-- [ ] Aggregated reader-insights report (no individual data)
+- [x] Reader insights for advertisers (Admin → Insights): posts, people, top topics, sentiment per station and line, top Been here places, rising keywords, games; any cell from fewer than 10 people shows “<10”; CSV and printable (PDF) views; optional Claude summary from the aggregates only (needs `ANTHROPIC_API_KEY`)
+- [x] Open house posts on the Green line (block, date and time, price, link, labeled listing agent); staff mark them sponsored in Admin → Real estate
+- [ ] Give reader insights to a sales role once roles exist (staff only for now); add neighborhoods once stations have them
+- [ ] Ticketed or paid open house placements (sponsored is a label only)
 - [ ] Self-serve sponsorship booking and billing
 
 ## Admin
@@ -142,6 +145,8 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Guess-the-date contests (Peak Bloom), Snow Day mode with a snow map, game-day picks, city events with ratings, Stoop Sits meetups with check-in codes (Admin → Moments)
 - [x] Station pages: next trains (needs `WMATA_API_KEY`), Capital Bikeshare docks nearby (live, no key), DC 311 and ANC links
 - [x] Glossary hovers for local terms, mumbo sauce reaction, Go-Go Friday thread, Stand Right badge with confetti
+- [x] Recent home sales near each station (median and count over 90 days, 5 latest by block) from DC’s public property records, imported nightly (`stoop:import-home-sales`); @homes posts a weekly roundup for the 3 busiest stations
+- [ ] Condo unit sales: DC GIS's owner polygons cover lots, so some condo sales may be missing
 - [ ] Ward and neighborhood data for stations, for a ward-explorer badge and ANC-specific meeting links
 - [ ] Grow the quiz bank from the magazine’s archive
 - [ ] Real prizes and fulfillment for contests and passport stamps
