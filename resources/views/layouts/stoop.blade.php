@@ -122,7 +122,8 @@
                 <x-sidebar />
                 <div class="rounded-xl border border-rule bg-card p-3.5 text-[13px] text-mute">
                     <div class="mb-2 text-[10.5px] font-semibold uppercase tracking-[0.13em]">House rules</div>
-                    <p class="mb-1.5"><b class="text-ink">No attacks on people for who they are.</b> Argue about places, not neighbors.</p>
+                    <p class="mb-1.5"><b class="text-ink">Zero tolerance for hate speech.</b> Argue about places, not neighbors.</p>
+                    <p class="mb-1.5"><b class="text-ink">No swearing.</b> Anywhere.</p>
                     <p class="mb-1.5"><b class="text-ink">No networking posts.</b> This isn't LinkedIn for lobbyists.</p>
                     <p class="mb-1.5"><b class="text-ink">No campaign spam.</b> Talk about the city, not the Hill.</p>
                     <a href="{{ route('rules') }}" wire:navigate class="underline">Full rules</a> ·

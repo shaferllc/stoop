@@ -6,7 +6,8 @@
             <div class="rounded-lg border border-rule bg-paper p-3 text-sm">
                 <p class="font-display text-lg font-bold">Before your first post</p>
                 <ul class="mt-1.5 list-disc space-y-1 pl-5 text-mute">
-                    <li><b class="text-ink">No attacks on people for who they are.</b> Argue about places, not neighbors.</li>
+                    <li><b class="text-ink">Zero tolerance for hate speech.</b> A first offense is a 7-day timeout.</li>
+                    <li><b class="text-ink">No swearing, anywhere.</b> Argue about places, not neighbors.</li>
                     <li><b class="text-ink">Describe what happened, not who.</b> Crime and safety posts never describe someone by race alone.</li>
                     <li><b class="text-ink">No campaign posts or networking pitches.</b></li>
                 </ul>

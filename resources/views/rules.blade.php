@@ -5,7 +5,8 @@
 
         <h2 class="mt-6 font-display text-xl font-bold">Not allowed</h2>
         <ul class="mt-2 max-w-prose list-disc space-y-1.5 pl-5">
-            <li><b>Attacks on people for who they are,</b> including race, ethnicity, religion, gender, sexual orientation, disability, immigration status or where they’re from.</li>
+            <li><b>Hate speech, with zero tolerance.</b> No attacks on people for who they are, including race, ethnicity, religion, gender, sexual orientation, disability, immigration status or where they’re from. A first offense means a 7-day timeout; a second means a ban review.</li>
+            <li><b>Swearing.</b> None, anywhere: posts, replies, messages or names. Stoop won’t let it post.</li>
             <li><b>Profiling.</b> When you post about a crime or safety issue, describe what happened, where and when. Don’t describe a person by race alone.</li>
             <li><b>Threats and harassment,</b> including piling on someone across threads.</li>
             <li><b>Campaign posts.</b> No candidate or campaign promotion. Local issues like zoning, schools and bike lanes are fine.</li>
