@@ -34,6 +34,8 @@ class Achievements
         'whole-system' => ['name' => 'The Whole System', 'description' => 'Posted from all 98 Metro stations'],
         'crossed-the-river' => ['name' => 'Crossed the River', 'description' => 'Posted from a station east of the Anacostia'],
         'tri-state' => ['name' => 'DMV', 'description' => 'Posted from stations in DC, Maryland and Virginia'],
+        'know-it-all' => ['name' => 'Know-It-All', 'description' => 'Gave 5 Best Answers on Ask DC'],
+        'passport' => ['name' => 'Stamped', 'description' => 'Earned a passport stamp for one of the magazine’s lists'],
         'mayor' => ['name' => 'Mayor', 'description' => 'The most helpful person at a stop this month'],
     ];
 
@@ -64,6 +66,8 @@ class Achievements
             'crossed-the-river' => collect($s['visited'])->contains(fn ($code) => Stations::eastOfTheRiver($code)),
             'tri-state' => count(array_unique(array_map(fn ($code) => Stations::jurisdiction($code), $s['visited']))) >= 3,
             'mayor' => Stations::mayorships($user) !== [],
+            'know-it-all' => $s['best_answers'] >= 5,
+            'passport' => $s['stamps'] >= 1,
         ];
 
         foreach (config('metro.lines') as $line => $stops) {
@@ -75,14 +79,15 @@ class Achievements
 
     /**
      * 10 per dispatch, 15 per day of the longest streak, 5 per Been here/Going/Save received,
-     * 5 per reply to someone else, and 2 per mark given to someone else.
+     * 5 per reply to someone else, 2 per mark given to someone else, 25 per Best Answer
+     * and 100 per passport stamp.
      */
     public static function xp(User $user): int
     {
         $s = self::stats($user);
 
         return $s['dispatches'] * 10 + $s['longest_streak'] * 15 + $s['marks_received'] * 5
-            + $s['replies_to_others'] * 5 + $s['marks_given'] * 2;
+            + $s['replies_to_others'] * 5 + $s['marks_given'] * 2 + $s['best_answers'] * 25 + $s['stamps'] * 100;
     }
 
     public static function rank(int $xp): string
@@ -166,6 +171,8 @@ class Achievements
                     ->groupBy('parent_id')->selectRaw('count(*) as c')->orderByDesc('c')->value('c'),
                 'half_smokes_received' => DB::table('half_smokes')->whereIn('dispatch_id', $mine)->count(),
                 'visited' => Stations::visited($user),
+                'best_answers' => DB::table('dispatches as q')->join('dispatches as a', 'a.id', '=', 'q.best_answer_id')->where('a.user_id', $user->id)->count(),
+                'stamps' => Passports::for($user)->whereNotNull('stamped_at')->count(),
                 'marks_received' => DB::table('marks')->whereIn('dispatch_id', $mine)->where('user_id', '!=', $user->id)->count(),
                 'marks_given' => DB::table('marks')->where('user_id', $user->id)
                     ->whereNotIn('dispatch_id', $mine)->count(),

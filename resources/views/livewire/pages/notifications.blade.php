@@ -26,6 +26,7 @@
                         'reply' => $names->count() > 1 ? 'replied in your thread' : 'replied to your dispatch',
                         'quote' => 'quoted your dispatch',
                         'mention' => 'mentioned you',
+                        'best' => 'picked your reply as the Best Answer',
                         'follow' => 'followed you',
                         'moderation' => $data['message'] ?? 'A moderator reviewed your dispatch',
                         default => 'did something',

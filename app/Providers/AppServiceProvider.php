@@ -51,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
             Live::push($event->notifiable, match ($data['kind'] ?? '') {
                 'reply' => "$who replied",
                 'mention' => "$who mentioned you",
+                'best' => "$who picked your Best Answer",
                 'quote' => "$who quoted you",
                 'follow' => "$who followed you",
                 default => 'Stoop',

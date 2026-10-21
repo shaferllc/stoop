@@ -17,7 +17,7 @@ class Notifications extends Component
 {
     use HandlesDispatchActions;
 
-    public const FILTERS = ['all' => 'All', 'reply' => 'Replies', 'quote' => 'Quotes', 'mention' => 'Mentions', 'follow' => 'Follows', 'moderation' => 'Moderation'];
+    public const FILTERS = ['all' => 'All', 'reply' => 'Replies', 'quote' => 'Quotes', 'mention' => 'Mentions', 'best' => 'Best answers', 'follow' => 'Follows', 'moderation' => 'Moderation'];
 
     /**
      * @return array<string, string>

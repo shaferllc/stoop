@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Support\Audit;
 use App\Support\Magazine;
 use App\Support\Newsletter;
+use App\Support\Passports;
 use Flux\Flux;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -40,6 +41,7 @@ class Content extends Component
         return view('livewire.admin.content', [
             'scheduled' => Dispatch::with('user')->where('status', 'scheduled')->orderBy('publish_at')->take(50)->get(),
             'feed' => config('stoop.magazine_feed'),
+            'stamps' => Passports::recentStamps(25),
             'articles' => DB::table('articles')->latest('created_at')->take(10)->get(),
             'newsletterReaders' => User::where('newsletter', true)->count(),
             'callouts' => Dispatch::with('user')->where('type', 'callout')->where('status', 'approved')->withCount('replies')->latest()->take(20)->get(),

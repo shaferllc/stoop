@@ -10,6 +10,7 @@ use App\Livewire\Pages\Feed;
 use App\Livewire\Pages\Inbox;
 use App\Livewire\Pages\Moderation;
 use App\Livewire\Pages\Notifications;
+use App\Livewire\Pages\PassportsPage;
 use App\Livewire\Pages\PlaceShow;
 use App\Livewire\Pages\PlacesIndex;
 use App\Livewire\Pages\Saved;
@@ -40,6 +41,7 @@ Route::view('privacy', 'privacy')->name('privacy');
 Route::view('terms', 'terms')->name('terms');
 Route::livewire('search', Search::class)->name('search');
 Route::livewire('places', PlacesIndex::class)->name('places');
+Route::livewire('passports', PassportsPage::class)->name('passports');
 Route::livewire('places/{place}', PlaceShow::class)->name('places.show');
 
 // Sponsored placements count a click, then send people on to the sponsor.

@@ -232,6 +232,29 @@ trait HandlesDispatchActions
     }
 
     /**
+     * Whoever asked an Ask DC question picks the reply that helped. The answerer gets Know-It-All points.
+     */
+    public function pickBestAnswer(int $replyId): void
+    {
+        if (! $user = $this->actor()) {
+            return;
+        }
+
+        $reply = Dispatch::visibleTo($user)->whereNotNull('parent_id')->findOrFail($replyId);
+        $question = $reply->parent;
+        abort_unless($question && $question->type === 'ask' && $question->user_id === $user->id && $reply->user_id !== $user->id, 403);
+
+        $unpick = $question->best_answer_id === $reply->id;
+        $question->forceFill(['best_answer_id' => $unpick ? null : $reply->id])->save();
+
+        if (! $unpick && $reply->user) {
+            $reply->user->notify(new StoopActivity('best', $user, $reply));
+        }
+
+        Flux::toast($unpick ? 'Best Answer removed.' : 'Marked as the Best Answer. Thanks for closing the loop.');
+    }
+
+    /**
      * The author of a thread can hide replies under it. Moderators still see them.
      */
     public function toggleHideReply(int $id): void

@@ -26,6 +26,18 @@
         </section>
     </div>
 
+    <section class="mb-3 rounded-xl border border-rule bg-card p-4 text-sm">
+        <h2 class="font-semibold">Passport stamps</h2>
+        <p class="mt-1 text-mute">People who earned a stamp, for shout-outs in the magazine.</p>
+        <ul class="mt-2 divide-y divide-rule">
+            @forelse ($stamps as $stamp)
+                <li class="py-1.5"><a href="{{ route('users.show', $stamp['user']) }}" class="font-semibold">{{ $stamp['user']->name }}</a> {{ '@'.$stamp['user']->username }} · {{ $stamp['list'] }} · <span class="text-mute">{{ \Illuminate\Support\Carbon::parse($stamp['stamped_at'])->toFormattedDateString() }}</span></li>
+            @empty
+                <li class="py-1.5 text-mute">No stamps yet.</li>
+            @endforelse
+        </ul>
+    </section>
+
     <section class="rounded-xl border border-rule bg-card p-4 text-sm">
         <h2 class="font-semibold">Callouts</h2>
         <p class="mt-1 text-mute">A callout a day keeps the feed alive. Write one from the composer (pick Callout), and use Schedule to line up the week.</p>

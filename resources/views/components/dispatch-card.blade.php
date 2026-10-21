@@ -32,6 +32,10 @@
         <div class="mb-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-mute">Sponsored by {{ $d->sponsor }}</div>
     @endif
 
+    @if ($d->parent_id && $d->relationLoaded('parent') && $d->parent?->best_answer_id === $d->id)
+        <div class="mb-1.5 flex items-center gap-1 text-[11.5px] font-bold uppercase tracking-wide text-[#0b7a33] dark:text-[#4cc77a]"><flux:icon.check-badge variant="micro" /> Best answer</div>
+    @endif
+
     @if ($pinned)
         <div class="mb-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-mute">Pinned</div>
     @endif
@@ -164,6 +168,11 @@
             @if (in_array('save', $marks))<flux:icon.bookmark variant="micro" class="fill-current" />@else<flux:icon.bookmark variant="micro" />@endif
             <span class="sr-only">{{ in_array('save', $marks) ? 'Saved' : 'Save' }}</span>
         </button>
+        @if ($me && $d->parent_id && $d->relationLoaded('parent') && $d->parent?->type === 'ask' && $d->parent->user_id === $me->id && $d->user_id !== $me->id)
+            <button type="button" wire:click="pickBestAnswer({{ $d->id }})" @class([$act, 'font-semibold text-[#0b7a33] dark:text-[#4cc77a]' => $d->parent->best_answer_id === $d->id])>
+                <flux:icon.check-badge variant="micro" />{{ $d->parent->best_answer_id === $d->id ? 'Best answer' : 'Pick as best' }}
+            </button>
+        @endif
         @if ($d->type === 'been')
             <button type="button" wire:click="toggleMark({{ $d->id }}, 'been')" @class([$act, 'font-semibold text-flag' => in_array('been', $marks)]) aria-pressed="{{ in_array('been', $marks) ? 'true' : 'false' }}">
                 <flux:icon.map-pin variant="micro" />Been here {{ $d->been_count }}

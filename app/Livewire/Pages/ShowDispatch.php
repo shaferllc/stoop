@@ -39,7 +39,9 @@ class ShowDispatch extends Component
 
         abort_unless($dispatch, 404);
 
-        $replies = $dispatch->replies()->visibleTo($user)->forCards()->oldest()->get();
+        // The Best Answer goes first, then everything else in order.
+        $replies = $dispatch->replies()->visibleTo($user)->forCards()->with('parent')->oldest()->get()
+            ->sortBy(fn ($r) => $r->id === $dispatch->best_answer_id ? 0 : 1)->values();
 
         $title = $dispatch->trashed() ? 'Deleted dispatch' : str($dispatch->body)->limit(50).' · @'.$dispatch->user->username;
 
