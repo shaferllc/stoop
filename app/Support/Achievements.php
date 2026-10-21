@@ -97,15 +97,15 @@ class Achievements
             $earned["line-$line"] = array_diff($stops, $s['visited']) === [];
         }
 
-        return array_intersect_key(self::BADGES, array_filter($earned));
+        return array_intersect_key(self::BADGES, array_filter($earned)) + Challenges::badges($user);
     }
 
     /**
      * 10 per dispatch, 15 per day of the longest streak, 5 per Been here/Going/Save received,
      * 5 per reply to someone else, 2 per mark given to someone else, 25 per Best Answer
      * 100 per passport stamp, 2 per right answer on The Daily, 10 per right game-day pick,
-     * 20 per meetup check-in, 50 per Metro Bingo week, 25 per scavenger hunt stamp and 100 per
-     * Line Cup crown.
+     * 20 per meetup check-in, 50 per Metro Bingo week, 25 per scavenger hunt stamp, 100 per
+     * Line Cup crown and 250 per list challenge finished.
      */
     public static function xp(User $user): int
     {
@@ -114,7 +114,8 @@ class Achievements
         return $s['dispatches'] * 10 + $s['longest_streak'] * 15 + $s['marks_received'] * 5
             + $s['replies_to_others'] * 5 + $s['marks_given'] * 2 + $s['best_answers'] * 25 + $s['stamps'] * 100 + $s['quiz_correct'] * 2
             + $s['right_picks'] * 10 + $s['meetups'] * 20
-            + $s['bingos'] * Bingo::XP + $s['hunt_steps'] * 25 + $s['cup_crowns'] * 100;
+            + $s['bingos'] * Bingo::XP + $s['hunt_steps'] * 25 + $s['cup_crowns'] * 100
+            + $s['challenges'] * Challenges::XP;
     }
 
     public static function rank(int $xp): string
@@ -206,6 +207,7 @@ class Achievements
                     ->whereRaw('(select count(*) from hunt_steps join hunt_completions on hunt_completions.hunt_step_id = hunt_steps.id where hunt_steps.hunt_id = hunts.id and hunt_completions.user_id = ?) = (select count(*) from hunt_steps where hunt_steps.hunt_id = hunts.id)', [$user->id])
                     ->count(),
                 'cup_crowns' => count(Rivalries::cupCrowns($user)),
+                'challenges' => DB::table('challenge_finishers')->where('user_id', $user->id)->count(),
             ];
         });
     }

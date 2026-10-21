@@ -90,7 +90,9 @@ class Stations
         $until ??= now();
         $within = fn ($q, $column) => $q->whereBetween($column, [$since, $until]);
 
+        // @magazine's event listings carry a stop, but the magazine never plays for mayor.
         $posts = DB::table('dispatches')->whereNull('deleted_at')->where('status', 'approved')->whereNull('parent_id')->whereNotNull('stop')
+            ->whereNotIn('user_id', DB::table('users')->where('username', config('stoop.magazine_account'))->select('id'))
             ->tap(fn ($q) => $within($q, 'created_at'))->when($stops, fn ($q) => $q->whereIn('stop', $stops))
             ->groupBy('stop', 'user_id')->selectRaw('stop, user_id, count(*) as points')->get();
 

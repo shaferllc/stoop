@@ -9,6 +9,7 @@ use App\Models\CityEvent;
 use App\Models\Dispatch;
 use App\Models\Place;
 use App\Models\User;
+use App\Support\Challenges;
 use App\Support\Civility;
 use App\Support\Later;
 use App\Support\LinkPreviews;
@@ -243,6 +244,10 @@ class FileDispatch
 
         if ($parent) {
             self::checkPileOn($parent);
+        }
+
+        if ($type === 'been') {
+            Challenges::check($user);
         }
 
         if ($dispatch->status === 'pending') {

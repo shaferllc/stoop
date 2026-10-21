@@ -7,6 +7,7 @@ use App\Models\HalfSmoke;
 use App\Models\Report;
 use App\Models\User;
 use App\Notifications\StoopActivity;
+use App\Support\Challenges;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -36,6 +37,10 @@ class DispatchActions
         }
 
         $user->marked()->attach($dispatch->id, ['kind' => $kind]);
+
+        if ($kind === 'been' && $dispatch->place_id) {
+            Challenges::check($user);
+        }
 
         return true;
     }

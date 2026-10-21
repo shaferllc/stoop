@@ -22,7 +22,7 @@ use Throwable;
 class Magazine
 {
     // The site's section (its first category) mapped to a Metro line.
-    protected const SECTIONS = [
+    public const SECTIONS = [
         'food' => 'red',
         'things to do' => 'orange',
         'arts & entertainment' => 'orange',

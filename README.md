@@ -39,6 +39,8 @@ Staff pages for this area: Admin → Real estate (sales import status, open hous
 
 Happenings, Lost & found and games: `/happenings` (calendar, .ics, a private feed link at `/calendar/<token>.ics`), `/lost-and-found`, `/bingo`, `/hunts` and `/line-cup`. Editors create hunts in Admin → Hunts and pull readers’ picks (CSV) from Admin → Readers’ picks. Ticketed happenings link out to the host’s ticket page; Stoop takes no payments.
 
+Magazine events and list challenges: `stoop:import-events` (hourly) posts the “Things to Do” roundups from `STOOP_MAGAZINE_FEED` as @magazine Happenings; Admin → Magazine events shows the last run, has “Import now” and takes a CSV (`title, date, time, venue, url, description`). `/challenges` lists challenges on the magazine’s lists (“Eat at 10 of the 100 Very Best”); editors create them in Admin → Challenges and download finishers as CSV to send prizes by hand. `stoop:check-challenges` (hourly) catches finishes the check-in itself missed.
+
 Embed on magazine article pages:
 
 ```html
