@@ -168,6 +168,10 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Callouts tied to stories: article URL or working title, “The newsroom may quote this reply in a story” on replies, quotes view and CSV export of consented replies only
 - [x] Article updates: changed feed content or an editor’s “Corrected/Updated” note posts an @magazine reply in the thread and notifies repliers, savers and reactors once
 - [x] “From the archive” on station pages: CSV import, station and neighborhood tagger with a staff alias list; new feed articles are tagged and posted to their station
+- [x] Back-catalog import from the magazine’s WordPress API (`stoop:import-archive`, nightly; Admin → Archive “Run next batch”): metadata only (title, link, date, section → line, tags, writers, excerpt trimmed to 300, own-domain lead image) into the archive, never the feed; resumable cursor, idempotent by URL, obeys robots.txt at 1 request/second; also fills images and writers on already-posted articles, and writers’ bios. Archive stories show on /search as “From the magazine”
+- [x] Magazine lists into places (`stoop:import-lists`): the site’s `provider` entries for the newest “100 Very Best Restaurants”, matched to existing places by name; stop from the listing’s neighborhood, else listed under “needs a station” in Admin → Archive
+- [ ] Ranks, addresses and blurbs for list places: the site renders them client-side and doesn’t expose them in its API, so they still come from the CSV import
+- [ ] Co-authors: the API gives one `author` per post; bylines from the Co-Authors plugin aren’t resolved yet
 - [x] Issue drops: build from imported articles or pasted URLs, publish once as an @magazine thread plus an issue page
 - [ ] Add `quote_ok` to the iOS app’s reply composer (the app API already accepts it)
 - [ ] Neighborhood names per station in `config/metro.php` (`neighborhoods`); the tagger reads them when present, and the alias list covers the common ones until then

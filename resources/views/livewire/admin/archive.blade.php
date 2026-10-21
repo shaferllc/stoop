@@ -37,6 +37,32 @@
         </section>
     </div>
 
+    <div class="mb-3 grid gap-3 lg:grid-cols-2">
+        <section class="rounded-xl border border-rule bg-card p-4 text-sm">
+            <h2 class="font-semibold">Archive import</h2>
+            <p class="mt-1 text-mute">Older articles from the magazine’s site (title, link, date, section, tags, writers, a short excerpt and the lead image), 100 at a time. They go into the archive, never the feed. Runs nightly; <code>php artisan stoop:import-archive</code> does the same.</p>
+            <dl class="mt-2 grid grid-cols-2 gap-x-3 gap-y-0.5">
+                <dt class="text-mute">Imported from the site</dt><dd>{{ number_format($imported) }}</dd>
+                <dt class="text-mute">Cursor (next post after)</dt><dd class="font-mono text-[12px]">{{ $import['cursor'] }}</dd>
+                <dt class="text-mute">Last run</dt><dd>{{ $import['ran_at'] ? \Illuminate\Support\Carbon::parse($import['ran_at'])->diffForHumans().': '.$import['imported'].' stories'.($import['done'] ? ', caught up' : '') : 'Never' }}</dd>
+            </dl>
+            @if ($import['error']) <p class="mt-1 text-flag">{{ $import['error'] }}</p> @endif
+            <button type="button" wire:click="runBatch" wire:loading.attr="disabled" class="mt-2 rounded-lg bg-flag px-3 py-1.5 font-semibold text-white"><span wire:loading.remove wire:target="runBatch">Run next batch</span><span wire:loading wire:target="runBatch">Importing…</span></button>
+        </section>
+
+        <section class="rounded-xl border border-rule bg-card p-4 text-sm">
+            <h2 class="font-semibold">List places that need a station ({{ number_format($needsStationCount) }})</h2>
+            <p class="mt-1 text-mute">From the magazine’s lists, with no neighborhood that maps to a station. Set the stop in Places, or add an alias above and run <code>php artisan stoop:import-lists</code> again.</p>
+            <ul class="mt-2 max-h-48 divide-y divide-rule overflow-y-auto">
+                @forelse ($needsStation as $place)
+                    <li wire:key="ns-{{ $place->id }}" class="flex justify-between gap-2 py-1"><a href="{{ route('admin.places', ['q' => $place->name]) }}" class="font-semibold hover:underline">{{ $place->name }}</a> <span class="text-mute">{{ $place->neighborhood ? $place->neighborhood.' · ' : '' }}{{ $place->list_name }}</span></li>
+                @empty
+                    <li class="py-1 text-mute">None.</li>
+                @endforelse
+            </ul>
+        </section>
+    </div>
+
     <input type="search" wire:model.live.debounce.300ms="q" placeholder="Find a story, or a station code" aria-label="Find a story" class="mb-2 w-full rounded-lg border border-rule bg-paper px-3 py-1.5 text-sm">
     <div class="overflow-x-auto rounded-xl border border-rule bg-card">
         <table class="w-full text-sm">

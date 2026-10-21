@@ -109,9 +109,7 @@ class Places extends Component
                 continue;
             }
 
-            $place = Place::firstOrNew(['name' => $data['name'], 'list_name' => $data['list_name'] ?? null]);
-            $place->exists ? $updated++ : $created++;
-            $place->fill($data)->save();
+            Place::fromList($data) === 'created' ? $created++ : $updated++;
         }
         fclose($handle);
 

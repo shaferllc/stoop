@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Support\SearchIndex;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
@@ -52,6 +53,12 @@ class Search extends Component
 
         $dispatches = $valid && $this->tab === 'dispatches' ? $this->dispatches($q) : collect();
 
+        // Older magazine stories (not dispatches), matching every word in the title or excerpt.
+        $magazine = $valid && $this->tab === 'dispatches' && ! $this->getErrorBag()->has('q')
+            ? collect(preg_split('/\s+/', $q))->reduce(fn ($query, $word) => $query->where(fn ($w) => $w->where('title', 'like', '%'.$word.'%')->orWhere('description', 'like', '%'.$word.'%')), DB::table('archive_stories'))
+                ->orderByDesc('published_on')->take(5)->get()
+            : collect();
+
         $people = $valid && $this->tab === 'people'
             ? User::where('is_bot', false)
                 ->whereNotIn('id', $viewer?->hiddenUserIds() ?? [])
@@ -66,6 +73,7 @@ class Search extends Component
         return view('livewire.pages.search', [
             'valid' => $valid,
             'dispatches' => $dispatches,
+            'magazine' => $magazine,
             'people' => $people,
             'stations' => $stations,
             'state' => $this->viewerState($dispatches),
