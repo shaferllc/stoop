@@ -86,7 +86,7 @@ class Neighborhoods
                 'resultRecordCount' => 5,
                 'returnGeometry' => 'false',
                 'f' => 'json',
-            ])->throw()->json('features') ?? []);
+            ])->throw()->json('features') ?? throw new \RuntimeException('DC GIS returned no features'));
         } catch (Throwable) {
             return null;
         }

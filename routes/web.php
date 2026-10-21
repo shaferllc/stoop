@@ -31,6 +31,7 @@ use App\Models\Game;
 use App\Models\MessageImage;
 use App\Models\Sponsorship;
 use App\Models\User;
+use App\Support\Audit;
 use App\Support\Newsletter;
 use App\Support\RidershipGraph;
 use App\Support\Rivalries;
@@ -158,6 +159,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('anc', Admin\AncSummaries::class)->name('.anc');
         Route::get('ballots/{ballot}/results.csv', function (Ballot $ballot) {
             abort_unless(auth()->user()->is_staff, 403);
+            Audit::log('ballot.exported', $ballot);
 
             return response($ballot->csv(), 200, ['Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => 'attachment; filename="'.str($ballot->title)->slug().'-results.csv"']);
         })->middleware('throttle:20,1')->name('.ballots.csv');

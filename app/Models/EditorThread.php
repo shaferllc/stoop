@@ -62,7 +62,7 @@ class EditorThread extends Model
     public function questions(?User $viewer): Collection
     {
         $questions = Dispatch::visibleTo($viewer)->with('user')->where('parent_id', $this->dispatch_id)
-            ->where('user_id', '!=', $this->user_id)
+            ->where('user_id', '!=', $this->user_id)->whereBetween('created_at', [$this->starts_at, $this->ends_at])
             ->withCount(['replies' => fn ($q) => $q->where('status', 'approved')])
             ->addSelect(['votes' => DB::table('question_votes')->selectRaw('count(*)')->whereColumn('question_votes.dispatch_id', 'dispatches.id')])
             ->get();
@@ -83,7 +83,8 @@ class EditorThread extends Model
      */
     public function toggleVote(User $user, int $questionId): bool
     {
-        $question = Dispatch::where('status', 'approved')->where('parent_id', $this->dispatch_id)->findOrFail($questionId);
+        $question = Dispatch::where('status', 'approved')->where('parent_id', $this->dispatch_id)
+            ->whereBetween('created_at', [$this->starts_at, $this->ends_at])->findOrFail($questionId);
         abort_if($question->user_id === $user->id, 422, 'You can’t upvote your own question.');
 
         $where = ['dispatch_id' => $question->id, 'user_id' => $user->id];

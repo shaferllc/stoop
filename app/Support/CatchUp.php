@@ -69,7 +69,7 @@ class CatchUp
      */
     protected static function summarize(Collection $posts): ?array
     {
-        $text = $posts->map(fn (Dispatch $d) => '<post replies="'.$d->replies_count.'">'.e($d->body).'</post>')->join("\n");
+        $text = $posts->map(fn (Dispatch $d) => '<post replies="'.$d->replies_count.'">'.str_replace(['<', '>'], ['‹', '›'], $d->body).'</post>')->join("\n");
         $answer = Claude::text(self::PROMPT, $text, 1024);
 
         $bullets = collect(preg_split('/\R/', (string) $answer))

@@ -80,6 +80,8 @@
                         @endisset
                         @if (\App\Support\Claude::enabled())
                             <button type="button" wire:click="refineHints" class="ml-auto text-mute underline hover:text-ink">Suggest<span wire:loading wire:target="refineHints">…</span></button>
+                        @elseif (auth()->user()->is_staff)
+                            <span class="ml-auto text-mute">Keyword guesses. Claude suggestions need ANTHROPIC_API_KEY.</span>
                         @endif
                     </div>
                 @endif

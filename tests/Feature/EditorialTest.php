@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\FileDispatch;
 use App\Livewire\Admin\AncSummaries;
 use App\Livewire\Admin\Editorial;
 use App\Livewire\Pages\AmaShow;
@@ -28,6 +29,7 @@ class EditorialTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        Http::preventStrayRequests();
         config(['services.anthropic.key' => null, 'stoop.model_moderation' => false, 'services.openai.key' => null]);
     }
 
@@ -104,6 +106,8 @@ class EditorialTest extends TestCase
         $this->postJson("/api/app/ask-the-editor/{$thread->id}/questions", ['body' => 'Best bagel?'])->assertCreated();
 
         $thread->update(['ends_at' => now()->subMinute()]);
+        FileDispatch::handle($other, ['body' => 'Late reply on the thread', 'parentId' => $thread->dispatch_id]);
+        $this->assertNotContains('Late reply on the thread', $thread->questions(null)->pluck('body')->all(), 'Replies outside the window aren’t questions.');
         $this->postJson("/api/app/ask-the-editor/{$thread->id}/questions", ['body' => 'Too late?'])->assertStatus(422);
         Livewire::actingAs($reader)->test(AmaShow::class, ['thread' => $thread])->set('question', 'Too late?')->call('ask')->assertHasErrors('question');
     }
@@ -147,6 +151,7 @@ class EditorialTest extends TestCase
 
     public function test_anc_summaries_are_previewed_then_published_by_a_person(): void
     {
+        Http::fake(['oanc.dc.gov/*' => Http::response('<title>ANC</title>')]);
         $staff = $this->staff();
         $this->actingAs($staff);
 

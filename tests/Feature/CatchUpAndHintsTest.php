@@ -10,6 +10,7 @@ use App\Support\CatchUp as Digest;
 use App\Support\Claude;
 use App\Support\ComposeHints;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -21,6 +22,7 @@ class CatchUpAndHintsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        Http::preventStrayRequests();
         config(['services.anthropic.key' => null, 'stoop.model_moderation' => false, 'services.openai.key' => null]);
     }
 

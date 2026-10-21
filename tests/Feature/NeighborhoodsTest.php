@@ -49,13 +49,20 @@ class NeighborhoodsTest extends TestCase
 
     public function test_the_311_box_has_clear_empty_states(): void
     {
-        Http::fake(); // An empty response, like DC GIS with nothing nearby.
+        Http::fake(['maps2.dcgis.dc.gov/*' => Http::response(['features' => []]), '*' => Http::response([])]);
         Livewire::withoutLazyLoading()->test(StationLive::class, ['code' => 'A03'])->assertSee('No 311 requests within a few blocks lately.');
 
         config(['neighborhoods.dc311' => false]);
         Livewire::withoutLazyLoading()->test(StationLive::class, ['code' => 'A05'])->assertSee('DC 311 data isn’t available right now.');
 
         Livewire::withoutLazyLoading()->test(StationLive::class, ['code' => 'K04'])->assertDontSee('Nearby service requests')->assertDontSee('Pepco');
+    }
+
+    public function test_a_dc_gis_error_is_not_mistaken_for_a_quiet_block(): void
+    {
+        Http::fake(['maps2.dcgis.dc.gov/*' => Http::response(['error' => ['code' => 400]]), '*' => Http::response([])]);
+
+        Livewire::withoutLazyLoading()->test(StationLive::class, ['code' => 'A04'])->assertSee('DC 311 data isn’t available right now.');
     }
 
     public function test_ward_explorer_needs_a_post_in_every_ward(): void
