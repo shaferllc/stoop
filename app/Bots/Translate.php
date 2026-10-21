@@ -31,15 +31,15 @@ class Translate extends Bot
         return 'Reply “@translate to Spanish” in a thread to translate the dispatch above.';
     }
 
-    public function wantsToReply(Dispatch $dispatch): bool
-    {
-        return $dispatch->parent_id && parent::wantsToReply($dispatch);
-    }
-
     public function reply(Dispatch $dispatch): ?string
     {
+        if (! $dispatch->parent_id) {
+            return 'Reply to a dispatch with “@translate to Spanish” (or Amharic, French, Chinese, Korean, Vietnamese, Arabic, Portuguese or English) and I’ll translate the post you replied to.'
+                .(Translator::enabled() ? '' : ' Translation is switched off on Stoop right now, though.');
+        }
+
         if (! Translator::enabled()) {
-            return 'Translation isn’t available on Stoop yet.';
+            return 'Translation is switched off on Stoop right now. Your phone or browser can translate the post above: long-press or right-click the text and choose Translate.';
         }
 
         $parent = $dispatch->parent;

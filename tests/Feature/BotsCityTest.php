@@ -72,6 +72,7 @@ class BotsCityTest extends TestCase
     public function test_metro_next_resolves_codes_and_aliases(): void
     {
         Http::fake(['api.wmata.com/*' => Http::response(['Trains' => []])]);
+        $this->at('2026-10-21 12:00');
 
         $this->assertSame('No trains predicted at Metro Center right now.', (new MetroBot)->reply($this->mention('@metro next C01')));
         config(['services.wmata.key' => null]);

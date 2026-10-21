@@ -56,6 +56,11 @@ class Bots
         $knowledge = self::knowledge();
         $question = trim(preg_replace('/(?<![\w.@])@stoop\b/i', '', $question));
 
+        if (preg_match('/^\W*(hi|hey|hello|howdy|yo|sup|good (morning|afternoon|evening)|help|what can you do|who are you|what is this)?\W*(there|stoop|everyone|all)?\W*$/i', $question)) {
+            return 'Hi, I’m @stoop, the help desk. Things to try: “@metro next Dupont” for live trains, “@eats tacos near Shaw” for food picks, '
+                .route('play').' for The Daily, Bingo and hunts, and '.route('bots').' for every bot. Ask me how anything on Stoop works, like “how do half-smokes work?”';
+        }
+
         if ($key = Ai::key('content')) {
             try {
                 $message = (new Client(apiKey: $key))->messages->create(
@@ -98,24 +103,52 @@ class Bots
             ->implode("\n\n");
     }
 
+    // Words too common to say what a question is about.
+    protected const STOPWORDS = ['the', 'and', 'can', 'how', 'what', 'who', 'why', 'when', 'where', 'does', 'did', 'you', 'your', 'are', 'for', 'with', 'this', 'that', 'there', 'have', 'has', 'get', 'any', 'about', 'stoop', 'from', 'into', 'just', 'like', 'want', 'way', 'they', 'them', 'out', 'all', 'one', 'not', 'yes'];
+
+    // The page for a question the knowledge base doesn't cover, by the words that point to it.
+    protected const PAGES = [
+        'play' => ['/quiz|daily|trivia|game|bingo|hunt|play|streak|contest|puzzle/', 'Games live at :url: The Daily, Metro Bingo, scavenger hunts and the Line Cup.'],
+        'happenings' => ['/event|happening|tonight|weekend|calendar|concert|show|party|rsvp|ticket|meetup/', 'What’s on around town is on the Happenings calendar: :url'],
+        'bots' => ['/bot|metro|train|weather|food|eat|restaurant|bike|311|translat|cherry|blossom|home|price/', 'One of the bots probably knows. Here’s what each does: :url'],
+        'settings' => ['/setting|account|password|email|notif|profile|token|api|privacy|delete|username|avatar|photo|stops?\b|station/', 'That’s in your settings: :url'],
+    ];
+
     /**
-     * The knowledge-base bullet sharing the most words with the question.
+     * The knowledge-base bullet that best matches the question: shared words (by stem), with
+     * a word in the section's heading counting double. Falls back to the most likely page.
      */
     protected static function closestSection(string $knowledge, string $question): string
     {
-        $words = fn (string $text) => array_unique(array_filter(
-            preg_split('/[^a-z0-9]+/', strtolower($text)),
-            fn ($w) => strlen($w) > 3,
-        ));
-        $asked = $words($question);
+        $stems = fn (string $text) => array_values(array_unique(array_map(
+            fn ($w) => substr($w, 0, 5),
+            array_filter(preg_split('/[^a-z0-9]+/', strtolower($text)), fn ($w) => strlen($w) > 2 && ! in_array($w, self::STOPWORDS, true)),
+        )));
+        $asked = $stems($question);
 
+        $section = '';
         $best = collect(preg_split('/\n+/', $knowledge))
-            ->filter(fn ($line) => str_starts_with($line, '- '))
-            ->sortByDesc(fn ($line) => count(array_intersect($asked, $words($line))))
-            ->first();
+            ->map(function ($line) use (&$section, $stems, $asked) {
+                if (str_starts_with($line, '## ')) {
+                    $section = substr($line, 3);
+                }
 
-        return $best && array_intersect($asked, $words($best))
-            ? ltrim($best, '- ')
-            : 'I’m not sure about that one. The house rules at /rules cover most of how Stoop works.';
+                return str_starts_with($line, '- ')
+                    ? ['text' => substr($line, 2), 'score' => count(array_intersect($asked, $stems($line))) + 2 * count(array_intersect($asked, $stems($section)))]
+                    : null;
+            })
+            ->filter()->sortByDesc('score')->first();
+
+        if ($best && $best['score'] > 0) {
+            return Str::limit($best['text'], 400).(str_contains($best['text'], '/') ? '' : ' More: '.route('rules'));
+        }
+
+        foreach (self::PAGES as $page => [$pattern, $line]) {
+            if (preg_match($pattern.'i', $question)) {
+                return str_replace(':url', $page === 'settings' ? url('/settings') : route($page), $line);
+            }
+        }
+
+        return 'I don’t have an answer for that one. The house rules cover how Stoop works: '.route('rules').'. Or ask neighbors with an Ask DC post.';
     }
 }

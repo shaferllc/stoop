@@ -8,6 +8,7 @@ use App\Support\DailyQuiz;
 use App\Support\Profanity;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * @quizmaster announces The Daily each morning, posts the streak leaders at 8pm, and
@@ -96,7 +97,13 @@ class Quizmaster extends Bot
         $today = DailyQuiz::today();
 
         if (! preg_match(self::SHARED, $dispatch->body, $m)) {
-            return 'Today’s The Daily #'.DailyQuiz::number($today).' is up: '.route('quiz');
+            $played = DB::table('quiz_attempts')->where(['user_id' => $dispatch->user_id, 'day' => $today->toDateString()])->whereNotNull('completed_at')->value('score');
+            $streaks = DailyQuiz::streaks($dispatch->user);
+
+            return 'The Daily #'.DailyQuiz::number($today).': '
+                .($played !== null ? "you played today and got $played/".DailyQuiz::PER_DAY.'. ' : 'you haven’t played today yet. ')
+                .($streaks['current'] > 0 ? "Your streak: {$streaks['current']} ".Str::plural('day', $streaks['current']).' (longest '.$streaks['longest'].'). ' : 'No streak going yet; today’s a good day to start one. ')
+                .route('quiz');
         }
 
         // Only real, finished results, and one cheer per person per quiz.

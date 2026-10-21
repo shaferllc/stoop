@@ -64,6 +64,8 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] @translate: reply “@translate [to Spanish]” in a thread to translate the parent dispatch (any `Translator::LANGUAGES` language; defaults to your translation language)
 - [x] @calm: one neutral reminder on a pile-on-flagged thread once its reply pause ends; never acts, once per thread
 - [ ] @ask: search by meaning (embeddings) instead of shared keywords
+- [x] Bot mention answers without AI: every bot replies with its own data (forecast, delays and Metro hours, bloom season, calendar, streak, top posts, history, home prices, Line Cup), @stoop greets and scores its knowledge base by stems and headings, @magazine lists its 3 latest stories
+- [ ] @cherry: record each year’s peak bloom (now parsed from the NPS page or `STOOP_CHERRY_LAST_PEAK`)
 - [x] Game bots: @bingo (Monday cards, Sunday bingo count, “@bingo” card progress), @hunt (opening clue, 10am reminder, first finisher, “@hunt” next clue, never answers), @linecup (Monday standings with line trash talk, monthly winner)
 - [x] @sentinel: hourly staff-only moderation summary to moderators (in-app), admin Overview panel, Mac app Overview, `GET /api/admin/sentinel`
 - [ ] @bingo’s Sunday board names people only once there’s an opt-in setting for it (counts only now)

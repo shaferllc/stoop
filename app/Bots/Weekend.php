@@ -28,7 +28,7 @@ class Weekend extends Bot
 
     public function description(): string
     {
-        return 'A round-up of what’s on this weekend, every Friday at noon.';
+        return 'A round-up of what’s on this weekend, every Friday at noon. Mention @weekend for it any day.';
     }
 
     public function schedule(Schedule $schedule): void
@@ -42,14 +42,29 @@ class Weekend extends Bot
      */
     public function postRoundup(): ?Dispatch
     {
-        $tz = config('stoop.timezone');
-        $now = CarbonImmutable::now($tz);
-        $friday = $now->isFriday() ? $now->startOfDay() : $now->next(CarbonImmutable::FRIDAY);
-        $monday = $friday->addDays(3);
+        $now = CarbonImmutable::now(config('stoop.timezone'));
 
-        if ($this->account()->dispatches()->withTrashed()->where('created_at', '>=', $now->startOfDay()->utc())->where('body', 'like', self::PREFIX.'%')->exists()) {
+        if ($this->account()->dispatches()->withTrashed()->whereNull('parent_id')->where('created_at', '>=', $now->startOfDay()->utc())->where('body', 'like', self::PREFIX.'%')->exists()) {
             return null;
         }
+
+        return ($body = $this->roundup()) ? $this->post(['line' => 'orange', 'body' => $body]) : null;
+    }
+
+    public function reply(Dispatch $dispatch): ?string
+    {
+        return $this->roundup() ?? 'Nothing on the calendar for this weekend yet. Check '.route('happenings').' as plans firm up, or post a Happening yourself.';
+    }
+
+    /**
+     * The round-up for the coming weekend (or this one, from Friday to Sunday). Null when there's nothing on.
+     */
+    public function roundup(): ?string
+    {
+        $tz = config('stoop.timezone');
+        $now = CarbonImmutable::now($tz);
+        $friday = in_array($now->dayOfWeek, [5, 6, 0], true) ? $now->startOfDay()->subDays(($now->dayOfWeek + 2) % 7) : $now->next(CarbonImmutable::FRIDAY);
+        $monday = $friday->addDays(3);
 
         $events = CityEvent::where('starts_at', '<', $monday->utc())->where('ends_at', '>=', $friday->utc())->orderBy('starts_at')->take(4)->get();
         $happenings = Dispatch::visibleTo(null)->whereNull('parent_id')->where('type', 'happening')->whereNotNull('happening_at')
@@ -83,7 +98,7 @@ class Weekend extends Bot
             }
         }
 
-        return $this->post(['line' => 'orange', 'body' => $body]);
+        return $body;
     }
 
     /**

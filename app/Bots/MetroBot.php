@@ -35,21 +35,34 @@ class MetroBot extends Bot
 
     public function description(): string
     {
-        return 'Major Metrorail delays, single-tracking and closures. Reply “@metro next Dupont Circle” for the next trains.';
+        return 'Major Metrorail delays, single-tracking and closures. Reply “@metro next Dupont Circle” for the next trains, or “@metro” for current delays.';
     }
 
     public function reply(Dispatch $dispatch): ?string
     {
-        if (! preg_match('/@metro\s+next\s+(.+)/i', $dispatch->body, $m)) {
-            return 'Ask me “@metro next Dupont Circle” (or a station code like A03) for the next trains.';
+        $ask = trim((string) preg_replace('/^.*?@metro\b/is', '', $dispatch->body), " \t\n.?!");
+        $station = preg_match('/^(?:when(?:\s+is|’s|\'s)?\s+(?:the\s+)?)?next(?:\s+trains?)?(?:\s+(?:at|from|to|in))?\s+(.+)$/is', $ask, $m) ? $m[1] : null;
+
+        // A bare station ("@metro Dupont") asks for its next trains too.
+        if ($station === null && $ask !== '' && ! preg_match('/delay|incident|alert|status|running|line|close|open|hours|help/i', $ask) && Stations::find($ask)) {
+            $station = $ask;
         }
 
-        if (! $code = Stations::find($m[1])) {
+        if ($station === null) {
+            return Str::limit(trim(self::closedNotice().' '.self::delays().' Ask “@metro next Dupont Circle” for live trains.'), 480);
+        }
+
+        if (! $code = Stations::find($station)) {
             return 'I couldn’t find that station. Try its name, like “@metro next Navy Yard”, or a code like F05.';
         }
 
         $name = Stations::name($code);
         $trains = Metro::nextTrains($code);
+
+        // Late trains still run after closing time, so live predictions win over the timetable.
+        if (! $trains && ($closed = self::closedNotice())) {
+            return Str::limit("$closed ".self::delays().' '.route('stops.show', $code), 480);
+        }
 
         if ($trains === null) {
             return "Live arrivals for $name aren’t available right now. Check wmata.com.";
@@ -64,6 +77,48 @@ class MetroBot extends Bot
             'BRD' => 'boarding',
             default => is_numeric($t['minutes']) ? $t['minutes'].' min' : $t['minutes'],
         })->join('; ').'.';
+    }
+
+    /**
+     * Current incidents with the lines they hit, or a plain all-clear.
+     */
+    public static function delays(): string
+    {
+        $incidents = Metro::incidents();
+
+        if ($incidents === null) {
+            return 'Live Metro alerts aren’t available right now; wmata.com has the latest.';
+        }
+
+        if (! $incidents) {
+            return 'No reported delays.';
+        }
+
+        return collect($incidents)->groupBy('id')
+            ->map(fn ($rows) => $rows->pluck('line')->unique()->map(fn ($line) => ucfirst($line))->join('/').': '.Str::limit($rows->first()['message'], 150))
+            ->take(3)->join(' ');
+    }
+
+    /**
+     * "Metro is closed…" with when the first trains run, or '' while it's open. The hours are
+     * config('stoop.metro_hours').
+     */
+    public static function closedNotice(): string
+    {
+        $now = now(config('stoop.timezone'));
+        $hours = fn ($day) => array_map(fn ($t) => (int) strtok($t, ':') * 60 + (int) strtok(':'), config('stoop.metro_hours')[$day->dayOfWeek]);
+        [$open, $close] = $hours($now);
+        $lastClose = $hours($now->copy()->subDay())[1];
+        $at = $now->hour * 60 + $now->minute;
+
+        if (($at >= $open && $at < $close) || $at + 1440 < $lastClose) {
+            return '';
+        }
+
+        $next = $at < $open ? $now->copy()->startOfDay()->addMinutes($open)
+            : $now->copy()->addDay()->startOfDay()->addMinutes($hours($now->copy()->addDay())[0]);
+
+        return 'Metro is closed right now. The first trains run at '.$next->format('ga').($next->isSameDay($now) ? '' : ' '.$next->format('l')).'.';
     }
 
     public function schedule(Schedule $schedule): void

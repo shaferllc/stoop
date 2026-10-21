@@ -57,7 +57,8 @@ class Dc311Bot extends Bot
         $code = trim($near) !== '' ? Stations::find($near) : null;
 
         if (! $type) {
-            return 'I can point you to the right 311 request for a pothole, streetlight, trash, rats, graffiti, parking or a tree. Try “@311 pothole near Navy Yard”.';
+            return 'I can point you to the right 311 request for a pothole, streetlight, trash, rats, graffiti, parking or a tree. Try “@311 pothole near Navy Yard”, “@311 streetlight out near Shaw”, “@311 missed trash near Eastern Market”, “@311 rats near Columbia Heights”, “@311 graffiti by Union Station”, “@311 car blocking parking near Dupont” or “@311 tree branch down near Takoma”. '
+                .'Or call 311 (202-737-4404 from outside DC) or go to https://311.dc.gov';
         }
 
         if ($code && Stations::jurisdiction($code) !== 'DC') {
@@ -65,7 +66,7 @@ class Dc311Bot extends Bot
         }
 
         return "Report it at https://311.dc.gov as “{$type[0]}”".($code ? ' with the closest street address near '.Stations::name($code) : ' with the closest street address')
-            .', or call 311. You’ll get a request number to track it.';
+            .', or call 311 (202-737-4404). You’ll get a request number to track it.';
     }
 
     public function schedule(Schedule $schedule): void

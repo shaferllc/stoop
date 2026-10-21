@@ -62,7 +62,7 @@ class ThreadsTest extends TestCase
     public function test_a_mentioned_bot_always_says_how_to_use_it(): void
     {
         config(['services.openai.key' => null, 'services.anthropic.key' => null]);
-        $post = Dispatch::factory()->create(['body' => '@recap what do you do?']);
+        $post = Dispatch::factory()->create(['body' => '@calm what do you do?']);
 
         (new RunBots($post))->handle();
 

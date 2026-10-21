@@ -25,6 +25,9 @@ class WeatherBot extends Bot
 
     public const ALERTS = 'https://api.weather.gov/alerts/active?area=DC&status=actual&message_type=alert';
 
+    // The NWS's human-readable forecast for the same spot, linked from mention replies.
+    public const PAGE = 'https://forecast.weather.gov/MapClick.php?lat=38.8951&lon=-77.0364';
+
     protected const SNOW = '/snow|blizzard|winter storm|winter weather|ice storm|sleet|freezing rain/i';
 
     public const DAILY_ALERTS = 3;
@@ -41,7 +44,25 @@ class WeatherBot extends Bot
 
     public function description(): string
     {
-        return 'The morning forecast and National Weather Service warnings for DC.';
+        return 'The morning forecast and National Weather Service warnings for DC. Mention @weather for the forecast right now.';
+    }
+
+    /**
+     * The current and next NWS forecast periods, plus any active DC alerts.
+     */
+    public function reply(Dispatch $dispatch): ?string
+    {
+        $period = fn (array $p) => "{$p['name']}: {$p['shortForecast']}, ".($p['isDaytime'] ? 'high' : 'low')." {$p['temperature']}°"
+            .(isset($p['windSpeed']) ? ', wind '.$p['windSpeed'].(isset($p['windDirection']) ? ' '.$p['windDirection'] : '') : '').'.';
+        $periods = collect($this->get(self::FORECAST, 'properties.periods'))->filter(fn ($p) => isset($p['name'], $p['shortForecast'], $p['temperature']))->take(2);
+        $alerts = collect($this->get(self::ALERTS, 'features'))->map(fn ($f) => $f['properties']['event'] ?? null)->filter()->unique();
+
+        $body = $periods->isEmpty()
+            ? 'The National Weather Service forecast isn’t answering right now.'
+            : 'DC weather. '.$periods->map($period)->join(' ');
+        $body .= $alerts->isEmpty() ? ' No active NWS alerts for DC.' : ' NWS alerts: '.$alerts->take(3)->join(', ').'.';
+
+        return Str::limit($body, 400).' '.self::PAGE;
     }
 
     public function schedule(Schedule $schedule): void

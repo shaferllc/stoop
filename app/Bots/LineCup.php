@@ -65,6 +65,21 @@ class LineCup extends Bot
     }
 
     /**
+     * This month's standings so far.
+     */
+    public function reply(Dispatch $dispatch): ?string
+    {
+        $month = Rivalries::monthStart();
+        $cup = Rivalries::lineCup($month)->filter(fn ($line) => $line['points'] > 0);
+
+        if ($cup->isEmpty()) {
+            return 'No Line Cup points yet in '.$month->format('F').'. Posts tagged with a line’s stops, replies there and Best Answers all score for it. '.route('line-cup');
+        }
+
+        return 'Line Cup for '.$month->format('F').' so far: '.$cup->keys()->take(6)->map(fn ($line, $i) => ($i + 1).'. '.self::label($line).', '.$cup[$line]['points'].' pts')->join('; ').'. '.route('line-cup');
+    }
+
+    /**
      * The winner of the month that just ended, once. Ties and empty months get no post.
      */
     public function postWinner(): ?Dispatch

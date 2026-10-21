@@ -45,7 +45,7 @@ class History extends Bot
         $today = CarbonImmutable::now(config('stoop.timezone'));
         $entries = DB::table('history_entries')->where(['month' => $today->month, 'day' => $today->day, 'verify' => false])->orderBy('id')->get();
 
-        if ($entries->isEmpty() || $this->account()->dispatches()->withTrashed()->where('created_at', '>=', $today->startOfDay()->utc())->exists()) {
+        if ($entries->isEmpty() || $this->account()->dispatches()->withTrashed()->whereNull('parent_id')->where('created_at', '>=', $today->startOfDay()->utc())->exists()) {
             return null;
         }
 
@@ -60,6 +60,28 @@ class History extends Bot
         $first = $entries->first();
 
         return $this->post(['line' => $first->line ?: 'blue', 'stop' => $first->stop, 'body' => $body]);
+    }
+
+    /**
+     * Today's checked entry, or the next one coming up on the calendar.
+     */
+    public function reply(Dispatch $dispatch): ?string
+    {
+        $today = CarbonImmutable::now(config('stoop.timezone'));
+        // Days from today to each entry's date this year (or next, once it's passed).
+        $entry = DB::table('history_entries')->where('verify', false)->get()
+            ->sortBy(fn ($e) => [(($e->month * 31 + $e->day) - ($today->month * 31 + $today->day) + 403) % 403, $e->id])->first();
+
+        if (! $entry) {
+            return 'The editors haven’t added any DC history yet. I post “On this day in DC” at 9am on days they have one.';
+        }
+
+        $date = CarbonImmutable::create($today->year, $entry->month, $entry->day);
+        $head = $entry->month === $today->month && $entry->day === $today->day
+            ? self::PREFIX.', '.$today->format('F j').':'
+            : 'Nothing for today. Coming up on '.$date->format('F j').':';
+
+        return Str::limit($head.' '.$entry->text, config('stoop.max_length') - 1 - ($entry->link ? mb_strlen($entry->link) + 1 : 0), '…').($entry->link ? ' '.$entry->link : '');
     }
 
     /**

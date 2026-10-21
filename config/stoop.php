@@ -161,4 +161,11 @@ return [
 
     'nudge_pattern' => '/\b(idiots?|stupid|morons?|trash people|go back to|shut up|losers?|scum|hate (you|them|these)|f+u+c+k+ (you|u|off|them|this guy)|fck (you|u|off)|screw (you|u)|go to hell|kill yourself|kys)\b/i',
 
+    // Metrorail hours in DC time by day of week (0 = Sunday): [first trains, closing]. A closing
+    // after midnight is written past 24:00, so Friday's 1am close is 25:00. @metro uses these.
+    'metro_hours' => [0 => ['7:00', '24:00'], 1 => ['5:00', '24:00'], 2 => ['5:00', '24:00'], 3 => ['5:00', '24:00'], 4 => ['5:00', '24:00'], 5 => ['5:00', '25:00'], 6 => ['7:00', '25:00']],
+
+    // The last recorded peak bloom, like "March 28, 2025", for @cherry when NPS's page can't say.
+    'cherry_last_peak' => env('STOOP_CHERRY_LAST_PEAK'),
+
 ];

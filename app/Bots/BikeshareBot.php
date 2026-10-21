@@ -41,7 +41,7 @@ class BikeshareBot extends Bot
             ?? collect(self::NEIGHBORHOODS)->first(fn ($code, $hood) => str_contains($text, $hood));
 
         if (! $code) {
-            return 'Tell me a Metro stop or neighborhood, like “@bikeshare Dupont Circle” or “@bikeshare Adams Morgan”.';
+            return 'Tell me a Metro stop or neighborhood, like “@bikeshare Dupont Circle” or “@bikeshare Adams Morgan”, and I’ll list live bikes, e-bikes and open docks within 500 m.';
         }
 
         $name = Stations::name($code);

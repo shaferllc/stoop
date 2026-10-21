@@ -41,11 +41,8 @@ class Recap extends Bot
     public function run(): int
     {
         $bot = $this->account();
-        $week = fn () => Dispatch::topLevel()->visibleTo(null)
-            ->where('created_at', '>=', now()->subWeek())
-            ->whereHas('user', fn ($q) => $q->where('is_bot', false));
 
-        $busiest = $week()->whereNotNull('stop')->groupBy('stop')
+        $busiest = $this->week(now()->subWeek())->whereNotNull('stop')->groupBy('stop')
             ->selectRaw('stop, count(*) as posts')->orderByDesc('posts')->orderBy('stop')->limit(5)->pluck('stop');
 
         $posted = 0;
@@ -54,11 +51,8 @@ class Recap extends Bot
                 continue;
             }
 
-            // Most replies plus half-smokes, ties to the newer post.
-            $best = $week()->where('stop', $stop)->forCards()->latest()->get()
-                ->sortByDesc(fn (Dispatch $d) => $d->replies_count + $d->half_smokes_count)->take(3)->values();
-
-            $this->post(['line' => $best->first()->line, 'stop' => $stop, 'body' => $this->body($stop, $best)]);
+            $best = $this->best(now()->subWeek(), $stop);
+            $this->post(['line' => $best->first()->line, 'stop' => $stop, 'body' => $this->body('Your stop this week: '.Stations::name($stop), $stop, $best)]);
             $posted++;
         }
 
@@ -66,12 +60,46 @@ class Recap extends Bot
     }
 
     /**
+     * This week's top 3 so far (since Monday, DC time), at a station the mention names or overall.
+     */
+    public function reply(Dispatch $dispatch): ?string
+    {
+        $ask = trim((string) preg_replace('/^.*?@recap\b/is', '', $dispatch->body));
+        $stop = $ask !== '' ? Stations::find($ask) : null;
+        $best = $this->best(now(config('stoop.timezone'))->startOfWeek()->utc(), $stop, except: $dispatch->id);
+
+        if ($best->isEmpty()) {
+            return 'Nothing '.($stop ? 'tagged '.Stations::name($stop).' ' : '').'has made the week’s best yet. See what’s coming up: '.route('happenings');
+        }
+
+        return $this->body($stop ? 'Top at '.Stations::name($stop).' this week so far' : 'This week’s top dispatches so far', $stop, $best);
+    }
+
+    /**
+     * Most replies plus half-smokes, ties to the newer post.
+     *
+     * @return Collection<int, Dispatch>
+     */
+    protected function best(\DateTimeInterface $since, ?string $stop = null, ?int $except = null): Collection
+    {
+        return $this->week($since)->when($stop, fn ($q) => $q->where('stop', $stop))->when($except, fn ($q) => $q->whereKeyNot($except))->forCards()->latest()->limit(200)->get()
+            ->sortByDesc(fn (Dispatch $d) => $d->replies_count + $d->half_smokes_count)->take(3)->values();
+    }
+
+    protected function week(\DateTimeInterface $since)
+    {
+        return Dispatch::topLevel()->visibleTo(null)->where('created_at', '>=', $since)
+            ->whereHas('user', fn ($q) => $q->where('is_bot', false));
+    }
+
+    /**
      * @param  Collection<int, Dispatch>  $best
      */
-    protected function body(string $stop, Collection $best): string
+    protected function body(string $title, ?string $stop, Collection $best): string
     {
-        $mayor = Stations::mayorOf($stop);
-        $head = 'Your stop this week: '.Stations::name($stop).($mayor ? ' · Mayor @'.$mayor->username : '');
+        // The mayor's name without the @, so the recap doesn't ping them every week.
+        $mayor = $stop ? Stations::mayorOf($stop) : null;
+        $head = $title.($mayor ? ' · Mayor '.$mayor->username : '');
 
         // Excerpts lose their mentions and links so the recap doesn't ping anyone or add a link card.
         $room = intdiv(config('stoop.max_length') - mb_strlen($head) - 2, max(1, $best->count())) - 60;

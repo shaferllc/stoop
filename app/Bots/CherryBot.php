@@ -60,9 +60,7 @@ class CherryBot extends Bot
             return null;
         }
 
-        try {
-            $html = Cache::remember('cherry:page', now()->addHour(), fn () => Http::timeout(8)->get(self::PAGE)->throw()->body());
-        } catch (Throwable) {
+        if (($html = self::page()) === null) {
             return null;
         }
 
@@ -100,6 +98,45 @@ class CherryBot extends Bot
         } catch (Throwable $e) {
             Log::warning('@cherry could not post', ['error' => $e->getMessage()]);
 
+            return null;
+        }
+    }
+
+    /**
+     * In season, the latest stage NPS recorded; the rest of the year, when the season runs and
+     * the last peak.
+     */
+    public function reply(Dispatch $dispatch): ?string
+    {
+        $today = now(config('stoop.timezone'));
+        $html = self::page();
+        $link = ' '.route('stops.show', 'D02').' · '.self::PAGE;
+
+        if (self::inSeason()) {
+            $dates = $html === null ? [] : self::stages($html, $today->year);
+            $stage = count($dates);
+
+            return ($html === null ? 'The Park Service’s Bloom Watch isn’t answering right now.'
+                : ($stage ? 'Bloom Watch: the Tidal Basin Yoshinos are at stage '.$stage.' of 6, '.self::STAGES[$stage - 1].', since '.end($dates).'.'
+                    .($stage === 6 ? ' Peak bloom! Go early, and take Metro to Smithsonian.' : ' Peak bloom usually lands in late March or early April.')
+                    : 'Bloom Watch has started, but the Park Service hasn’t recorded a stage yet this year.')).$link;
+        }
+
+        // The season that just ended, or last year's before March.
+        $year = $today->month > 4 ? $today->year : $today->year - 1;
+        $peak = $html !== null ? (self::stages($html, $year)[5] ?? null) : null;
+        $last = $peak ? "$peak, $year" : config('stoop.cherry_last_peak');
+
+        return 'Cherry blossom season runs March 1 to April 15, and I post each Park Service bloom stage then. Peak bloom usually lands between late March and early April'
+            .($last ? "; the last one was $last." : '.').$link;
+    }
+
+    /** NPS's Bloom Watch page, cached for an hour. Null when it can't be reached. */
+    protected static function page(): ?string
+    {
+        try {
+            return Cache::remember('cherry:page', now()->addHour(), fn () => Http::timeout(8)->get(self::PAGE)->throw()->body());
+        } catch (Throwable) {
             return null;
         }
     }

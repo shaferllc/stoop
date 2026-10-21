@@ -228,7 +228,7 @@ class BotsCommunityTest extends TestCase
 
         $recaps = $bot->account()->dispatches()->get();
         $dupont = $recaps->firstWhere('stop', 'A03');
-        $this->assertStringStartsWith('Your stop this week: Dupont Circle · Mayor @dupontdee', $dupont->body);
+        $this->assertStringStartsWith('Your stop this week: Dupont Circle · Mayor dupontdee', $dupont->body);
         $this->assertStringContainsString('1. Dupont farmers market is back '.route('dispatches.show', $top), $dupont->body);
         $this->assertStringNotContainsString('held post', $dupont->body);
         $this->assertStringNotContainsString('removed post', $dupont->body);
@@ -242,7 +242,7 @@ class BotsCommunityTest extends TestCase
         $ask = FileDispatch::handle(User::factory()->create(), ['parentId' => $parent->id, 'body' => '@translate to Spanish'], confirmed: true);
 
         (new RunBots($ask))->handle();
-        $this->assertSame('Translation isn’t available on Stoop yet.', $ask->replies()->sole()->body);
+        $this->assertStringStartsWith('Translation is switched off', $ask->replies()->sole()->body);
 
         $this->fakeClaude('Bicicletas gratis en la biblioteca de Petworth hoy');
         $again = FileDispatch::handle(User::factory()->create(), ['parentId' => $parent->id, 'body' => '@translate into español please'], confirmed: true);
@@ -300,9 +300,9 @@ class BotsCommunityTest extends TestCase
         (new RunBots($ask))->handle();
         (new RunBots($top))->handle();
 
-        // Nothing gets translated; a mention only gets the bot's how-to.
+        // Nothing gets translated; a mention only gets how to use the bot.
         foreach ($ask->replies->concat($top->replies) as $reply) {
-            $this->assertStringContainsString('a Stoop bot', $reply->body);
+            $this->assertMatchesRegularExpression('/a Stoop bot|Reply to a dispatch with/', $reply->body);
         }
         $this->assertSame([], $this->claudeCalls);
     }

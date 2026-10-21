@@ -62,6 +62,8 @@ The boxes read public JSON from `/api/embed/*` (cached, throttled, no cookies or
 
 Each bot is one class in `app/Bots`, found automatically, with its scheduled posts on the scheduler (DC time):
 
+Every bot answers a mention with something specific, no AI needed: @stoop greets with things to try and answers from its knowledge base (or points to /play, /happenings, /bots, /settings or /rules), “@metro” lists delays and says when Metro is closed (hours in `stoop.metro_hours`), “@weather” gives the NWS forecast and alerts, “@cherry” the bloom stage or season dates (last peak from NPS or `STOOP_CHERRY_LAST_PEAK`), “@ask what’s happening tonight” the calendar, “@weekend” the round-up any day, and @311, @quizmaster, @recap, @history, @homes and @linecup their own data. Mentioning @magazine gets its three latest stories.
+
 - **@eats**: reply “@eats Ethiopian near U Street” for up to three places from the magazine’s lists near that station (stations within about 1.2 km) or neighborhood. Keyword matching; Claude re-ranks the matches when `ANTHROPIC_API_KEY` is set.
 - **@weekend**: Fridays at noon, a round-up of city events and Happening posts for Friday to Sunday. Staff mark editors’ picks from a Happening post’s ••• menu (“Pick for @weekend”). Skipped when nothing’s on.
 - **@history**: 9am “On this day in DC” from Admin → History. Seeded entries are marked VERIFY and don’t post until an editor checks them. “Draft with AI” fills the form when the key is set.

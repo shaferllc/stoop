@@ -4,9 +4,12 @@ namespace App\Bots;
 
 use Anthropic\Client;
 use Anthropic\Core\Exceptions\APIException;
+use App\Models\CityEvent;
 use App\Models\Dispatch;
 use App\Support\Ai;
+use App\Support\Happenings;
 use App\Support\Mentions;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -17,7 +20,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Points unanswered Ask DC questions to similar ones neighbors already answered.
- * It never answers a question itself, and stays out of safety and medical questions.
+ * Mentioned, it also lists what's on the calendar. It never gives advice itself, and stays
+ * out of safety and medical questions.
  */
 class Ask extends Bot
 {
@@ -38,7 +42,7 @@ class Ask extends Bot
 
     public function description(): string
     {
-        return 'Links unanswered Ask DC questions to similar ones neighbors already answered.';
+        return 'Links unanswered Ask DC questions to similar ones neighbors already answered. Ask “@ask what’s happening tonight” for the calendar.';
     }
 
     public function schedule(Schedule $schedule): void
@@ -82,6 +86,67 @@ class Ask extends Bot
         }
 
         return $posted;
+    }
+
+    /**
+     * "What's happening today / tonight / this weekend" gets the calendar; anything else gets
+     * similar questions neighbors already answered.
+     */
+    public function reply(Dispatch $dispatch): ?string
+    {
+        $ask = trim((string) preg_replace('/(?<![\w.@])@ask\b/i', '', $dispatch->body));
+
+        if (preg_match(self::SENSITIVE, $ask)) {
+            return 'That one’s for people, not a bot. In an emergency call 911; otherwise post it as an Ask DC question and neighbors can weigh in.';
+        }
+
+        if (preg_match('/\b(happening|going on|to do|events?|plans?|on (today|tonight|this weekend))\b/i', $ask) || $ask === '') {
+            return $this->calendar($ask);
+        }
+
+        $similar = $this->similar($dispatch);
+        if ($similar->isEmpty()) {
+            return 'I didn’t find a similar question neighbors already answered. Post it as an Ask DC question (the Yellow Line) and someone will know. Meanwhile, what’s on: '.route('happenings');
+        }
+
+        $excerpt = fn (Dispatch $d) => Str::limit(trim(preg_replace(['/\s+/', Mentions::URL_PATTERN, Mentions::PATTERN], [' ', '', '$1'], $d->body)), 80);
+
+        return 'Neighbors answered similar questions:'."\n".$similar->map(fn (Dispatch $d) => '• '.$excerpt($d).' '.route('dispatches.show', $d))->join("\n");
+    }
+
+    /**
+     * Happenings and city events for today, tonight or the weekend, with times and links.
+     */
+    protected function calendar(string $ask): string
+    {
+        $tz = config('stoop.timezone');
+        $now = CarbonImmutable::now($tz);
+
+        [$label, $from, $to] = match (true) {
+            (bool) preg_match('/weekend|saturday|sunday/i', $ask) => ['this weekend', $friday = in_array($now->dayOfWeek, [5, 6, 0], true) ? $now : $now->next(CarbonImmutable::FRIDAY)->setTime(17, 0), $friday->next(CarbonImmutable::MONDAY)],
+            (bool) preg_match('/tomorrow/i', $ask) => ['tomorrow', $now->addDay()->startOfDay(), $now->addDay()->endOfDay()],
+            (bool) preg_match('/tonight/i', $ask) => ['tonight', $now->max($now->setTime(17, 0)), $now->endOfDay()->addHours(3)],
+            default => ['today', $now->subHours(2), $now->endOfDay()->addHours(3)],
+        };
+
+        $time = fn ($at) => $at->timezone($tz)->format($label === 'this weekend' ? 'D g:ia' : 'g:ia');
+        $excerpt = fn (string $text) => Str::limit(trim(preg_replace(['/\s+/', Mentions::URL_PATTERN, Mentions::PATTERN], [' ', '', '$1'], $text)), 60);
+
+        $lines = Happenings::between($from->utc(), $to->utc())->take(4)->get()
+            ->map(fn (Dispatch $d) => '• '.$excerpt($d->body).' ('.$time($d->happening->starts_at).') '.route('dispatches.show', $d))
+            ->merge(CityEvent::where('starts_at', '<', $to->utc())->where('ends_at', '>=', $from->utc())->orderBy('starts_at')->take(3)->get()
+                ->map(fn (CityEvent $e) => '• '.$e->name.' ('.($e->starts_at->lt($from) ? 'on now' : $time($e->starts_at)).') '.route('events.show', $e)));
+
+        $body = 'Happening '.$label.':';
+        foreach ($lines as $line) {
+            if (mb_strlen($body."\n".$line) <= config('stoop.max_length') - 40) {
+                $body .= "\n".$line;
+            }
+        }
+
+        return $lines->isEmpty()
+            ? 'Nothing on the Happenings calendar '.$label.' yet. Browse what’s coming up or post your own: '.route('happenings')
+            : $body."\nMore: ".route('happenings');
     }
 
     /**
