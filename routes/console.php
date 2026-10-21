@@ -12,10 +12,12 @@ use App\Models\Report;
 use App\Models\User;
 use App\Notifications\ModerationMail;
 use App\Support\Bots;
+use App\Support\Challenges;
 use App\Support\Civility;
 use App\Support\HomeSales;
 use App\Support\Later;
 use App\Support\Magazine;
+use App\Support\MagazineEvents;
 use App\Support\ModerationModel;
 use App\Support\Newsletter;
 use App\Support\OpenAiModeration;
@@ -61,6 +63,15 @@ Artisan::command('stoop:purge-deleted', function () {
 Artisan::command('stoop:import-articles', function () {
     $this->info('Posted '.Magazine::import().' new articles.');
 })->purpose('Post new magazine articles from the site feed');
+
+Artisan::command('stoop:import-events', function () {
+    $r = MagazineEvents::import();
+    $r['error'] ? $this->error($r['error']) : $this->info("Posted {$r['posted']}, updated {$r['updated']}, skipped {$r['skipped']} magazine events.");
+})->purpose('Post the magazine’s things-to-do listings as Happenings');
+
+Artisan::command('stoop:check-challenges', function () {
+    $this->info(Challenges::sweep().' new list challenge finishers.');
+})->purpose('Record people who reached a list challenge goal');
 
 Artisan::command('stoop:backfill-authors', function () {
     $this->info('Credited writers on '.Magazine::backfillAuthors().' articles.');
@@ -125,6 +136,8 @@ Schedule::command('stoop:detect-spam')->everyTenMinutes()->withoutOverlapping();
 Schedule::command('stoop:admin-digest')->dailyAt('9:00')->timezone('America/New_York');
 Schedule::command('stoop:go-go-friday')->fridays()->at('10:00')->timezone('America/New_York');
 Schedule::command('stoop:import-articles')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('stoop:import-events')->hourly()->withoutOverlapping();
+Schedule::command('stoop:check-challenges')->hourly()->withoutOverlapping();
 Schedule::command('stoop:import-home-sales')->dailyAt('3:30')->timezone('America/New_York')->withoutOverlapping();
 Schedule::command('stoop:send-newsletter')->weeklyOn(1, '8:00')->timezone('America/New_York');
 Schedule::command('stoop:publish-scheduled')->everyMinute()->withoutOverlapping();

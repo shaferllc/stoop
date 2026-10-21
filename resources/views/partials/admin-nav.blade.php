@@ -20,6 +20,8 @@
         'admin.moments' => 'Moments',
         'admin.hunts' => 'Hunts',
         'admin.readers-picks' => 'Readers’ picks',
+        'admin.challenges' => 'Challenges',
+        'admin.magazine-events' => 'Magazine events',
         'moderation' => 'Moderation',
         'admin.moderation-insights' => 'Mod insights',
         'admin.spam' => 'Spam',

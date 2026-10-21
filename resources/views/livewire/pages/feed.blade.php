@@ -75,6 +75,7 @@
     @endif
 
     @includeWhen($stop, 'partials.stop-deals')
+    @includeWhen(! $stop && ! $line, 'partials.challenge-card')
 
     <div class="hidden lg:block"><livewire:composer /></div>
 

@@ -100,6 +100,8 @@ class Happenings
             'price' => $h?->priceLabel(),
             'tickets_url' => $h?->isTicketed() ? route('happenings.tickets', $dispatch) : null,
             'ics_url' => $h?->starts_at ? route('happenings.ics', $dispatch) : null,
+            // "From Washingtonian" on events imported from the magazine.
+            'source' => $dispatch->details['magazine_event']['source'] ?? null,
             ...self::counts($dispatch),
         ];
     }

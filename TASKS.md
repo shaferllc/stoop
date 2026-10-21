@@ -156,6 +156,9 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Ask the editor (Admin → Editorial): an editor's thread with a start and end time; readers ask and upvote questions, the editor's answers sit under each one
 - [x] Best of Washington reader vote (Admin → Editorial): categories of nominated places, one vote per category, results after it closes, results CSV for the magazine
 - [ ] A public list of ballots (each ballot is reachable from its link only; announce it with a callout)
+- [x] Events from the magazine (Admin → Magazine events): the weekly “Things to Do” roundups in the article feed post as Happenings from @magazine, hourly (`stoop:import-events`) or on “Import now”; the day comes from each listing’s note (“(Sat, $35, Shaw)”), the stop from a known place or a station in the text, the line from the magazine’s keywords (else Orange); never posted twice, start time moves when the listing changes; CSV upload as the fallback. The site has no events feed, iCal or Event JSON-LD (checked Oct 2026)
+- [ ] Listings rarely give a time, so those events sit on the calendar at noon (the card shows the day only); switch to a real events feed if the magazine adds one
+- [ ] When a listing’s day changes, the start time moves but the post’s text still shows the old note
 - [ ] Push notifications and the installable app need HTTPS; try them once the site is served over HTTPS
 
 ## Newsroom
@@ -226,6 +229,8 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [ ] Condo unit sales: DC GIS's owner polygons cover lots, so some condo sales may be missing
 - [x] Metro Bingo: weekly 5×5 card per person, squares mark themselves from activity or by hand with a post as proof; badge and XP for a bingo
 - [x] Seasonal scavenger hunts (Admin → Hunts): clues tied to stations or places, optional code words, passport stamps per step, leaderboard, Treasure Hunter badge
+- [x] List challenges (`/challenges`, Admin → Challenges): editors pick a magazine list, a goal, dates, a text prize and a badge; Been here check-ins on the list inside the window count; finishing records once (badge + 250 XP), a feed card and leaderboard (top 20, usernames only), finishers list and CSV for sending prizes by hand; app API at `/api/app/challenges`
+- [ ] Add Challenges to the Play hub; a leaderboard opt-out setting (none exists yet); notify people when they finish
 - [x] Monthly Line Cup: lines score their riders’ helpfulness points at their stations; the winning line’s regulars get the Line Cup crown badge
 - [ ] Bingo only counts weeks where at least one square was marked by hand (all-automatic weeks show a bingo but don’t award it)
 - [x] Ward and ANC for every DC station (`config/neighborhoods.php`), shown on stop pages with the ANC's own meetings page on oanc.dc.gov; Ward Explorer badge for posting in all 8 wards

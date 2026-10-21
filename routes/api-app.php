@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\App\AuthController;
+use App\Http\Controllers\Api\App\ChallengesController;
 use App\Http\Controllers\Api\App\DispatchController;
 use App\Http\Controllers\Api\App\MagazineController;
 use App\Http\Controllers\Api\App\MessagesController;
@@ -58,6 +59,9 @@ Route::prefix('app')->name('app.')->group(function () {
             Route::post('quiz/answer', [QuizController::class, 'answer'])->middleware('throttle:30,1,app-quiz');
 
             require __DIR__.'/api-app-community.php';
+
+            Route::get('challenges', [ChallengesController::class, 'index'])->middleware('throttle:60,1,app-challenges');
+            Route::get('challenges/{slug}', [ChallengesController::class, 'show'])->middleware('throttle:60,1,app-challenges');
 
             Route::middleware('verified')->group(function () {
                 Route::get('conversations', [MessagesController::class, 'index']);

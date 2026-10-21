@@ -6,6 +6,7 @@ use App\Livewire\Pages\HuntShow;
 use App\Livewire\Pages\HuntsIndex;
 use App\Livewire\Pages\LostFound;
 use App\Livewire\Pages\MetroBingo;
+use App\Models\Challenge;
 use App\Models\Contest;
 use App\Models\Dispatch;
 use App\Models\Game;
@@ -72,6 +73,7 @@ Route::get('play', function () {
             ['title' => 'Metro Bingo', 'url' => route('bingo'), 'when' => 'This week', 'live' => true, 'about' => 'A new 5×5 card every Monday. Squares fill in as you use Stoop.',
                 'status' => $bingo ? collect($bingo['squares'])->where('marked', true)->count().' of 25 marked' : null],
             ['title' => 'Scavenger hunts', 'url' => route('hunts'), 'when' => $hunts ? $hunts.' running' : 'Seasonal', 'live' => $hunts > 0, 'about' => 'Follow clues around the city and collect passport stamps.', 'status' => null],
+            ['title' => 'List challenges', 'url' => route('challenges'), 'when' => ($running = Challenge::query()->where('starts_at', '<=', now())->where('ends_at', '>=', now())->count()) ? $running.' running' : 'Seasonal', 'live' => $running > 0, 'about' => 'Eat and drink your way through the magazine’s lists for a badge and a prize.', 'status' => null],
             ['title' => 'Passports', 'url' => route('passports'), 'when' => 'Any time', 'live' => false, 'about' => 'Stamps for the places on the magazine’s lists you’ve been to.', 'status' => null],
             ['title' => 'Rivalries & Line Cup', 'url' => route('rivalries'), 'when' => 'Weekly and monthly', 'live' => true, 'about' => 'Neighborhood matchups every week, and the six lines battle for the monthly cup.',
                 'status' => ($leader = $cup->keys()->first()) && $cup->first()['points'] > 0 ? ucfirst($leader).' line leads the cup' : null],
