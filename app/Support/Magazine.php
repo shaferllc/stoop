@@ -120,13 +120,13 @@ class Magazine
                 continue;
             }
 
-            // Tag the article with the stations it mentions; the first one becomes the post's stop.
+            // Tag the article with the stations it mentions. The post itself gets no stop, so
+            // @magazine never earns mayor or rivalry points.
             $stations = Archive::tag($title.' '.$summary)['stations'];
 
             $dispatch = rescue(fn () => FileDispatch::handle(self::account(), [
                 'body' => Str::limit($title, config('stoop.max_length') - 30, '…').' '.$link,
                 'line' => self::SECTIONS[strtolower($category)] ?? self::lineFor($title),
-                'stop' => $stations[0] ?? null,
             ], confirmed: true), null, false);
 
             DB::table('articles')->insert([

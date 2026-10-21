@@ -13,7 +13,7 @@ Route::get('issues/{issue:slug}', function (Issue $issue) {
     abort_unless($issue->published_at || auth()->user()?->is_staff, 404);
 
     return view('issue', ['issue' => $issue]);
-})->name('issues.show');
+})->middleware('throttle:60,1')->name('issues.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('tips/new', TipCreate::class)->name('tips.create');

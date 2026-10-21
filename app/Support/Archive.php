@@ -4,6 +4,7 @@ namespace App\Support;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -70,13 +71,13 @@ class Archive
     }
 
     /**
-     * Up to $count archive stories tagged to a station, a different few each visit.
+     * Up to $count archive stories tagged to a station, a different few each day.
      */
     public static function forStop(string $stop, int $count = 3): Collection
     {
-        return DB::table('archive_stories')
+        return Cache::remember("archive:$stop:$count:".now()->toDateString(), now()->addDay(), fn () => DB::table('archive_stories')
             ->whereIn('id', DB::table('archive_story_stations')->where('stop', $stop)->select('archive_story_id'))
-            ->inRandomOrder()->take($count)->get();
+            ->inRandomOrder()->take($count)->get());
     }
 
     /**
@@ -143,8 +144,8 @@ class Archive
     }
 
     /**
-     * Tag every story again, after the alias list changes. Stories keep explicit stations
-     * only if the tagger finds nothing.
+     * Tag every story again, after the alias list changes. Adds to the stations a story has;
+     * stations given in the CSV stay.
      */
     public static function retag(): int
     {
@@ -154,8 +155,7 @@ class Archive
         DB::table('archive_stories')->orderBy('id')->each(function ($story) use ($names, &$count) {
             $tags = self::tag($story->title.' '.$story->description, $names);
             if ($tags['stations']) {
-                DB::table('archive_story_stations')->where('archive_story_id', $story->id)->delete();
-                DB::table('archive_story_stations')->insert(array_map(fn ($stop) => ['archive_story_id' => $story->id, 'stop' => $stop], $tags['stations']));
+                DB::table('archive_story_stations')->insertOrIgnore(array_map(fn ($stop) => ['archive_story_id' => $story->id, 'stop' => $stop], $tags['stations']));
                 $count++;
             }
         });

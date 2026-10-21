@@ -62,13 +62,12 @@ class Issues
 
             throw $e;
         }
+        $issue->forceFill(['dispatch_id' => $thread->id])->save();
 
         foreach ($issue->stories as $story) {
             $title = $story['title'] ? Str::limit($story['title'], config('stoop.max_length') - strlen($story['url']) - 2, '…').' ' : '';
             rescue(fn () => $post(['body' => $title.$story['url'], 'parentId' => $thread->id]), null, false);
         }
-
-        $issue->forceFill(['dispatch_id' => $thread->id])->save();
 
         return $thread;
     }

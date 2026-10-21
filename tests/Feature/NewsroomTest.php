@@ -251,7 +251,7 @@ class NewsroomTest extends TestCase
         $this->assertSame(1, Magazine::import());
         $article = DB::table('articles')->sole();
         $thread = Dispatch::findOrFail($article->dispatch_id);
-        $this->assertSame('F05', $thread->stop, 'Tagged with the station it mentions.');
+        $this->assertNull($thread->stop, '@magazine never takes a stop, so it can’t earn mayor points.');
         $this->assertSame('F05', $article->stations);
 
         $busy = User::factory()->create(['accepted_rules_at' => now()]);
