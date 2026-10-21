@@ -2,7 +2,7 @@
 
 Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists everything /dev/null does and how each feature maps to Stoop.
 
-`[x]` means built. Most items are covered by `tests/Feature`; the browser-only parts (typing indicator, “Seen” receipts, hover cards, keyboard shortcuts, swipe, the installable app) were checked by hand, not by tests. `[ ]` means not done yet.
+`[x]` means built. Most items are covered by `tests/Feature`; the browser-only parts (typing indicator, “Seen” receipts, hover cards, keyboard shortcuts, swipe, the installable app, the composer sheet) were checked by hand, not by tests. Live Reverb delivery, push delivery, the Turnstile widget, a real article feed, the subscription webhook from the real system and how the email looks in mail clients are built and tested with fakes only. `[ ]` means not done yet.
 
 ## Accounts
 - [x] Email sign-up and log-in, password reset, email verification, 2FA, passkeys (Livewire starter kit / Fortify)
@@ -108,6 +108,7 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Subscription webhook from the magazine’s system (`POST /api/subscriptions`, HMAC-signed); applies to people who sign up later too
 - [x] Weekly email: best dispatches, poll results, Talk of the Town, where people went; opt-in, one-click unsubscribe, admin preview and test send
 - [ ] Point `STOOP_MAGAZINE_FEED` and the subscription system at the real ones
+- [ ] Push notifications and the installable app need HTTPS; try them once the site is served over HTTPS
 
 ## Making money
 - [x] Claimed places: owners request, staff approve, owners post as the business

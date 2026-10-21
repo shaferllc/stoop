@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\Composer;
+use App\Livewire\Pages\Feed;
 use App\Livewire\Pages\PlaceShow;
 use App\Models\Dispatch;
 use App\Models\Place;
@@ -65,7 +66,10 @@ class PlacesTest extends TestCase
         $this->get(route('sponsorships.click', $sponsorship))->assertRedirect('https://example.com/bank');
 
         $this->assertSame(1, $sponsorship->fresh()->clicks);
-        $this->assertGreaterThanOrEqual(1, $sponsorship->fresh()->impressions);
+
+        $before = $sponsorship->fresh()->impressions;
+        Livewire::withQueryParams(['stop' => 'E04'])->test(Feed::class)->call('$refresh')->call('$refresh')->assertSee('Sample Bank');
+        $this->assertSame($before + 1, $sponsorship->fresh()->impressions, 'Refreshes and polling don’t count as new views.');
     }
 
     public function test_only_staff_can_label_sponsored_callouts(): void

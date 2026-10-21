@@ -65,10 +65,22 @@ class Magazine
             return 0;
         }
 
-        $items = $xml->channel->item ?? $xml->entry ?? [];
+        $items = [];
+        foreach ($xml->channel->item ?? $xml->entry ?? [] as $item) {
+            $items[] = $item;
+        }
+
+        // Feeds list newest first; post oldest first so the feed reads in order, and skip
+        // anything more than two days old (the first import would otherwise flood the feed).
+        $published = fn ($item) => rescue(fn () => Carbon::parse((string) ($item->pubDate ?? $item->published ?? $item->updated)), now(), false);
+        usort($items, fn ($a, $b) => $published($a) <=> $published($b));
         $posted = 0;
 
         foreach ($items as $item) {
+            if ($published($item)->lt(now()->subDays(2))) {
+                continue;
+            }
+
             $link = (string) ($item->link['href'] ?? $item->link);
             $title = trim(html_entity_decode(strip_tags((string) $item->title), ENT_QUOTES | ENT_HTML5));
             $guid = (string) ($item->guid ?? $item->id ?? $link);

@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Actions\AnnounceDispatch;
 use App\Models\Dispatch;
+use App\Support\Later;
 use App\Support\ModerationModel;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -41,7 +42,7 @@ class ModerateDispatch implements ShouldQueue
 
         if ($verdict === 'allow') {
             AnnounceDispatch::run($dispatch);
-            RunBots::dispatch($dispatch);
+            Later::run(new RunBots($dispatch));
         }
     }
 }

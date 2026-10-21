@@ -86,7 +86,8 @@ class Places extends Component
         $this->validate(['csv' => ['required', 'file', 'mimes:csv,txt', 'max:2048']]);
 
         $handle = fopen($this->csv->getRealPath(), 'r');
-        $header = array_map(fn ($h) => strtolower(trim($h)), fgetcsv($handle) ?: []);
+        // Excel's "CSV UTF-8" starts with a byte-order mark; drop it from the first column name.
+        $header = array_map(fn ($h) => strtolower(trim(preg_replace('/^\xEF\xBB\xBF/', '', $h))), fgetcsv($handle) ?: []);
 
         if (! in_array('name', $header, true)) {
             $this->addError('csv', 'The first row needs column names, including “name”.');

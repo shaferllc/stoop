@@ -39,11 +39,8 @@ class ScreeningTest extends TestCase
     {
         ModerationModel::fake(fn () => throw new \RuntimeException('API down'));
 
-        try {
-            Livewire::actingAs(User::factory()->create())->test(Composer::class)->set('body', 'Hello neighbors')->call('file');
-        } catch (\Throwable) {
-            // The sync queue rethrows the job failure; in production the job retries.
-        }
+        Livewire::actingAs(User::factory()->create())->test(Composer::class)
+            ->set('body', 'Hello neighbors')->call('file')->assertHasNoErrors();
 
         $this->assertSame('pending', Dispatch::first()->status);
         $this->actingAs(User::factory()->create())->get('/?tab=latest')->assertDontSee('Hello neighbors');

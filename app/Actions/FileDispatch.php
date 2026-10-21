@@ -9,6 +9,7 @@ use App\Models\Dispatch;
 use App\Models\Place;
 use App\Models\User;
 use App\Support\Civility;
+use App\Support\Later;
 use App\Support\LinkPreviews;
 use App\Support\Mentions;
 use App\Support\ModerationModel;
@@ -175,10 +176,10 @@ class FileDispatch
         }
 
         if ($dispatch->status === 'pending') {
-            ModerateDispatch::dispatch($dispatch);
+            Later::run(new ModerateDispatch($dispatch));
         } elseif ($dispatch->status === 'approved') {
             AnnounceDispatch::run($dispatch);
-            RunBots::dispatch($dispatch);
+            Later::run(new RunBots($dispatch));
         }
 
         return $dispatch->fresh();

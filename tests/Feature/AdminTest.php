@@ -34,7 +34,7 @@ class AdminTest extends TestCase
 
     public function test_csv_import_creates_and_updates_places(): void
     {
-        $csv = "name,category,neighborhood,stop,list_name,list_rank\n"
+        $csv = "\xEF\xBB\xBFname,category,neighborhood,stop,list_name,list_rank\n"
             ."Sample Diner,Restaurant,Shaw,E02,Cheap Eats,1\n"
             ."Sample Cafe,Coffee,Petworth,e05,Cheap Eats,2\n"
             .",Bar,Nowhere,,Cheap Eats,3\n"

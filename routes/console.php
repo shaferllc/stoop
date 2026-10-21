@@ -6,6 +6,7 @@ use App\Mail\WeeklyDigest;
 use App\Models\Dispatch;
 use App\Models\User;
 use App\Support\Civility;
+use App\Support\Later;
 use App\Support\Magazine;
 use App\Support\ModerationModel;
 use App\Support\Newsletter;
@@ -26,7 +27,7 @@ Artisan::command('stoop:publish-scheduled', function () {
             'status' => Civility::shouldHold($dispatch->body) ? 'held' : ($pending ? 'pending' : 'approved'),
             'created_at' => $dispatch->publish_at,
         ])->save();
-        $pending ? ModerateDispatch::dispatch($dispatch) : AnnounceDispatch::run($dispatch);
+        $pending ? Later::run(new ModerateDispatch($dispatch)) : AnnounceDispatch::run($dispatch);
     });
 })->purpose('Publish scheduled dispatches whose time has come');
 

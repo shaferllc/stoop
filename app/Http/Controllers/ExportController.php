@@ -19,7 +19,7 @@ class ExportController extends Controller
 
         $data = [
             'exported_at' => now()->toIso8601String(),
-            'profile' => $user->only(['name', 'username', 'email', 'is_native', 'dc_since', 'stops', 'replies_from', 'dms_on', 'message_requests', 'read_receipts', 'half_smokes_on', 'translation_language', 'created_at']),
+            'profile' => $user->only(['name', 'username', 'email', 'is_native', 'dc_since', 'stops', 'replies_from', 'dms_on', 'message_requests', 'read_receipts', 'half_smokes_on', 'translation_language', 'newsletter', 'subscribed_until', 'created_at']),
             'dispatches' => Dispatch::withTrashed()->where('user_id', $user->id)->with(['images', 'options'])->get()
                 ->map(fn ($d) => $d->only(['id', 'parent_id', 'quote_id', 'type', 'line', 'stop', 'body', 'happening_at', 'safety', 'status', 'created_at', 'deleted_at'])
                     + ['photos' => $d->images->map->only(['path', 'alt']), 'poll_options' => $d->options->pluck('label')]),
@@ -33,6 +33,10 @@ class ExportController extends Controller
             'messages_sent' => Message::where('user_id', $user->id)->get()->map->only(['conversation_id', 'body', 'created_at']),
             'notifications' => $user->notifications()->get(['data', 'created_at', 'read_at']),
             'penalties' => $user->penalties()->get(['type', 'reason', 'ends_at', 'lifted_at', 'created_at']),
+            'place_claims' => DB::table('place_claims')->join('places', 'places.id', '=', 'place_claims.place_id')->where('place_claims.user_id', $user->id)->get(['places.name', 'place_claims.role', 'place_claims.evidence', 'place_claims.status', 'place_claims.created_at']),
+            'places_you_manage' => DB::table('places')->where('owner_id', $user->id)->pluck('name'),
+            'push_devices' => DB::table('push_subscriptions')->where('user_id', $user->id)->get(['endpoint', 'created_at']),
+            'notes_you_wrote_as_staff' => DB::table('user_notes')->where('author_id', $user->id)->get(['user_id', 'body', 'created_at']),
             'api_tokens' => $user->tokens()->get(['name', 'last_used_at', 'created_at']),
         ];
 

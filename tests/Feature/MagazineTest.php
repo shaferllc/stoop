@@ -86,7 +86,10 @@ class MagazineTest extends TestCase
         Mail::assertQueued(WeeklyDigest::class, fn ($mail) => $mail->hasTo($reader->email));
         $this->assertStringContainsString('Best dispatch of the week', (new WeeklyDigest(Newsletter::digest(), $reader))->render());
 
-        $this->post(URL::signedRoute('newsletter.unsubscribe', ['user' => $reader->id]))->assertOk();
+        $link = URL::signedRoute('newsletter.unsubscribe', ['user' => $reader->id]);
+        $this->get($link)->assertOk()->assertSee('Stop the weekly email?');
+        $this->assertTrue($reader->fresh()->newsletter, 'Opening the link alone doesn’t unsubscribe.');
+        $this->post($link)->assertOk();
         $this->assertFalse($reader->fresh()->newsletter);
         $this->get(route('newsletter.unsubscribe', ['user' => $reader->id]))->assertForbidden();
     }

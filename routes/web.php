@@ -56,11 +56,15 @@ Route::get('stops/{code}', function (string $code) {
 Route::get('transparency', TransparencyController::class)->name('transparency');
 
 // The weekly email's one-click unsubscribe link...
-Route::match(['get', 'post'], 'newsletter/unsubscribe/{user}', function (User $user) {
+// GET only shows a button, because email scanners open links; POST (the button, or the
+// mail app's one-click unsubscribe) does it.
+Route::get('newsletter/unsubscribe/{user}', fn (User $user) => view('unsubscribe', ['done' => false, 'action' => request()->fullUrl()]))
+    ->middleware('signed')->name('newsletter.unsubscribe');
+Route::post('newsletter/unsubscribe/{user}', function (User $user) {
     $user->forceFill(['newsletter' => false])->save();
 
-    return response('You’re unsubscribed from the weekly Stoop email.', 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
-})->middleware('signed')->name('newsletter.unsubscribe')->withoutMiddleware(ValidateCsrfToken::class);
+    return view('unsubscribe', ['done' => true, 'action' => null]);
+})->middleware('signed')->withoutMiddleware(ValidateCsrfToken::class);
 
 // The embed for magazine article pages...
 Route::get('embed.js', fn () => response()->view('embed')->header('Content-Type', 'application/javascript; charset=UTF-8')->header('Cache-Control', 'public, max-age=3600'))->name('embed');

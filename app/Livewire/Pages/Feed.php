@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -38,6 +39,10 @@ class Feed extends Component
 
     public int $limit = 20;
 
+    /** The sponsored card for this page view, chosen once so refreshes don't recount it. */
+    #[Locked]
+    public ?int $sponsorshipId = null;
+
     /** Dispatches newer than this wait behind the "N new" button instead of shifting the feed. */
     public ?string $since = null;
 
@@ -53,6 +58,11 @@ class Feed extends Component
         }
 
         $this->since = now()->toDateTimeString();
+
+        if ($sponsorship = Sponsorship::for($this->stop, $this->line)) {
+            $sponsorship->increment('impressions');
+            $this->sponsorshipId = $sponsorship->id;
+        }
 
         if (! Auth::check() && in_array($this->tab, ['following', 'near'], true)) {
             $this->tab = 'rush';
@@ -160,11 +170,9 @@ class Feed extends Component
 
     public function render(): View
     {
-        $sponsorship = Sponsorship::for($this->stop, $this->line);
-        $sponsorship?->increment('impressions');
 
         return view('livewire.pages.feed', [
-            'sponsorship' => $sponsorship,
+            'sponsorship' => $this->sponsorshipId ? Sponsorship::find($this->sponsorshipId) : null,
             'state' => $this->viewerState($this->dispatches),
         ]);
     }
