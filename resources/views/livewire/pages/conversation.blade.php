@@ -52,7 +52,7 @@
         </div>
     @endunless
 
-    <div class="mt-3 space-y-2" wire:poll.5s.visible>
+    <div class="mt-3 space-y-2" wire:poll.10s.visible>
         @foreach ($messages as $m)
             @php($mine = $m->user_id === auth()->id())
             <div wire:key="m-{{ $m->id }}" @class(['flex', 'justify-end' => $mine])>

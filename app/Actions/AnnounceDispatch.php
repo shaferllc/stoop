@@ -2,9 +2,11 @@
 
 namespace App\Actions;
 
+use App\Events\DispatchPublished;
 use App\Models\Dispatch;
 use App\Models\User;
 use App\Notifications\StoopActivity;
+use App\Support\Live;
 use App\Support\Mentions;
 
 /**
@@ -16,6 +18,10 @@ class AnnounceDispatch
     {
         if ($dispatch->status !== 'approved') {
             return;
+        }
+
+        if (! $dispatch->parent_id) {
+            Live::broadcast(new DispatchPublished($dispatch->id));
         }
 
         $author = $dispatch->user;

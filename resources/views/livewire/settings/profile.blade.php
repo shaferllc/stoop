@@ -55,6 +55,17 @@
             </div>
         </form>
 
+        <div class="my-8" x-data="{ state: 'checking' }" x-init="state = window.stoopPush ? await window.stoopPush.status() : 'unsupported'">
+            <flux:heading>{{ __('Push notifications') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Get replies, mentions and messages on this device, even when Stoop is closed. On iPhone, add Stoop to your Home Screen first.') }}</flux:text>
+            <div class="mt-3 text-sm">
+                <template x-if="state === 'off'"><flux:button x-on:click="state = await window.stoopPush.enable()">{{ __('Turn on for this device') }}</flux:button></template>
+                <template x-if="state === 'on'"><flux:button x-on:click="state = await window.stoopPush.disable()">{{ __('Turn off for this device') }}</flux:button></template>
+                <p x-show="state === 'blocked'" x-cloak class="text-zinc-500">{{ __('Notifications are blocked for Stoop in your browser settings.') }}</p>
+                <p x-show="state === 'unsupported'" x-cloak class="text-zinc-500">{{ __('This browser doesn’t support push notifications.') }}</p>
+            </div>
+        </div>
+
         <div class="my-8">
             <flux:heading>{{ __('Your data') }}</flux:heading>
             <flux:text class="mt-1">{{ __('Download everything Stoop stores about you as a JSON file. Deleting your account below erases it, except that any timeout or ban stays in force.') }}</flux:text>

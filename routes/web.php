@@ -25,7 +25,9 @@ use App\Support\Newsletter;
 use App\Support\RidershipGraph;
 use App\Support\ShareImage;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
@@ -112,6 +114,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('audit', Admin\AuditLog::class)->name('.audit');
     });
     Route::get('settings/export', ExportController::class)->middleware('throttle:5,1')->name('export');
+    // Push notification sign-ups from a browser or the installed app...
+    Route::post('push/subscriptions', function (Request $request) {
+        $data = $request->validate([
+            'endpoint' => ['required', 'url:https', 'max:500'],
+            'keys.p256dh' => ['required', 'string', 'max:255'],
+            'keys.auth' => ['required', 'string', 'max:255'],
+        ]);
+        DB::table('push_subscriptions')->updateOrInsert(
+            ['endpoint' => $data['endpoint']],
+            ['user_id' => $request->user()->id, 'public_key' => $data['keys']['p256dh'], 'auth_token' => $data['keys']['auth'], 'created_at' => now(), 'updated_at' => now()],
+        );
+
+        return response()->noContent();
+    })->middleware('throttle:20,1')->name('push.subscribe');
+    Route::delete('push/subscriptions', function (Request $request) {
+        DB::table('push_subscriptions')->where('user_id', $request->user()->id)->where('endpoint', $request->input('endpoint'))->delete();
+
+        return response()->noContent();
+    })->name('push.unsubscribe');
+
     Route::livewire('messages', Inbox::class)->name('messages');
     Route::livewire('messages/{conversation}', ConversationView::class)->name('messages.show');
     Route::get('messages/images/{image}', function (MessageImage $image) {

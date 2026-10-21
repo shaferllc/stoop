@@ -8,6 +8,8 @@
         <link rel="manifest" href="/manifest.webmanifest">
         <link rel="apple-touch-icon" href="/icons/icon-192.png">
         <meta name="theme-color" content="#c8102e">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="vapid-key" content="{{ config('services.webpush.public_key') }}">
         <meta name="description" content="{{ $description ?? 'Stoop is a social network for DC, block by block.' }}">
         <meta property="og:site_name" content="Stoop">
         <meta property="og:title" content="{{ $title ?? 'Stoop' }}">
@@ -25,8 +27,7 @@
         @fluxAppearance
     </head>
     @php($me = auth()->user())
-    <body class="min-h-screen bg-paper font-sans text-[15px] text-ink antialiased" data-profile="{{ $me ? route('users.show', $me, false) : '' }}">
-        @php($unread = $me?->unreadNotifications()->count() ?? 0)
+    <body class="min-h-screen bg-paper pb-[calc(4rem+env(safe-area-inset-bottom))] font-sans text-[15px] text-ink antialiased lg:pb-0" data-profile="{{ $me ? route('users.show', $me, false) : '' }}">
 
         <header class="sticky top-0 z-20 border-b border-rule bg-card">
             <div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
@@ -44,7 +45,7 @@
 
                 <div class="ml-auto flex items-center gap-2">
                     @auth
-                        <a href="{{ route('home') }}#compose" class="rounded-lg bg-flag px-4 py-2 text-sm font-semibold text-white">+ File a dispatch</a>
+                        <button type="button" x-data x-on:click="$dispatch('open-composer')" class="hidden rounded-lg bg-flag px-4 py-2 text-sm font-semibold text-white sm:block">+ File a dispatch</button>
                         <flux:dropdown position="bottom" align="end">
                             <button type="button" class="grid size-9 place-items-center rounded-full text-xs font-bold text-white" style="background: {{ $me->color() }}" aria-label="Account menu">{{ $me->initials() }}</button>
                             <flux:menu>
@@ -72,12 +73,11 @@
                 @auth
                     <a href="{{ route('notifications') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('notifications') ? 'bg-chip text-ink' : '' }}">
                         Notifications
-                        @if ($unread)<span class="ml-auto rounded-full bg-flag px-1.5 text-[11px] font-bold text-white">{{ $unread }}</span>@endif
+                        <livewire:unread-badge type="notifications" />
                     </a>
-                    @php($unreadMessages = \App\Support\Messaging::unreadCount($me))
                     <a href="{{ route('messages') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('messages*') ? 'bg-chip text-ink' : '' }}">
                         Messages
-                        @if ($unreadMessages)<span class="ml-auto rounded-full bg-flag px-1.5 text-[11px] font-bold text-white">{{ $unreadMessages }}</span>@endif
+                        <livewire:unread-badge type="messages" />
                     </a>
                     <a href="{{ route('saved') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('saved') ? 'bg-chip text-ink' : '' }}">Saved</a>
                     <a href="{{ route('users.show', $me) }}" wire:navigate class="{{ $navItem }}">Profile</a>
@@ -121,6 +121,39 @@
                 </div>
             </aside>
         </div>
+
+        {{-- Phones: a bottom tab bar, and the composer as a sheet that slides up. --}}
+        <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-rule bg-card pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Stoop">
+            <div class="mx-auto grid max-w-md grid-cols-5 text-[11px]">
+                @php($tab = 'flex flex-col items-center gap-0.5 py-2 text-mute')
+                <a href="{{ route('home') }}" wire:navigate @class([$tab, 'text-ink' => request()->routeIs('home')])><flux:icon.home variant="mini" />Stoop</a>
+                <a href="{{ route('search') }}" wire:navigate @class([$tab, 'text-ink' => request()->routeIs('search')])><flux:icon.magnifying-glass variant="mini" />Search</a>
+                @auth
+                    <button type="button" x-data x-on:click="$dispatch('open-composer')" class="{{ $tab }}"><span class="-mt-5 grid size-11 place-items-center rounded-full bg-flag text-white shadow-lg"><flux:icon.plus /></span><span class="sr-only">File a dispatch</span></button>
+                    <a href="{{ route('messages') }}" wire:navigate @class([$tab, 'relative', 'text-ink' => request()->routeIs('messages*')])><flux:icon.chat-bubble-left-right variant="mini" />Messages</a>
+                    <a href="{{ route('notifications') }}" wire:navigate @class([$tab, 'relative', 'text-ink' => request()->routeIs('notifications')])><flux:icon.bell variant="mini" />Alerts<span class="absolute right-3 top-1"><livewire:unread-badge type="notifications" :key="'tab-badge'" /></span></a>
+                @else
+                    <a href="{{ route('places') }}" wire:navigate class="{{ $tab }}"><flux:icon.map-pin variant="mini" />Places</a>
+                    <a href="{{ route('login') }}" class="{{ $tab }}"><flux:icon.arrow-right-end-on-rectangle variant="mini" />Log in</a>
+                    <a href="{{ route('register') }}" class="{{ $tab }}"><flux:icon.user-plus variant="mini" />Join</a>
+                @endauth
+            </div>
+        </nav>
+
+        @auth
+            <div x-data="{ open: false }" x-on:open-composer.window="open = true; $nextTick(() => $el.querySelector('[data-composer]')?.focus())"
+                x-on:dispatch-filed.window="open = false" x-on:keydown.escape.window="open = false" x-cloak>
+                <div x-show="open" x-transition.opacity class="fixed inset-0 z-40 bg-black/40" x-on:click="open = false"></div>
+                <div x-show="open" x-transition:enter="transition motion-reduce:transition-none" x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0"
+                    class="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] overflow-y-auto rounded-t-2xl bg-paper p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]" role="dialog" aria-label="File a dispatch">
+                    <div class="mb-2 flex items-center justify-between">
+                        <span class="font-display text-lg font-bold">File a dispatch</span>
+                        <button type="button" x-on:click="open = false" class="text-2xl leading-none text-mute" aria-label="Close">×</button>
+                    </div>
+                    <livewire:composer :key="'sheet-composer'" />
+                </div>
+            </div>
+        @endauth
 
         @persist('toast')
             <flux:toast.group>

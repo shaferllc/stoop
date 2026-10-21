@@ -1,4 +1,4 @@
-<form wire:submit="file" id="{{ $parentId ? 'reply' : 'compose' }}" class="rounded-xl border border-rule bg-card p-3.5">
+<form wire:submit="file" id="{{ $parentId ? 'reply' : 'compose-'.$this->getId() }}" class="rounded-xl border border-rule bg-card p-3.5">
     @guest
         <p class="text-sm text-mute"><a href="{{ route('login') }}" class="font-semibold text-ink underline">Log in</a> or <a href="{{ route('register') }}" class="font-semibold text-ink underline">join</a> to {{ $parentId ? 'reply' : 'file a dispatch' }}.</p>
     @else
@@ -30,8 +30,8 @@
             @endunless
 
             <div class="relative" x-data="mentionPicker($wire)">
-                <label for="body-{{ $parentId ?? 'new' }}" class="sr-only">{{ $parentId ? 'Reply' : 'New dispatch' }}</label>
-                <textarea id="body-{{ $parentId ?? 'new' }}" x-ref="input" wire:model.live.debounce.400ms="body" rows="2" maxlength="{{ config('stoop.max_length') }}"
+                <label for="body-{{ $this->getId() }}" class="sr-only">{{ $parentId ? 'Reply' : 'New dispatch' }}</label>
+                <textarea id="body-{{ $this->getId() }}" x-ref="input" wire:model.live.debounce.400ms="body" rows="2" maxlength="{{ config('stoop.max_length') }}"
                     x-on:input="lookup()" x-on:keydown="keys($event)" x-on:blur="setTimeout(() => open = false, 150)"
                     x-on:keydown.meta.enter.prevent="$wire.file()" x-on:keydown.ctrl.enter.prevent="$wire.file()"
                     data-composer

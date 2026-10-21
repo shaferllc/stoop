@@ -71,6 +71,12 @@ class Feed extends Component
         session(['stoop.tab' => $tab]);
     }
 
+    /**
+     * A new dispatch went up somewhere; re-rendering refreshes the "N new" button.
+     */
+    #[On('echo:feed,.published')]
+    public function somethingPublished(): void {}
+
     public function showNew(): void
     {
         $this->since = now()->toDateTimeString();

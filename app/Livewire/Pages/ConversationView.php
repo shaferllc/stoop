@@ -41,6 +41,14 @@ class ConversationView extends Component
 
     public string $reportReason = 'hate';
 
+    /**
+     * @return array<string, string>
+     */
+    public function getListeners(): array
+    {
+        return ["echo-private:conversation.{$this->conversationId},.message" => '$refresh'];
+    }
+
     public function mount(Conversation $conversation): void
     {
         abort_unless($conversation->participants()->whereKey(Auth::id())->exists(), 404);

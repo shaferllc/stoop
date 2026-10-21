@@ -1,4 +1,4 @@
-<div wire:poll.30s.visible
+<div wire:poll.60s.visible
     x-data="{ x: null }"
     x-on:touchstart="x = $event.touches[0].clientX"
     x-on:touchend="
@@ -45,7 +45,7 @@
         </a>
     @endif
 
-    <livewire:composer />
+    <div class="hidden lg:block"><livewire:composer /></div>
 
     @if ($line || $stop || trim($q) !== '')
         <div class="mt-3 flex flex-wrap items-center gap-2 text-[13px] text-mute">

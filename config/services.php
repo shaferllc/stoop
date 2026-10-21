@@ -35,6 +35,12 @@ return [
         ],
     ],
 
+    // Push notifications. Generate keys with: php -r 'require "vendor/autoload.php"; print_r(Minishlink\WebPush\VAPID::createVapidKeys());'
+    'webpush' => [
+        'public_key' => env('VAPID_PUBLIC_KEY'),
+        'private_key' => env('VAPID_PRIVATE_KEY'),
+    ],
+
     // Cloudflare Turnstile on sign-up. Leave empty to skip the check (local development).
     'turnstile' => [
         'site_key' => env('TURNSTILE_SITE_KEY'),

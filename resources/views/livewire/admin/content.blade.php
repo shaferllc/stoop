@@ -29,7 +29,7 @@
     <section class="rounded-xl border border-rule bg-card p-4 text-sm">
         <h2 class="font-semibold">Callouts</h2>
         <p class="mt-1 text-mute">A callout a day keeps the feed alive. Write one from the composer (pick Callout), and use Schedule to line up the week.</p>
-        <a href="{{ route('home') }}#compose" class="mt-2 inline-block rounded-lg bg-flag px-3 py-1.5 font-semibold text-white">Write a callout</a>
+        <button type="button" x-data x-on:click="$dispatch('open-composer')" class="mt-2 rounded-lg bg-flag px-3 py-1.5 font-semibold text-white">Write a callout</button>
         <ul class="mt-3 divide-y divide-rule">
             @forelse ($callouts as $d)
                 <li class="py-2"><a href="{{ route('dispatches.show', $d) }}" wire:navigate class="hover:underline">{{ str($d->body)->limit(100) }}</a> <span class="text-mute">· {{ $d->replies_count }} replies · {{ $d->created_at->diffForHumans() }}{{ $d->sponsor ? ' · sponsored by '.$d->sponsor : '' }}</span></li>

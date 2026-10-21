@@ -19,6 +19,14 @@ class Notifications extends Component
 
     public const FILTERS = ['all' => 'All', 'reply' => 'Replies', 'quote' => 'Quotes', 'mention' => 'Mentions', 'follow' => 'Follows', 'moderation' => 'Moderation'];
 
+    /**
+     * @return array<string, string>
+     */
+    public function getListeners(): array
+    {
+        return ['echo-private:App.Models.User.'.Auth::id().',.notified' => '$refresh'];
+    }
+
     #[Url(except: 'all')]
     public string $filter = 'all';
 

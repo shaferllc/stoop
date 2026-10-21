@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Events\MessageSent;
+use App\Events\UserNotified;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
@@ -160,7 +162,7 @@ class Messaging
             throw ValidationException::withMessages(['body' => 'Slow down a little. Try again in a minute.']);
         }
 
-        return DB::transaction(function () use ($from, $conversation, $body, $photos, $replyTo) {
+        $message = DB::transaction(function () use ($from, $conversation, $body, $photos, $replyTo) {
             $message = $conversation->messages()->create([
                 'user_id' => $from->id,
                 'body' => trim($body),
@@ -178,6 +180,17 @@ class Messaging
 
             return $message;
         });
+
+        Live::broadcast(new MessageSent($conversation->id, $message->id));
+
+        foreach ($conversation->participants as $person) {
+            if ($person->id !== $from->id && $person->pivot->accepted_at) {
+                Live::broadcast(new UserNotified($person->id, 'message'));
+                Live::push($person, $conversation->is_group ? $from->name.' in '.$conversation->titleFor($person) : $from->name, $message->body ?: 'Sent a photo', route('messages.show', $conversation));
+            }
+        }
+
+        return $message;
     }
 
     public static function unreadCount(User $user): int

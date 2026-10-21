@@ -115,9 +115,9 @@ document.addEventListener('alpine:init', () => {
                 break;
             }
             case 'c': {
-                const box = document.querySelector('[data-composer]');
+                const box = [...document.querySelectorAll('[data-composer]')].find((el) => el.offsetParent !== null);
                 e.preventDefault();
-                if (box) { box.scrollIntoView({ block: 'center' }); box.focus(); } else { go('/#compose'); }
+                if (box) { box.scrollIntoView({ block: 'center' }); box.focus(); } else { window.dispatchEvent(new CustomEvent('open-composer')); }
                 break;
             }
             case '/': e.preventDefault(); document.getElementById('site-search')?.focus(); break;
@@ -126,3 +126,56 @@ document.addEventListener('alpine:init', () => {
         }
     });
 })();
+
+/**
+ * Echo exposes an expressive API for subscribing to channels and listening
+ * for events that are broadcast by Laravel. Echo and event broadcasting
+ * allow your team to quickly build robust real-time web applications.
+ */
+
+import './echo';
+
+// Push notifications on this device. Used by the button in Settings → Profile.
+window.stoopPush = {
+    supported: () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window,
+
+    async status() {
+        if (!this.supported()) return 'unsupported';
+        if (Notification.permission === 'denied') return 'blocked';
+        const reg = await navigator.serviceWorker.ready;
+        return (await reg.pushManager.getSubscription()) ? 'on' : 'off';
+    },
+
+    async enable() {
+        const key = document.querySelector('meta[name=vapid-key]')?.content;
+        if (!key || (await Notification.requestPermission()) !== 'granted') return this.status();
+
+        const reg = await navigator.serviceWorker.ready;
+        const raw = atob(key.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (key.length % 4)) % 4));
+        const subscription = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: Uint8Array.from(raw, (c) => c.charCodeAt(0)),
+        });
+
+        await this.send('POST', subscription.toJSON());
+        return 'on';
+    },
+
+    async disable() {
+        const reg = await navigator.serviceWorker.ready;
+        const subscription = await reg.pushManager.getSubscription();
+        if (subscription) {
+            await this.send('DELETE', { endpoint: subscription.endpoint });
+            await subscription.unsubscribe();
+        }
+        return 'off';
+    },
+
+    send(method, body) {
+        return fetch('/push/subscriptions', {
+            method,
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content },
+            body: JSON.stringify(body),
+        });
+    },
+};
