@@ -5,6 +5,8 @@ namespace App\Support;
 use App\Models\BallotPromotion;
 use App\Models\Dispatch;
 use App\Models\Happening;
+use App\Models\MeetupSponsor;
+use App\Models\Presenter;
 use App\Models\SponsoredDispatch;
 use App\Models\Sponsorship;
 use App\Models\User;
@@ -23,7 +25,7 @@ use Illuminate\Support\Lottery;
 class Ads
 {
     /** Ads that count impressions and clicks, by the short name used in routes and tables. */
-    public const KINDS = ['sponsorship' => Sponsorship::class, 'dispatch' => SponsoredDispatch::class, 'party' => BallotPromotion::class];
+    public const KINDS = ['sponsorship' => Sponsorship::class, 'dispatch' => SponsoredDispatch::class, 'party' => BallotPromotion::class, 'presenter' => Presenter::class, 'meetup' => MeetupSponsor::class];
 
     /** Feeds get at most one ad per this many dispatches. */
     public const EVERY = 10;
@@ -215,6 +217,9 @@ class Ads
                 ->map(fn (Happening $h) => $row('happening', $h, 'Featured happening', str($h->dispatch->body)->limit(60), $place($h->dispatch->stop, $h->dispatch->line), $h->created_at, $h->starts_at, null, null, $h->isTicketed() ? (int) $h->ticket_clicks : null)))
             ->concat(Dispatch::topLevel()->where('type', 'openhouse')->where('details->sponsored', true)->where('status', 'approved')->where('details->date', '>=', $today)->get()
                 ->map(fn (Dispatch $d) => $row('openhouse', $d, 'Sponsored open house', $d->details['block'] ?? 'Open house', $place($d->stop, null), $d->created_at, Carbon::parse($d->details['date']), null, null, null)))
+            ->concat(Presenter::whereDate('ends_on', '>=', $today)->get()->map(fn (Presenter $p) => $row('presenter', $p, 'Presented by', $p->sponsor, $p->targetLabel(), $p->starts_on, $p->ends_on, $p->impressions, null, $p->clicks)))
+            ->concat(MeetupSponsor::with('event', 'place')->whereHas('event', fn ($q) => $q->where('ends_at', '>=', now()))->get()
+                ->map(fn (MeetupSponsor $m) => $row('meetup', $m, 'Sponsored meetup', $m->place->name.': '.$m->event->name, $place($m->event->stop, null), $m->event->starts_at, $m->event->ends_at, $m->impressions, null, $m->clicks)))
             ->sortBy('ends')->values();
     }
 

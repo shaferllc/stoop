@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * A city event people post from (Restaurant Week, the Marine Corps Marathon, Halloween),
@@ -35,6 +36,18 @@ class CityEvent extends Model
     public function attendees(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'event_checkins', 'event_id')->withTimestamps();
+    }
+
+    /** People who said they're going to a meetup. */
+    public function rsvps(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'event_rsvps', 'event_id')->withTimestamps();
+    }
+
+    /** A meetup's host venue sponsor, if it has one. */
+    public function sponsor(): HasOne
+    {
+        return $this->hasOne(MeetupSponsor::class, 'event_id');
     }
 
     public function scopeHappening(Builder $query): void

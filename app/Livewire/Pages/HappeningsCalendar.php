@@ -82,7 +82,7 @@ class HappeningsCalendar extends Component
 
         $happenings = Happenings::between($from->utc(), $to->utc(), $user, $this->line, $this->stop)->forCards()->get();
         $events = $this->line ? collect() : CityEvent::where('starts_at', '<=', $to->utc())->where('ends_at', '>=', $from->utc())
-            ->when($this->stop, fn ($q) => $q->where('stop', $this->stop))->orderBy('starts_at')->get();
+            ->when($this->stop, fn ($q) => $q->where('stop', $this->stop))->with('sponsor.place')->orderBy('starts_at')->get();
 
         // Every day in range with something on, in DC time. Events running several days show on each.
         $byDay = $happenings->groupBy(fn ($d) => $d->happening->starts_at->timezone($tz)->toDateString())

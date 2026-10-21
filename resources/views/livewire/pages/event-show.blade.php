@@ -4,13 +4,26 @@
         <h1 class="font-display text-3xl font-bold">{{ $event->name }}</h1>
         <p class="text-sm text-mute">{{ $event->starts_at->timezone(config('stoop.timezone'))->format('D M j, g:ia') }} to {{ $event->ends_at->timezone(config('stoop.timezone'))->format('D M j, g:ia') }}@if ($event->stop) · <x-station :code="$event->stop" />@endif</p>
         @if ($event->description)<p class="mt-2 max-w-prose whitespace-pre-line">{{ $event->description }}</p>@endif
+        @if ($sponsor)
+            <p class="mt-2 text-sm" data-meetup-sponsor><span class="mr-1 rounded border border-rule px-1 text-[10px] font-bold uppercase text-mute">Sponsored</span>
+                Hosted by <a href="{{ route('ads.click', ['meetup', $sponsor->id]) }}" target="_blank" rel="sponsored noopener" class="font-semibold underline">{{ $sponsor->place->name }}</a>
+                · <a href="{{ route('places.show', $sponsor->place) }}" wire:navigate class="text-mute hover:underline">See the place</a>
+                @if ($sponsor->offer)<br><span class="text-mute">For people who check in: {{ $sponsor->offer }}</span>@endif
+            </p>
+        @endif
 
         @if ($event->kind === 'meetup')
             <div class="mt-3 text-sm">
-                <b>{{ $event->attendees_count }}</b> {{ str('neighbor')->plural($event->attendees_count) }} checked in.
+                <b>{{ $event->attendees_count }}</b> {{ str('neighbor')->plural($event->attendees_count) }} checked in · <b>{{ $event->rsvps_count }}</b> going.
                 @auth
+                    @if (! $event->ends_at->isPast())
+                        <button type="button" wire:click="rsvp" @class(['ml-2 rounded-full px-2.5 py-0.5 text-[12px] font-semibold', 'bg-ink text-paper' => $going, 'border border-rule' => ! $going])>{{ $going ? 'Going ✓' : 'I’m going' }}</button>
+                    @endif
                     @if ($checkedIn)
                         <span class="ml-2 rounded-full bg-flag px-2 py-0.5 text-[12px] font-bold text-white">You were here</span>
+                        @if ($redemption)
+                            <p class="mt-2" data-offer-code>Your code for {{ $sponsor->offer }} at {{ $sponsor->place->name }}: <b class="font-mono text-base">{{ $redemption->code }}</b>{{ $redemption->redeemed_at ? ' (used)' : '. Show it to the staff there.' }}</p>
+                        @endif
                     @else
                         <form wire:submit="checkIn" class="mt-2 flex gap-2">
                             <input wire:model="code" maxlength="20" placeholder="Check-in code" aria-label="Check-in code" class="w-40 rounded-md border border-rule bg-paper px-2.5 py-1.5 font-mono uppercase">

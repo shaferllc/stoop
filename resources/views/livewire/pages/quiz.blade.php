@@ -5,6 +5,7 @@
         <span class="font-mono text-sm text-mute">No. {{ $number }} · {{ now(config('stoop.timezone'))->format('l, F j') }}</span>
     </div>
     <p class="text-mute">Five questions about DC. Same five for everyone, new ones at midnight.</p>
+    <x-presented-by target="daily" />
 
     @guest
         <x-empty title="Log in to play" art="stoop" class="mt-4"><a href="{{ route('login') }}" class="underline">Log in</a> or <a href="{{ route('register') }}" class="underline">join</a> to play and keep a streak.</x-empty>

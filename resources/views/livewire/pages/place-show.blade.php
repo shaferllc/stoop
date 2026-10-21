@@ -36,6 +36,10 @@
 
     <livewire:place-deal-panel :place-id="$place->id" :key="'deal-'.$place->id" />
 
+    @if ($place->owner_id && $place->owner_id === auth()->id())
+        <livewire:meetup-host :place-id="$place->id" />
+    @endif
+
     @if ($photos->isNotEmpty())
         <div class="grid grid-cols-3 gap-1.5 overflow-hidden rounded-xl">
             @foreach ($photos as $photo)

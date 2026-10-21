@@ -32,7 +32,11 @@
                     <li class="flex items-center gap-3 px-4 py-2.5 text-sm">
                         <span class="w-16 shrink-0 text-mute">All day</span>
                         <a href="{{ route('events.show', $e) }}" wire:navigate class="font-semibold hover:underline">{{ $e->name }}</a>
-                        <span class="rounded-full bg-chip px-2 text-[11.5px] text-mute">City event</span>
+                        <span class="rounded-full bg-chip px-2 text-[11.5px] text-mute">{{ $e->kind === 'meetup' ? 'Stoop Sits' : 'City event' }}</span>
+                        @if ($e->kind === 'meetup' && $e->sponsor)
+                            @php(\App\Support\Ads::record($e->sponsor))
+                            <span class="text-[12px] text-mute" data-meetup-sponsor>Hosted by {{ $e->sponsor->place->name }} · Sponsored</span>
+                        @endif
                     </li>
                 @endforeach
                 @foreach ($day['happenings'] as $d)

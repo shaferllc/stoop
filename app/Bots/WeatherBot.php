@@ -116,7 +116,7 @@ class WeatherBot extends Bot
                 continue;
             }
 
-            if ($this->publish(['line' => 'silver', 'body' => Str::limit('NWS: '.($alert['headline'] ?? $event).'.', 480)])) {
+            if ($this->publish(['line' => 'silver', 'body' => Str::limit('NWS: '.($alert['headline'] ?? $event).'.', 480), 'sponsorable' => false])) {
                 Cache::put($today, Cache::get($today, 0) + 1, now()->addDay());
                 $posted++;
             }

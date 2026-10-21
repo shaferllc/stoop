@@ -2,6 +2,7 @@
     <section class="rounded-xl border border-rule bg-card p-6">
         <div class="text-[11.5px] font-semibold uppercase tracking-wide text-flag">Contest</div>
         <h1 class="font-display text-3xl font-bold">{{ $contest->title }}</h1>
+        <x-presented-by :target="'contest:'.$contest->id" />
         <p class="mt-1 text-lg">{{ $contest->question }}</p>
         @if ($contest->prize)<p class="mt-1 text-sm text-mute">Prize: {{ $contest->prize }}</p>@endif
         <p class="mt-1 text-sm text-mute">{{ $contest->entries_count }} {{ str('guess')->plural($contest->entries_count) }} so far ·

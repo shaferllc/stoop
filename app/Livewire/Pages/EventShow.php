@@ -5,10 +5,13 @@ namespace App\Livewire\Pages;
 use App\Livewire\Concerns\HandlesDispatchActions;
 use App\Models\CityEvent;
 use App\Models\Dispatch;
+use App\Models\MeetupRedemption;
+use App\Support\Ads;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -63,10 +66,37 @@ class EventShow extends Component
         Flux::toast('Checked in. Good to see you on the stoop.');
     }
 
+    /**
+     * Stoop Sits meetups: say you're going, or take it back.
+     */
+    public function rsvp(): void
+    {
+        if (! $user = $this->actor()) {
+            return;
+        }
+
+        $event = CityEvent::where('kind', 'meetup')->findOrFail($this->eventId);
+        if ($event->ends_at->isPast() || ! RateLimiter::attempt('rsvp:'.$user->id, 20, fn () => true)) {
+            return;
+        }
+
+        $event->rsvps()->toggle([$user->id]);
+    }
+
     public function render(): View
     {
-        $event = CityEvent::withCount('attendees')->findOrFail($this->eventId);
+        $event = CityEvent::withCount(['attendees', 'rsvps'])->with('sponsor.place')->findOrFail($this->eventId);
         $user = Auth::user();
+        $checkedIn = $user ? $event->attendees()->whereKey($user->id)->exists() : false;
+
+        // A sponsored meetup: count the impression, and give checked-in attendees their offer code.
+        $sponsor = $event->kind === 'meetup' ? $event->sponsor : null;
+        if ($sponsor) {
+            Ads::record($sponsor);
+        }
+        $redemption = $sponsor?->offer && $checkedIn
+            ? MeetupRedemption::firstOrCreate(['meetup_sponsor_id' => $sponsor->id, 'user_id' => $user->id], ['code' => Str::upper(Str::random(8))])
+            : null;
 
         $dispatches = Dispatch::topLevel()->visibleTo($user)->forCards()->where('event_id', $event->id)->latest()->take(100)->get();
 
@@ -91,7 +121,10 @@ class EventShow extends Component
             'dispatches' => $dispatches,
             'byStop' => $byStop,
             'passport' => $passport,
-            'checkedIn' => $user ? $event->attendees()->whereKey($user->id)->exists() : false,
+            'checkedIn' => $checkedIn,
+            'going' => $user && $event->kind === 'meetup' && $event->rsvps()->whereKey($user->id)->exists(),
+            'sponsor' => $sponsor,
+            'redemption' => $redemption,
             'state' => $this->viewerState($dispatches),
         ])->title($event->name);
     }

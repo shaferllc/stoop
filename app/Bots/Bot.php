@@ -4,6 +4,7 @@ namespace App\Bots;
 
 use App\Actions\FileDispatch;
 use App\Models\Dispatch;
+use App\Models\Presenter;
 use App\Models\User;
 use App\Support\Bots;
 use App\Support\Mentions;
@@ -48,13 +49,22 @@ abstract class Bot
     public function schedule(Schedule $schedule): void {}
 
     /**
-     * Post as this bot. Goes through the same rules as everyone else.
+     * Post as this bot. Goes through the same rules as everyone else. A top-level post gets the
+     * bot's "Presented by" line, if it has a sponsor, unless it says 'sponsorable' => false.
      *
      * @param  array<string, mixed>  $data  body, line, stop, type, …
      */
     public function post(array $data): Dispatch
     {
-        return FileDispatch::handle($this->account(), $data, confirmed: true);
+        $sponsorable = ($data['sponsorable'] ?? true) && empty($data['parentId']);
+        unset($data['sponsorable']);
+        $dispatch = FileDispatch::handle($this->account(), $data, confirmed: true);
+
+        if ($sponsorable) {
+            Presenter::stamp($dispatch, $this->username());
+        }
+
+        return $dispatch;
     }
 
     public function account(): User

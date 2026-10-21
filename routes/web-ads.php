@@ -14,7 +14,7 @@ Route::get('ad/{kind}/{id}', function (string $kind, int $id) {
     Ads::click($ad);
 
     return redirect()->away($ad->url);
-})->whereIn('kind', ['dispatch', 'party'])->whereNumber('id')->middleware('throttle:60,1')->name('ads.click');
+})->whereIn('kind', ['dispatch', 'party', 'presenter', 'meetup'])->whereNumber('id')->middleware('throttle:60,1')->name('ads.click');
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin')->group(function () {
     Route::livewire('ads', Admin\Ads::class)->name('.ads');

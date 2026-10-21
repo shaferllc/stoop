@@ -89,4 +89,8 @@
             @endforelse
         </ul>
     </section>
+
+    @if (auth()->user()->hasRole('sales'))
+        <livewire:admin.meetup-sponsors />
+    @endif
 </div>
