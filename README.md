@@ -33,19 +33,13 @@ Optional settings in `.env`:
 - `STOOP_MODEL_MODERATION=false`: turn off the Claude check on new posts while keeping the bot and translation. The model defaults to `claude-opus-5-5`; `STOOP_MODERATION_MODEL` changes it.
 - `STOOP_AUTO_VERIFY=false`: require the email link again.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 - `STOOP_MAGAZINE_ORIGINS`: comma-separated sites allowed to call the embed APIs from a browser (default `https://www.washingtonian.com,https://washingtonian.com`).
 
 Embeds for magazine article pages (any combination, one script):
-=======
 City bots in `app/Bots` (all keyless except @metro): @metro (WMATA disruptions, next trains), @bikeshare (Capital Bikeshare docks near a stop or neighborhood), @weather (6:30am forecast and NWS alerts from api.weather.gov; suggests Snow Day mode to staff, never turns it on), @cherry (NPS Bloom Watch stages, March 1 to April 15) and @311 (how to report a problem, plus a Sunday summary from DC’s open 311 data).
-=======
 House bots live in `app/Bots`, one class each, and register their own schedules. @ask links unanswered Ask DC questions (2+ hours old) to similar answered ones; @welcome sends each new account one in-app note with tips for their home stops and people to follow; @recap posts “Your stop this week” for the 5 busiest stops on Sunday mornings; reply `@translate to Spanish` in a thread to translate the post above; @calm posts one neighborly reminder when a pile-on-flagged thread reopens. Only @ask (one framing sentence) and @translate use Claude, and both work or say so without `ANTHROPIC_API_KEY`.
->>>>>>> worktree-agent-a4ea324e96877cacd
 
 Embed on magazine article pages:
->>>>>>> worktree-agent-ad66da2e7879c6f34
 
 ```html
 <div data-stoop-discussion></div>               <!-- neighbors talking about this article -->

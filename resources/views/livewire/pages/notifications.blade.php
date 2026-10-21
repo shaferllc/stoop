@@ -29,12 +29,9 @@
                         'best' => 'picked your reply as the Best Answer',
                         'follow' => 'followed you',
                         'moderation' => $data['message'] ?? 'A moderator reviewed your dispatch',
-<<<<<<< HEAD
                         'author' => 'posted a new story by '.($data['author'] ?? 'a writer you follow'),
                         'quote_request' => 'asked to quote your dispatch in a '.config('stoop.magazine_name').' story',
-=======
                         'welcome' => 'says welcome to Stoop',
->>>>>>> worktree-agent-a4ea324e96877cacd
                         default => 'did something',
                     } }}</span>
                     <span class="text-mute">· {{ $group['latest']->created_at->shortAbsoluteDiffForHumans() }}</span>
