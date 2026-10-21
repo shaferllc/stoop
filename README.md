@@ -40,6 +40,10 @@ Embed on magazine article pages:
 <script src="https://stoop.test/embed.js" async></script>
 ```
 
+## Staff roles and spam tools
+
+Staff have roles: moderator, editor, sales and admin (admin does everything; existing staff became admins). Admins set them in Admin → Roles. Admin → Spam lists suspected spam rings (`php artisan stoop:detect-spam`, also every 10 minutes); Admin → Bots reviews the house bots and edits @stoop’s knowledge base; Admin → Activity shows a live feed and 30-day charts. Admins get a daily email when moderation items wait more than a day (`stoop:admin-digest`). Throwaway email domains and the risk score that holds a new account’s first posts are in `config/stoop.php`.
+
 ## Tests
 
 ```

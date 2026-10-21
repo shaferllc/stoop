@@ -51,7 +51,8 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 ## Notifications
 - [x] Replies, quotes, mentions, follows and moderation outcomes
 - [x] Grouped by thread and by day; filters; follow back; unread count
-- [ ] Decide on email notifications (see open questions)
+- [x] Email for timeouts, bans and appeal decisions (on by default, Settings → Safety turns it off); daily email to admins when items have waited over a day (`stoop:admin-digest`)
+- [ ] Decide on email for everything else (see open questions)
 
 ## Messages (/dev/null “Remotes”)
 - [x] One-to-one messages with people who follow you; optional message requests
@@ -129,7 +130,14 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Content: article feed status, weekly email, callouts, scheduled posts
 - [x] Audit log of every staff action
 - [x] Keyboard-driven moderation queue (j/k, a, r, o)
-- [ ] Roles finer than “staff” (moderator vs. editor vs. sales)
+- [x] Roles: moderator (queue, appeals, people, spam), editor (content, quiz, moments, house bots), sales (sponsorships, places), admin (everything, plus maintenance and roles); existing staff became admins; set in Admin → Roles; the desktop app hides sections a role doesn’t open
+- [x] Spam rings: near-identical posts across accounts, bursts of new accounts in one thread, the same link domain from new accounts, new accounts messaging many people; checked every 10 minutes (`stoop:detect-spam`) or on demand; acting on a cluster hides its posts and times out its members (never bans)
+- [x] Sign-up risk score (throwaway email domain, several sign-ups from one network in an hour by salted IP hash, Turnstile, random-looking username), staff only; risky new accounts’ first 3 posts wait for a moderator
+- [x] “Is this a bot or a spam ring?” on a person’s admin page: Claude over recent activity, or the built-in signals without `ANTHROPIC_API_KEY`; a suggestion only
+- [x] House bot console: recent @stoop and @dc answers, mark wrong, post a correction as the bot; @stoop’s knowledge base is editable (seeded from `resources/knowledge/stoop.md`)
+- [x] Activity: live feed of posts, sign-ups, reports and removals, and 30-day charts (web and desktop)
+- [x] Bulk verify, timeout and note in People (web and desktop)
+- [ ] Tune the spam detector thresholds (`app/Support/SpamRings.php`) and the risk threshold (`signup_risk_hold`) on real traffic
 
 ## Playing the city
 - [x] All 98 Metro stations with strip maps on profiles, line badges, Crossed the River, DMV, The Whole System

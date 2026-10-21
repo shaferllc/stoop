@@ -10,7 +10,7 @@ struct ContentView: View {
                 ConnectView()
             } else {
                 NavigationSplitView {
-                    List(Section.allCases, selection: $model.section) { section in
+                    List(Section.allCases.filter(model.allows), selection: $model.section) { section in
                         Label(section.title, systemImage: section.icon)
                             .badge(section.attentionKey.map { model.attention?.count($0) ?? 0 } ?? 0)
                             .tag(section)
@@ -39,6 +39,10 @@ struct ContentView: View {
                         case .people: PeopleView()
                         case .maintenance: MaintenanceView()
                         case .audit: AuditView()
+                        case .activity: ActivityView()
+                        case .spam: SpamView()
+                        case .bots: BotsView()
+                        case .roles: RolesView()
                         }
                         }
                         .navigationDestination(for: Person.self) { PersonView(id: $0.id) }

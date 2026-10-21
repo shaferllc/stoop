@@ -3,7 +3,7 @@ import Observation
 import UserNotifications
 
 enum Section: String, CaseIterable, Identifiable {
-    case overview, queue, appeals, messages, penalties, people, maintenance, audit
+    case overview, activity, queue, appeals, messages, penalties, people, spam, bots, maintenance, roles, audit
     var id: String { rawValue }
 
     var title: String {
@@ -16,6 +16,10 @@ enum Section: String, CaseIterable, Identifiable {
         case .people: "People"
         case .maintenance: "Maintenance"
         case .audit: "Audit Log"
+        case .activity: "Activity"
+        case .spam: "Spam"
+        case .bots: "House Bots"
+        case .roles: "Roles"
         }
     }
 
@@ -29,6 +33,10 @@ enum Section: String, CaseIterable, Identifiable {
         case .people: "person.2"
         case .maintenance: "wrench.and.screwdriver"
         case .audit: "list.bullet.rectangle"
+        case .activity: "chart.bar.xaxis"
+        case .spam: "exclamationmark.shield"
+        case .bots: "bubble.left.and.text.bubble.right"
+        case .roles: "person.badge.key"
         }
     }
 
