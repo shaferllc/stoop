@@ -96,6 +96,7 @@ Staff find these under Admin → Tips, Radar, Call-outs, Archive and Issues; Rad
 - Readers send private tips from the footer or a dispatch’s … menu; editors reply in Stoop messages only if the tipster allowed it.
 - Radar compares the last 7 days with the 4 weeks before. With `ANTHROPIC_API_KEY`, each trend can get a Claude story idea.
 - Archive stories are imported as CSV (`title,url,date,section,stations,neighborhoods,description`) and tagged to stations by name and the alias list. Station pages show three of them.
+- `php artisan stoop:import-archive [--since=YYYY-MM-DD] [--max=N]` (nightly) fills the archive from the magazine’s WordPress API: metadata only, from a saved cursor (default three years back), at one request a second as `StoopBot/1.0 (+APP_URL)`, obeying robots.txt. `php artisan stoop:import-lists [--list=100-very-best-restaurants-2026]` adds the newest list editions to places (names, neighborhoods and links).
 - When a feed article changes, or an editor posts a correction, @magazine replies in its thread and everyone who joined in is notified once.
 
 ## Tests

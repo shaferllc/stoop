@@ -23,6 +23,16 @@
     @if (! $valid)
         <p class="text-mute">Type at least 2 characters.</p>
     @elseif ($tab === 'dispatches')
+        @if ($magazine->isNotEmpty())
+            <section class="mb-4 rounded-xl border border-rule bg-card p-4" aria-labelledby="from-the-magazine">
+                <h2 id="from-the-magazine" class="text-[11px] font-semibold uppercase tracking-wide text-mute">From the magazine</h2>
+                <ul class="mt-1.5 space-y-1.5">
+                    @foreach ($magazine as $story)
+                        <li wire:key="mag-{{ $story->id }}"><a href="{{ $story->url }}" target="_blank" rel="noopener" class="font-semibold hover:underline">{{ $story->title }}</a> <span class="text-[13px] text-mute">{{ $story->section }}{{ $story->published_on ? ' · '.\Illuminate\Support\Carbon::parse($story->published_on)->format('M Y') : '' }}</span></li>
+                    @endforeach
+                </ul>
+            </section>
+        @endif
         <div class="space-y-2.5">
             @forelse ($dispatches as $dispatch)
                 <x-dispatch-card :dispatch="$dispatch" :translated="$translations[$dispatch->id] ?? null" :state="$state" />

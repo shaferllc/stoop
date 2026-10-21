@@ -37,7 +37,7 @@ class Magazine
     ];
 
     // Paid content is never posted as editorial.
-    protected const SKIP_SECTIONS = ['sponsored', 'sponsored content', 'partner content'];
+    public const SKIP_SECTIONS = ['sponsored', 'sponsored content', 'partner content'];
 
     // Fallback keywords, when the section isn't one of the above. Anything else goes on the Blue (Culture) line.
     protected const LINES = [

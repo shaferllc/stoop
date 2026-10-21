@@ -59,4 +59,28 @@ class Place extends Model
     {
         return $this->list_name ? ($this->list_rank ? 'No. '.$this->list_rank.' · ' : '').$this->list_name : null;
     }
+
+    /**
+     * Add or update a place from a magazine list row. Matches the same name on the same list,
+     * then the same name with no list yet. $overwrite = false only fills empty fields, so an
+     * automatic import never undoes staff edits. Returns "created" or "updated".
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromList(array $data, bool $overwrite = true): ?string
+    {
+        if (! ($data['name'] ?? null)) {
+            return null;
+        }
+
+        $named = fn () => static::whereRaw('lower(name) = ?', [mb_strtolower($data['name'])]);
+        $place = $named()->where('list_name', $data['list_name'] ?? null)->first()
+            ?? $named()->whereNull('list_name')->first()
+            ?? new static;
+        $outcome = $place->exists ? 'updated' : 'created';
+
+        $place->fill($overwrite ? $data : array_filter($data, fn ($v, $k) => $v !== null && blank($place->{$k}), ARRAY_FILTER_USE_BOTH))->save();
+
+        return $outcome;
+    }
 }

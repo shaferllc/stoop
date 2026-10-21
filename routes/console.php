@@ -17,6 +17,7 @@ use App\Support\Civility;
 use App\Support\HomeSales;
 use App\Support\Later;
 use App\Support\Magazine;
+use App\Support\MagazineBackCatalog;
 use App\Support\MagazineEvents;
 use App\Support\ModerationModel;
 use App\Support\Newsletter;
@@ -76,6 +77,16 @@ Artisan::command('stoop:check-challenges', function () {
 Artisan::command('stoop:backfill-authors', function () {
     $this->info('Credited writers on '.Magazine::backfillAuthors().' articles.');
 })->purpose('Credit writers on articles imported before bylines were stored');
+
+Artisan::command('stoop:import-archive {--since= : Start from this date (YYYY-MM-DD) instead of the saved cursor} {--max=0 : Stop after this many posts}', function () {
+    $r = MagazineBackCatalog::run((int) $this->option('max'), $this->option('since'));
+    $r['error'] ? $this->error($r['error']) : $this->info("Archived {$r['imported']} stories, backfilled {$r['backfilled']} articles".($r['done'] ? '; caught up.' : '; run again for more.'));
+})->purpose('Import the magazine’s older articles into the Archive (metadata only)');
+
+Artisan::command('stoop:import-lists {--list=* : List slugs, e.g. 100-very-best-restaurants-2026}', function () {
+    $r = MagazineBackCatalog::importLists($this->option('list'));
+    $r['error'] ? $this->error($r['error']) : $this->info("Places: {$r['created']} new, {$r['updated']} updated. ".collect($r['lists'])->map(fn ($n, $list) => "$list: $n")->implode('; '));
+})->purpose('Import the magazine’s restaurant lists into places (names and links only)');
 
 Artisan::command('stoop:import-home-sales', function () {
     $this->info('Stored '.HomeSales::import().' home sales near stations.');
@@ -138,6 +149,7 @@ Schedule::command('stoop:go-go-friday')->fridays()->at('10:00')->timezone('Ameri
 Schedule::command('stoop:import-articles')->everyFifteenMinutes()->withoutOverlapping();
 Schedule::command('stoop:import-events')->hourly()->withoutOverlapping();
 Schedule::command('stoop:check-challenges')->hourly()->withoutOverlapping();
+Schedule::command('stoop:import-archive')->dailyAt('4:30')->timezone('America/New_York')->withoutOverlapping();
 Schedule::command('stoop:import-home-sales')->dailyAt('3:30')->timezone('America/New_York')->withoutOverlapping();
 Schedule::command('stoop:send-newsletter')->weeklyOn(1, '8:00')->timezone('America/New_York');
 Schedule::command('stoop:publish-scheduled')->everyMinute()->withoutOverlapping();

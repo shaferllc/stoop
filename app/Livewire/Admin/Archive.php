@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\Place;
 use App\Support\Archive as StoryArchive;
 use App\Support\Audit;
+use App\Support\MagazineBackCatalog;
 use Flux\Flux;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -23,6 +25,8 @@ use Livewire\WithPagination;
 class Archive extends Component
 {
     use StaffOnly, WithFileUploads, WithPagination;
+
+    protected const ROLE = 'editor';
 
     public $csv;
 
@@ -61,6 +65,16 @@ class Archive extends Component
         Audit::log('archive.alias_removed', null, ['alias' => $alias?->alias]);
     }
 
+    /**
+     * One page (100 posts) of the back-catalog import from the saved cursor.
+     */
+    public function runBatch(): void
+    {
+        $r = MagazineBackCatalog::run(100);
+        Audit::log('archive.import_batch', null, $r);
+        Flux::toast($r['error'] ?? "Archived {$r['imported']} ".str('story')->plural($r['imported']).($r['backfilled'] ? ", filled in {$r['backfilled']} posted articles" : '').($r['done'] ? '. All caught up.' : '.'));
+    }
+
     public function retag(): void
     {
         $count = StoryArchive::retag();
@@ -80,6 +94,10 @@ class Archive extends Component
             'stations' => DB::table('archive_story_stations')->whereIn('archive_story_id', $stories->pluck('id'))->get()->groupBy('archive_story_id')->map(fn ($rows) => $rows->pluck('stop')->all()),
             'aliases' => DB::table('station_aliases')->orderBy('alias')->get(),
             'total' => DB::table('archive_stories')->count(),
+            'import' => MagazineBackCatalog::status(),
+            'imported' => DB::table('archive_stories')->whereNotNull('line')->count(),
+            'needsStation' => Place::whereNotNull('list_name')->whereNull('stop')->orderBy('list_name')->orderBy('name')->take(50)->get(),
+            'needsStationCount' => Place::whereNotNull('list_name')->whereNull('stop')->count(),
         ]);
     }
 }
