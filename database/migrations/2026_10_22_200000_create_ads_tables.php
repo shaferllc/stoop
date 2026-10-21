@@ -72,7 +72,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
             $table->string('reason', 30)->nullable();
             $table->timestamps();
-            $table->index(['kind', 'ad_id']);
+            $table->unique(['kind', 'ad_id', 'user_id']);
         });
     }
 

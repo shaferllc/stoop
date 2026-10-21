@@ -74,7 +74,8 @@ class AdsTest extends TestCase
         // Load more adds the third slot; polling keeps the same picks without recounting.
         $shows = DB::table('ad_views')->sum('shows');
         $feed->call('$refresh');
-        $this->assertSame($shows, DB::table('ad_views')->sum('shows'));
+        $feed->call('adAt', 9);
+        $this->assertSame($shows, DB::table('ad_views')->sum('shows'), 'Neither polling nor a made-up slot counts');
         $feed->call('loadMore');
         $this->assertSame(2, $this->adsIn($feed->html()), 'Only 25 dispatches, so still two slots');
     }

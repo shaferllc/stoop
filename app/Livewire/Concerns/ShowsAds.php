@@ -25,6 +25,11 @@ trait ShowsAds
      */
     public function adAt(int $slot): ?Model
     {
+        // Public, so the browser could call it: only slots the feed actually has.
+        if ($slot < 1 || $slot > intdiv($this->dispatches->count(), Ads::EVERY)) {
+            return null;
+        }
+
         if (! array_key_exists($slot, $this->adSlots)) {
             $ad = Ads::pick($this->adStops(), $this->line, array_values(array_filter($this->adSlots)));
             $this->adSlots[$slot] = $ad ? Ads::kindOf($ad).':'.$ad->id : false;

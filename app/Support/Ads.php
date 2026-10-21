@@ -154,7 +154,7 @@ class Ads
         abort_if($reason !== null && (! $user || ! isset(self::REPORT_REASONS[$reason])), 403);
 
         if ($user) {
-            DB::table('ad_hides')->insert(['kind' => $kind, 'ad_id' => $id, 'user_id' => $user->id, 'reason' => $reason, 'created_at' => now(), 'updated_at' => now()]);
+            DB::table('ad_hides')->insertOrIgnore(['kind' => $kind, 'ad_id' => $id, 'user_id' => $user->id, 'reason' => $reason, 'created_at' => now(), 'updated_at' => now()]);
         } else {
             session()->push("ads.hidden.$kind", $id);
         }
