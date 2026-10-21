@@ -235,6 +235,9 @@
                     @if ($me->is_staff && $d->user_id !== $me->id && $d->status === 'approved' && ! $d->user->isHouseAccount())
                         <flux:menu.item wire:click="requestQuote({{ $d->id }})">Request to quote</flux:menu.item>
                     @endif
+                    @if ($me->is_staff && $d->type === 'happening' && ! $d->parent_id && $d->status === 'approved')
+                        <flux:menu.item wire:click="toggleWeekendPick({{ $d->id }})">{{ $d->weekend_picked_at ? 'Unpick for @weekend' : 'Pick for @weekend' }}</flux:menu.item>
+                    @endif
                     @if ($d->user_id === $me->id || $me->is_staff)
                         <flux:menu.item wire:click="deleteDispatch({{ $d->id }})">Delete</flux:menu.item>
                     @endif

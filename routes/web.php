@@ -154,6 +154,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('quiz', Admin\QuizQuestions::class)->name('.quiz');
         Route::livewire('moments', Admin\Moments::class)->name('.moments');
         Route::livewire('magazine', Admin\Magazine::class)->name('.magazine');
+        Route::livewire('history', Admin\HistoryEntries::class)->name('.history');
     });
     // A dispatch author answers an editor's request to quote it (from Notifications).
     Route::post('quote-requests/{quoteRequest}/{answer}', function (QuoteRequest $quoteRequest, string $answer) {
