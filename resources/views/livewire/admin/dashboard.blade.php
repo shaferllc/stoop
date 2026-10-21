@@ -3,7 +3,7 @@
     @include('partials.admin-nav')
 
     <div class="grid gap-3 sm:grid-cols-2">
-        @foreach ($todo as [$label, $count, $url])
+        @foreach ($todo as ['label' => $label, 'count' => $count, 'url' => $url])
             <a href="{{ $url }}" wire:navigate @class(['flex items-center justify-between rounded-xl border bg-card p-4', 'border-flag' => $count, 'border-rule' => ! $count])>
                 <span>{{ $label }}</span><b @class(['font-display text-2xl tabular-nums', 'text-flag' => $count])>{{ $count }}</b>
             </a>

@@ -17,13 +17,16 @@ class ApiTokens extends Component
     /** Shown once, right after the token is created. */
     public ?string $plainToken = null;
 
+    /** Staff can make a token for the Stoop Admin desktop app. */
+    public bool $admin = false;
+
     public function create(): void
     {
         $this->validate(['name' => ['required', 'string', 'max:60']]);
         abort_if(Auth::user()->tokens()->count() >= 10, 422, 'You can have at most 10 tokens.');
 
-        $this->plainToken = Auth::user()->createToken($this->name, ['dispatch:write'])->plainTextToken;
-        $this->reset('name');
+        $this->plainToken = Auth::user()->createToken($this->name, $this->admin && Auth::user()->is_staff ? ['admin'] : ['dispatch:write'])->plainTextToken;
+        $this->reset('name', 'admin');
     }
 
     public function revoke(int $id): void

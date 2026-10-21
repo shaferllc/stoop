@@ -2,10 +2,10 @@
 
 namespace App\Livewire\Admin;
 
+use App\Actions\Moderate;
 use App\Models\Dispatch;
 use App\Models\Penalty;
 use App\Models\User;
-use App\Notifications\ModerationNotice;
 use App\Support\Audit;
 use Flux\Flux;
 use Illuminate\Support\Carbon;
@@ -84,28 +84,14 @@ class UserShow extends Component
             'penaltyReason' => ['required', Rule::in(config('stoop.rule_reasons'))],
         ]);
 
-        $user = $this->subject();
-        $hours = is_numeric($this->penaltyType) ? (int) $this->penaltyType : null;
-        $penalty = Penalty::create([
-            'user_id' => $user->id, 'subject_hash' => $user->subjectHash(), 'moderator_id' => $this->staff()->id,
-            'type' => $hours ? 'timeout' : $this->penaltyType, 'reason' => $this->penaltyReason,
-            'ends_at' => $hours ? now()->addHours($hours) : null,
-        ]);
-
-        $user->notify(new ModerationNotice(match ($penalty->type) {
-            'warning' => 'You received a warning: '.$this->penaltyReason.'.',
-            'ban' => 'Your account was banned: '.$this->penaltyReason.'. You can appeal once.',
-            default => 'You’re in a timeout for '.Penalty::TIMEOUTS[$hours].': '.$this->penaltyReason.'. You can appeal once.',
-        }));
-        Audit::log('penalty.issued', $user, ['type' => $penalty->type, 'hours' => $hours, 'reason' => $this->penaltyReason]);
+        Moderate::penalize($this->subject(), $this->penaltyType, $this->penaltyReason, null, $this->staff());
         Flux::toast('Done.');
     }
 
     public function lift(int $penaltyId): void
     {
         $penalty = $this->subject()->penalties()->findOrFail($penaltyId);
-        $penalty->update(['lifted_at' => now()]);
-        Audit::log('penalty.lifted', $penalty);
+        Moderate::lift($penalty);
     }
 
     public function deleteAccount(): void

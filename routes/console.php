@@ -15,6 +15,7 @@ use App\Support\Newsletter;
 use App\Support\OpenAiModeration;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Storage;
@@ -85,3 +86,6 @@ Schedule::command('stoop:import-articles')->everyFifteenMinutes()->withoutOverla
 Schedule::command('stoop:send-newsletter')->weeklyOn(1, '8:00')->timezone('America/New_York');
 Schedule::command('stoop:publish-scheduled')->everyMinute()->withoutOverlapping();
 Schedule::command('stoop:purge-deleted')->everyMinute()->withoutOverlapping();
+
+// Lets the admin app tell whether the scheduler is running.
+Schedule::call(fn () => Cache::forever('stoop:schedule-ran', now()->toIso8601String()))->everyMinute()->name('heartbeat');

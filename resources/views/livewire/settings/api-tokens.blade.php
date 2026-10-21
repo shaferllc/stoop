@@ -7,6 +7,9 @@
                 <flux:input wire:model="name" :label="__('New token name')" placeholder="Laptop terminal" class="flex-1" />
                 <flux:button type="submit" variant="primary">{{ __('Create token') }}</flux:button>
             </form>
+            @if (auth()->user()->is_staff)
+                <flux:checkbox wire:model="admin" :label="__('For the Stoop Admin desktop app')" :description="__('An admin token can moderate and run maintenance, but can’t post. It stops working if you lose staff access.')" />
+            @endif
 
             @if ($plainToken)
                 <div class="rounded-lg border border-zinc-300 p-3 text-sm dark:border-zinc-600">
@@ -25,7 +28,7 @@
             <ul class="divide-y divide-zinc-200 dark:divide-zinc-700">
                 @forelse ($tokens as $token)
                     <li class="flex items-center justify-between py-2 text-sm">
-                        <span><b>{{ $token->name }}</b> · {{ __('created') }} {{ $token->created_at->toFormattedDateString() }} · {{ $token->last_used_at ? __('last used').' '.$token->last_used_at->diffForHumans() : __('never used') }}</span>
+                        <span><b>{{ $token->name }}</b>@if (in_array('admin', $token->abilities)) <span class="rounded bg-flag/10 px-1.5 text-[11px] font-semibold text-flag">ADMIN</span>@endif · {{ __('created') }} {{ $token->created_at->toFormattedDateString() }} · {{ $token->last_used_at ? __('last used').' '.$token->last_used_at->diffForHumans() : __('never used') }}</span>
                         <flux:button size="sm" wire:click="revoke({{ $token->id }})">{{ __('Revoke') }}</flux:button>
                     </li>
                 @empty

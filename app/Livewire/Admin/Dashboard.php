@@ -2,12 +2,9 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\Appeal;
 use App\Models\Dispatch;
-use App\Models\MessageReport;
-use App\Models\PlaceClaim;
 use App\Models\User;
-use App\Support\Strikes;
+use App\Support\Attention;
 use Flux\Flux;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -48,13 +45,7 @@ class Dashboard extends Component
                 'Scheduled' => Dispatch::where('status', 'scheduled')->count(),
                 'Jobs waiting' => DB::table('jobs')->count(),
             ],
-            'todo' => [
-                ['Posts waiting for moderators', Dispatch::whereIn('status', ['held', 'hidden'])->orWhereNotNull('flagged_at')->count(), route('moderation')],
-                ['Open appeals', Appeal::where('status', 'open')->count(), route('moderation', ['view' => 'appeals'])],
-                ['Reported messages', MessageReport::whereNull('resolved_at')->distinct()->count('message_id'), route('moderation', ['view' => 'messages'])],
-                ['Accounts with 4+ strikes to review for a ban', Strikes::banCandidates()->count(), route('admin.users', ['filter' => 'ban_review'])],
-                ['Place claims to check', PlaceClaim::where('status', 'pending')->count(), route('admin.places', ['tab' => 'claims'])],
-            ],
+            'todo' => Attention::items(),
             'failed' => DB::table('failed_jobs')->latest('failed_at')->take(25)->get(),
         ]);
     }

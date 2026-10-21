@@ -1,0 +1,33 @@
+name: StoopAdmin
+options:
+  bundleIdPrefix: com.stoop
+  deploymentTarget:
+    macOS: "15.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # Set your Apple team here to sign for other Macs; "-" signs for this Mac only.
+    CODE_SIGN_IDENTITY: "-"
+    DEVELOPMENT_TEAM: ""
+targets:
+  StoopAdmin:
+    type: application
+    platform: macOS
+    sources: [StoopAdmin]
+    info:
+      path: StoopAdmin/Info.plist
+      properties:
+        CFBundleDisplayName: Stoop Admin
+        CFBundleName: Stoop Admin
+        LSApplicationCategoryType: public.app-category.social-networking
+        # Stoop runs on http://stoop.test locally; production should be https.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.stoop.admin
+        PRODUCT_NAME: Stoop Admin
+        ENABLE_HARDENED_RUNTIME: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: ""
