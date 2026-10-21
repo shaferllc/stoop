@@ -41,6 +41,8 @@ class Achievements
         'snow-reporter' => ['name' => 'Snow Reporter', 'description' => 'Filed a snow report on a Snow Day'],
         'stoop-sits' => ['name' => 'Stoop Sitter', 'description' => 'Checked in at a Stoop Sits meetup'],
         'out-and-about' => ['name' => 'Out and About', 'description' => 'Posted from 3 city events'],
+        'stand-right' => ['name' => 'Stand Right, Walk Left', 'description' => 'Posted about a Metro escalator'],
+        'sauced' => ['name' => 'Sauced', 'description' => 'Got 10 mumbo sauces on your dispatches'],
         'mayor' => ['name' => 'Mayor', 'description' => 'The most helpful person at a stop this month'],
     ];
 
@@ -75,6 +77,8 @@ class Achievements
             'quiz-week' => $s['quiz_longest'] >= 7,
             'quiz-perfect' => $s['quiz_perfect'] > 0,
             'called-it' => $s['right_picks'] >= 5,
+            'stand-right' => $s['escalator_posts'] > 0,
+            'sauced' => $s['mumbo_received'] >= 10,
             'snow-reporter' => $s['snow_reports'] > 0,
             'stoop-sits' => $s['meetups'] > 0,
             'out-and-about' => $s['events'] >= 3,
@@ -177,6 +181,8 @@ class Achievements
                     ->where(fn ($q) => $q->where(fn ($q) => $q->where('games.winner', 'team')->whereColumn('poll_votes.poll_option_id', 'games.team_option_id'))
                         ->orWhere(fn ($q) => $q->where('games.winner', 'opponent')->whereColumn('poll_votes.poll_option_id', 'games.opponent_option_id')))
                     ->count(),
+                'escalator_posts' => (clone $approved)->where('body', 'like', '%escalator%')->count(),
+                'mumbo_received' => DB::table('marks')->whereIn('dispatch_id', $mine)->where('kind', 'mumbo')->count(),
                 'snow_reports' => (clone $approved)->where('type', 'snow')->count(),
                 'meetups' => DB::table('event_checkins')->where('user_id', $user->id)->count(),
                 'events' => (clone $approved)->whereNotNull('event_id')->distinct()->count('event_id'),

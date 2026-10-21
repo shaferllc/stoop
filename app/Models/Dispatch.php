@@ -140,6 +140,7 @@ class Dispatch extends Model
                 'quotes' => fn ($q) => $q->where('status', 'approved'),
                 'markers as been_count' => fn ($q) => $q->where('marks.kind', 'been'),
                 'markers as going_count' => fn ($q) => $q->where('marks.kind', 'going'),
+                'markers as mumbo_count' => fn ($q) => $q->where('marks.kind', 'mumbo'),
                 'halfSmokes',
             ]);
     }

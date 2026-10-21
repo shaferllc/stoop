@@ -185,8 +185,12 @@ class Composer extends Component
             default => $this->parentId ? 'Reply posted.' : 'Dispatch filed.',
         });
 
-        foreach (array_diff_key(Achievements::unlocked($user->fresh()), $badgesBefore) as $badge) {
-            Flux::toast(heading: 'Badge unlocked', text: $badge['name'].': '.$badge['description'], variant: 'success');
+        $unlocked = array_diff_key(Achievements::unlocked($user->fresh()), $badgesBefore);
+        foreach ($unlocked as $key => $badge) {
+            Flux::toast(heading: $key === 'stand-right' ? 'Stand right, walk left' : 'Badge unlocked', text: $badge['name'].': '.$badge['description'], variant: 'success');
+        }
+        if ($unlocked) {
+            $this->dispatch('confetti');
         }
     }
 

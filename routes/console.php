@@ -1,10 +1,12 @@
 <?php
 
 use App\Actions\AnnounceDispatch;
+use App\Actions\FileDispatch;
 use App\Jobs\ModerateDispatch;
 use App\Mail\WeeklyDigest;
 use App\Models\Dispatch;
 use App\Models\User;
+use App\Support\Bots;
 use App\Support\Civility;
 use App\Support\Later;
 use App\Support\Magazine;
@@ -65,6 +67,20 @@ Artisan::command('stoop:send-newsletter {--to= : Send one copy to this email ins
     $this->info("Queued $sent newsletters.");
 })->purpose('Send the weekly Stoop newsletter');
 
+Artisan::command('stoop:go-go-friday', function () {
+    // The house account opens the weekly music thread, once per Friday.
+    $dc = Bots::account('dc');
+    if ($dc->dispatches()->where('created_at', '>=', now(config('stoop.timezone'))->startOfDay()->utc())->where('body', 'like', 'It’s Go-Go Friday%')->exists()) {
+        return;
+    }
+    FileDispatch::handle($dc, [
+        'line' => 'blue',
+        'body' => 'It’s Go-Go Friday. What are you playing today? Drop the song, the band, or where to catch a pocket this weekend.',
+    ], confirmed: true);
+    $this->info('Posted.');
+})->purpose('Post the weekly Go-Go Friday music thread');
+
+Schedule::command('stoop:go-go-friday')->fridays()->at('10:00')->timezone('America/New_York');
 Schedule::command('stoop:import-articles')->everyFifteenMinutes()->withoutOverlapping();
 Schedule::command('stoop:send-newsletter')->weeklyOn(1, '8:00')->timezone('America/New_York');
 Schedule::command('stoop:publish-scheduled')->everyMinute()->withoutOverlapping();

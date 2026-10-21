@@ -195,6 +195,13 @@
                 <flux:icon.calendar-days variant="micro" />Going {{ $d->going_count }}
             </button>
         @endif
+        @if ($me && $d->user_id !== $me->id)
+            <button type="button" wire:click="toggleMark({{ $d->id }}, 'mumbo')" @class([$act, 'font-semibold text-flag' => in_array('mumbo', $marks)]) title="Mumbo sauce" aria-pressed="{{ in_array('mumbo', $marks) ? 'true' : 'false' }}">
+                <x-art.mumbo class="size-4" /><span class="sr-only">Mumbo sauce</span>{{ $d->mumbo_count ?: '' }}
+            </button>
+        @elseif ($d->mumbo_count)
+            <span class="{{ $act }}" title="Mumbo sauce"><x-art.mumbo class="size-4" />{{ $d->mumbo_count }}</span>
+        @endif
         @if ($me?->half_smokes_on && $d->user_id !== $me->id)
             <button type="button" wire:click="giveHalfSmoke({{ $d->id }})" x-data x-on:click="$el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.35) rotate(-8deg)' }, { transform: 'scale(1)' }], { duration: 280 })"
                 class="{{ $act }} motion-reduce:[animation:none]" title="Give a half-smoke ({{ $me->halfSmokesLeft() }} left today)">

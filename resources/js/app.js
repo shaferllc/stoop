@@ -179,3 +179,33 @@ window.stoopPush = {
         });
     },
 };
+
+// Confetti when a badge unlocks. A short burst on a canvas; skipped for reduced motion.
+window.addEventListener('confetti', () => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const canvas = Object.assign(document.createElement('canvas'), { width: innerWidth, height: innerHeight });
+    canvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:60';
+    document.body.append(canvas);
+    const ctx = canvas.getContext('2d');
+    const colors = ['#bf0d3e', '#ed8b00', '#009cde', '#00b140', '#e0b400', '#919d9d'];
+    const pieces = Array.from({ length: 140 }, () => ({
+        x: innerWidth / 2, y: innerHeight / 3,
+        vx: (Math.random() - 0.5) * 14, vy: Math.random() * -12 - 4,
+        size: 5 + Math.random() * 6, color: colors[Math.floor(Math.random() * colors.length)],
+        spin: Math.random() * 6, angle: 0,
+    }));
+
+    let frame = 0;
+    const draw = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach((p) => {
+            p.vy += 0.35; p.x += p.vx; p.y += p.vy; p.angle += p.spin * 0.02;
+            ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+            ctx.fillStyle = p.color; ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+            ctx.restore();
+        });
+        if (++frame < 110) requestAnimationFrame(draw); else canvas.remove();
+    };
+    draw();
+});

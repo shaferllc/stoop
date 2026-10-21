@@ -41,9 +41,12 @@ class Mentions
 
         preg_match_all($combined, $body, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
 
+        $defined = [];
+        $plain = fn (string $text) => self::glossary(e($text), $defined);
+
         foreach ($matches as $m) {
             [$text, $pos] = $m[0];
-            $out .= e(substr($body, $offset, $pos - $offset));
+            $out .= $plain(substr($body, $offset, $pos - $offset));
 
             if (($m['url'][0] ?? '') !== '') {
                 $label = str(preg_replace('~^https?://(www\.)?~', '', $text))->limit(40);
@@ -55,6 +58,28 @@ class Mentions
             $offset = $pos + strlen($text);
         }
 
-        return new HtmlString($out.e(substr($body, $offset)));
+        return new HtmlString($out.$plain(substr($body, $offset)));
+    }
+
+    /**
+     * Give local terms a hover definition, once per term per post.
+     *
+     * @param  array<string, bool>  $defined
+     */
+    protected static function glossary(string $escaped, array &$defined): string
+    {
+        foreach (config('stoop.glossary') as $term => $definition) {
+            if (isset($defined[$term])) {
+                continue;
+            }
+
+            $escaped = preg_replace_callback('/(?<![\w-])'.preg_quote(e($term), '/').'(?![\w-])/i', function ($m) use ($term, $definition, &$defined) {
+                $defined[$term] = true;
+
+                return '<abbr title="'.e($definition).'" class="cursor-help no-underline decoration-mute decoration-dotted underline-offset-4 [text-decoration-line:underline]">'.$m[0].'</abbr>';
+            }, $escaped, 1);
+        }
+
+        return $escaped;
     }
 }

@@ -61,6 +61,22 @@ return [
     // Turn on once posting is tied to magazine subscriptions.
     'require_subscription' => env('STOOP_REQUIRE_SUBSCRIPTION', false),
 
+    // Local words that get a hover definition in posts.
+    'glossary' => [
+        'the District' => 'Washington, DC.',
+        'DMV' => 'DC, Maryland and Virginia. Not the motor vehicle office.',
+        'the Beltway' => 'I-495, the highway ringing the city; also shorthand for the federal political world.',
+        'go-go' => 'DC’s own funk-driven music, born here in the 1970s. Chuck Brown is the Godfather of Go-Go.',
+        'mumbo sauce' => 'The sweet, tangy red sauce from DC carryouts, on wings and fries.',
+        'half-smoke' => 'DC’s signature sausage: coarse, spicy, half pork and half beef, usually grilled and split.',
+        'ANC' => 'Advisory Neighborhood Commission: elected neighbors who weigh in on local issues like liquor licenses and zoning.',
+        'NoVa' => 'Northern Virginia.',
+        'MoCo' => 'Montgomery County, Maryland.',
+        'single-tracking' => 'Trains sharing one track to get around work. Expect delays.',
+        'SmarTrip' => 'Metro’s fare card.',
+        'Chocolate City' => 'A nickname for DC from its history as a majority-Black city, and the title of a 1975 Parliament album.',
+    ],
+
     // Days, streaks and half-smoke allowances follow DC time.
     'timezone' => 'America/New_York',
 

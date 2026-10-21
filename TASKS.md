@@ -131,6 +131,21 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Keyboard-driven moderation queue (j/k, a, r, o)
 - [ ] Roles finer than “staff” (moderator vs. editor vs. sales)
 
+## Playing the city
+- [x] All 98 Metro stations with strip maps on profiles, line badges, Crossed the River, DMV, The Whole System
+- [x] Stop mayors (most helpful in 30 days) on stop pages and profiles
+- [x] The Daily quiz: 5 DC questions a day, shareable Metro-color result, streaks; editors manage the bank in Admin → Quiz
+- [x] Single-Tracking pass: one missed day a week doesn’t break a posting or quiz streak
+- [x] Weekly neighborhood rivalries with crowns and results in the weekly email; line standings
+- [x] Best Answer on Ask DC and Know-It-All points
+- [x] Passports and stamps for the magazine’s lists, with a stamp list for magazine shout-outs
+- [x] Guess-the-date contests (Peak Bloom), Snow Day mode with a snow map, game-day picks, city events with ratings, Stoop Sits meetups with check-in codes (Admin → Moments)
+- [x] Station pages: next trains (needs `WMATA_API_KEY`), Capital Bikeshare docks nearby (live, no key), DC 311 and ANC links
+- [x] Glossary hovers for local terms, mumbo sauce reaction, Go-Go Friday thread, Stand Right badge with confetti
+- [ ] Ward and neighborhood data for stations, for a ward-explorer badge and ANC-specific meeting links
+- [ ] Grow the quiz bank from the magazine’s archive
+- [ ] Real prizes and fulfillment for contests and passport stamps
+
 ## Real-time, mobile and design
 - [x] Reverb: new posts, messages and notifications arrive without waiting; pages still check every so often if Reverb is down
 - [x] Push notifications for replies, mentions, follows and messages (VAPID keys in `.env`)
