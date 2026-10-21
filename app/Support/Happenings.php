@@ -105,7 +105,7 @@ class Happenings
     }
 
     /**
-     * Happenings on the calendar between two times, featured first within a day.
+     * Happenings on the calendar between two times, by start time.
      *
      * @return Builder<Dispatch>
      */

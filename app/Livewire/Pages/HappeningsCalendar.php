@@ -85,7 +85,8 @@ class HappeningsCalendar extends Component
             ->when($this->stop, fn ($q) => $q->where('stop', $this->stop))->orderBy('starts_at')->get();
 
         // Every day in range with something on, in DC time. Events running several days show on each.
-        $byDay = $happenings->groupBy(fn ($d) => $d->happening->starts_at->timezone($tz)->toDateString());
+        $byDay = $happenings->groupBy(fn ($d) => $d->happening->starts_at->timezone($tz)->toDateString())
+            ->map(fn ($day) => $day->sortByDesc(fn ($d) => $d->happening->featured)->values()); // featured first, then by time
         $days = collect();
         for ($day = $from; $day->lte($to); $day = $day->addDay()) {
             $on = $events->filter(fn ($e) => $e->starts_at->lte($day->endOfDay()) && $e->ends_at->gte($day));

@@ -39,7 +39,7 @@ class HappeningHost extends Component
     protected function happening(): Dispatch
     {
         $dispatch = Dispatch::where('type', 'happening')->whereNull('parent_id')->findOrFail($this->dispatchId);
-        abort_unless(Auth::id() === $dispatch->user_id || Auth::user()?->is_staff, 403);
+        abort_unless((Auth::id() && Auth::id() === $dispatch->user_id) || Auth::user()?->is_staff, 403);
 
         return $dispatch;
     }

@@ -47,7 +47,7 @@ class PlaceDealPanel extends Component
     public function end(int $id): void
     {
         $deal = PlaceDeal::where('place_id', $this->placeId)->findOrFail($id);
-        abort_unless($deal->place->owner_id === Auth::id(), 403);
+        abort_unless(Auth::id() && $deal->place->owner_id === Auth::id(), 403);
 
         $deal->update(['ends_at' => now()]);
         Flux::toast('Deal ended.');

@@ -142,7 +142,7 @@ class HappeningsTest extends TestCase
 
         Sanctum::actingAs($guest, ['app']);
         $this->postJson("/api/app/dispatches/{$d->id}/marks/interested")->assertOk()->assertJsonPath('on', true);
-        $this->getJson('/api/app/happenings')->assertOk()->assertJsonPath('data.0.id', $d->id)->assertJsonPath('data.0.happening.interested', 1);
+        $this->getJson('/api/app/happenings')->assertOk()->assertJsonPath('data.0.id', $d->id)->assertJsonPath('data.0.happening.interested', 1)->assertJsonPath('data.0.viewer.interested', true);
         $this->getJson("/api/app/happenings/{$d->id}/rsvps")->assertForbidden();
         $this->postJson("/api/app/happenings/{$d->id}", ['featured' => true])->assertForbidden();
         $this->assertStringContainsString('/calendar/', $this->postJson('/api/app/calendar-feed')->assertOk()->json('url'));
