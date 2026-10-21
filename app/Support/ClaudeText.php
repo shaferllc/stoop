@@ -15,9 +15,9 @@ class ClaudeText
 {
     protected static ?Closure $fake = null;
 
-    public static function enabled(): bool
+    public static function enabled(string $feature = 'content'): bool
     {
-        return self::$fake !== null || (bool) config('services.anthropic.key');
+        return self::$fake !== null || (bool) Ai::key($feature);
     }
 
     /**
@@ -28,9 +28,9 @@ class ClaudeText
         self::$fake = $fake;
     }
 
-    public static function ask(string $system, string $prompt, int $maxTokens = 1024): ?string
+    public static function ask(string $system, string $prompt, int $maxTokens = 1024, string $feature = 'content'): ?string
     {
-        if (! self::enabled()) {
+        if (! self::enabled($feature)) {
             return null;
         }
 
@@ -39,7 +39,7 @@ class ClaudeText
                 return (self::$fake)($system, $prompt);
             }
 
-            $message = (new Client(apiKey: config('services.anthropic.key')))->messages->create(
+            $message = (new Client(apiKey: Ai::key($feature)))->messages->create(
                 model: config('services.anthropic.model'),
                 maxTokens: $maxTokens,
                 outputConfig: ['effort' => 'low'],

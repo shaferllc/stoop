@@ -19,7 +19,7 @@ class Translator
 
     public static function enabled(): bool
     {
-        return (bool) config('services.anthropic.key');
+        return (bool) Ai::key('content');
     }
 
     /**
@@ -54,7 +54,7 @@ class Translator
         }
 
         try {
-            $message = (new Client(apiKey: config('services.anthropic.key')))->messages->create(
+            $message = (new Client(apiKey: Ai::key('content')))->messages->create(
                 model: config('services.anthropic.model'),
                 maxTokens: 2048,
                 outputConfig: ['effort' => 'low'],

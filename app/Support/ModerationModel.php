@@ -34,7 +34,7 @@ class ModerationModel
 
     public static function enabled(): bool
     {
-        return self::$fake !== null || (config('services.anthropic.key') && config('stoop.model_moderation'));
+        return self::$fake !== null || (Ai::key('moderation') && config('stoop.model_moderation'));
     }
 
     /**
@@ -51,7 +51,7 @@ class ModerationModel
             return (self::$fake)($text);
         }
 
-        $message = (new Client(apiKey: config('services.anthropic.key')))->messages->create(
+        $message = (new Client(apiKey: Ai::key('moderation')))->messages->create(
             model: config('services.anthropic.moderation_model'),
             maxTokens: 512,
             outputConfig: ['effort' => 'low'],

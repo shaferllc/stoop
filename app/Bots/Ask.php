@@ -5,6 +5,7 @@ namespace App\Bots;
 use Anthropic\Client;
 use Anthropic\Core\Exceptions\APIException;
 use App\Models\Dispatch;
+use App\Support\Ai;
 use App\Support\Mentions;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Builder;
@@ -133,7 +134,7 @@ class Ask extends Bot
     {
         $plain = 'No replies yet, but neighbors answered similar questions before:';
 
-        if (! $key = config('services.anthropic.key')) {
+        if (! $key = Ai::key('content')) {
             return $plain;
         }
 

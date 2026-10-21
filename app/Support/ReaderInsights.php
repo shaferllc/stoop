@@ -249,7 +249,7 @@ class ReaderInsights
 
     public static function summaryEnabled(): bool
     {
-        return self::$fake !== null || (bool) config('services.anthropic.key');
+        return self::$fake !== null || (bool) Ai::key('content');
     }
 
     /**
@@ -272,12 +272,12 @@ class ReaderInsights
             return (self::$fake)($numbers);
         }
 
-        if (! config('services.anthropic.key')) {
+        if (! Ai::key('content')) {
             return null;
         }
 
         try {
-            $message = (new Client(apiKey: config('services.anthropic.key')))->messages->create(
+            $message = (new Client(apiKey: Ai::key('content')))->messages->create(
                 model: config('services.anthropic.model'),
                 maxTokens: 1024,
                 outputConfig: ['effort' => 'low'],

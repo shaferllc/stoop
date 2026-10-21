@@ -27,7 +27,7 @@ class AccountCheck
 
     public static function enabled(): bool
     {
-        return self::$fake !== null || (bool) config('services.anthropic.key');
+        return self::$fake !== null || (bool) Ai::key('moderation');
     }
 
     /**
@@ -114,7 +114,7 @@ class AccountCheck
             return (self::$fake)($activity);
         }
 
-        $message = (new Client(apiKey: config('services.anthropic.key')))->messages->create(
+        $message = (new Client(apiKey: Ai::key('moderation')))->messages->create(
             model: config('services.anthropic.model'),
             maxTokens: 1024,
             outputConfig: ['effort' => 'low'],

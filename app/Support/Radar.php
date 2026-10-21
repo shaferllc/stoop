@@ -232,7 +232,7 @@ class Radar
 
     public static function ideasEnabled(): bool
     {
-        return self::$fake !== null || (bool) config('services.anthropic.key');
+        return self::$fake !== null || (bool) Ai::key('content');
     }
 
     /**
@@ -266,7 +266,7 @@ class Radar
             }
 
             try {
-                $message = (new Client(apiKey: config('services.anthropic.key')))->messages->create(
+                $message = (new Client(apiKey: Ai::key('content')))->messages->create(
                     model: config('services.anthropic.model'),
                     maxTokens: 1024,
                     outputConfig: ['effort' => 'low'],

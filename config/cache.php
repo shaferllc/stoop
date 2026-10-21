@@ -1,5 +1,7 @@
 <?php
 
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 return [
@@ -133,10 +135,10 @@ return [
 
     // Plain data only: lists, query rows and dates. Models and anything with behavior stay out.
     'serializable_classes' => [
-        Illuminate\Support\Collection::class,
+        Collection::class,
         Illuminate\Support\Carbon::class,
         Carbon\Carbon::class,
-        Carbon\CarbonImmutable::class,
+        CarbonImmutable::class,
         stdClass::class,
     ],
 

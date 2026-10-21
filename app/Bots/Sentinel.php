@@ -76,6 +76,7 @@ class Sentinel extends Bot
             'You write a two-sentence plain-text summary of the last hour of moderation activity on Stoop, a DC social network, for its moderators. Use only the counts given. Point out what most needs a look. No preamble, at most 300 characters.',
             json_encode($counts),
             300,
+            'moderation',
         );
         $summary = [
             'hour' => $hour->toIso8601String(),

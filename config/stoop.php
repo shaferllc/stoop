@@ -2,6 +2,11 @@
 
 return [
 
+    // Paid AI is for moderation only. Everything else uses plain rules and free public data.
+    // Add "content" (STOOP_AI_FEATURES=moderation,content) to let bots, translation, Catch me up,
+    // composer suggestions, story ideas and summaries use it too.
+    'ai_features' => array_filter(explode(',', env('STOOP_AI_FEATURES', 'moderation'))),
+
     // Metro lines double as topic channels.
     'lines' => [
         'red' => ['name' => 'Food', 'color' => '#bf0d3e'],

@@ -67,7 +67,7 @@ class Maintenance
         return [
             'checks' => [
                 ['name' => 'OpenAI moderation', 'ok' => (bool) config('services.openai.key'), 'fix' => 'Set OPENAI_API_KEY'],
-                ['name' => 'Claude (moderation, @stoop, translation)', 'ok' => (bool) config('services.anthropic.key'), 'fix' => 'Set ANTHROPIC_API_KEY'],
+                ['name' => 'Claude for moderation (other AI is off: STOOP_AI_FEATURES='.implode(',', config('stoop.ai_features')).')', 'ok' => (bool) config('services.anthropic.key'), 'fix' => 'Set ANTHROPIC_API_KEY'],
                 ['name' => 'WMATA live trains', 'ok' => (bool) config('services.wmata.key'), 'fix' => 'Set WMATA_API_KEY'],
                 ['name' => 'Push notifications', 'ok' => (bool) config('services.webpush.private_key'), 'fix' => 'Set VAPID keys'],
                 ['name' => 'Turnstile on sign-up', 'ok' => (bool) config('services.turnstile.secret'), 'fix' => 'Set TURNSTILE_SECRET'],

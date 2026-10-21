@@ -56,7 +56,7 @@ class Bots
         $knowledge = self::knowledge();
         $question = trim(preg_replace('/(?<![\w.@])@stoop\b/i', '', $question));
 
-        if ($key = config('services.anthropic.key')) {
+        if ($key = Ai::key('content')) {
             try {
                 $message = (new Client(apiKey: $key))->messages->create(
                     model: config('services.anthropic.model'),

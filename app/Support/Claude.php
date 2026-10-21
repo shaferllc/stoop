@@ -18,7 +18,7 @@ class Claude
 
     public static function enabled(): bool
     {
-        return self::$fake !== null || (bool) config('services.anthropic.key');
+        return self::$fake !== null || (bool) Ai::key('content');
     }
 
     /**
@@ -35,7 +35,7 @@ class Claude
             return (self::$fake)($system, $user);
         }
 
-        if (! $key = config('services.anthropic.key')) {
+        if (! $key = Ai::key('content')) {
             return null;
         }
 
