@@ -22,6 +22,10 @@
         </div>
     @endif
 
+    @if ($d->sponsor)
+        <div class="mb-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-mute">Sponsored by {{ $d->sponsor }}</div>
+    @endif
+
     @if ($pinned)
         <div class="mb-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-mute">Pinned</div>
     @endif
@@ -36,6 +40,7 @@
                 <div x-show="open" x-cloak x-html="html" class="absolute left-0 top-full z-20 mt-1 w-72"></div>
             </span>
             <span class="ml-1.5 rounded border border-rule px-1 text-[10px] font-bold tracking-wide text-mute">{{ $d->user->badge() }}</span>
+            @if ($d->as_business && $d->place)<span class="ml-1 rounded bg-ink px-1 text-[10px] font-bold text-paper">OWNER · {{ str($d->place->name)->upper() }}</span>@endif
             @if ($d->user->isLive())<span class="ml-1 rounded bg-flag px-1 text-[10px] font-bold text-white">ON THE SCENE</span>@endif
             <div class="text-[12.5px] text-mute">
                 <a href="{{ route('users.show', $d->user) }}" wire:navigate>{{ '@'.$d->user->username }}</a>
@@ -66,6 +71,13 @@
                 <button type="button" x-on:click="more = !more" x-text="more ? 'Show less' : 'Show more'" class="mt-1 text-[13px] font-medium text-flag"></button>
             @endif
         </div>
+    @endif
+
+    @if ($d->place)
+        <a href="{{ route('places.show', $d->place) }}" wire:navigate class="mt-2 flex items-center gap-2 rounded-lg border border-rule px-3 py-1.5 text-[13.5px] hover:border-ink sm:ml-[46px]">
+            <b>{{ $d->place->name }}</b>
+            <span class="truncate text-mute">{{ collect([$d->place->neighborhood, $d->place->listLabel()])->filter()->join(' · ') }}</span>
+        </a>
     @endif
 
     @if ($d->safety)

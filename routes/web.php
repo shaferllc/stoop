@@ -10,12 +10,15 @@ use App\Livewire\Pages\Inbox;
 use App\Livewire\Pages\Moderation;
 use App\Livewire\Pages\Notifications;
 use App\Livewire\Pages\Operations;
+use App\Livewire\Pages\PlaceShow;
+use App\Livewire\Pages\PlacesIndex;
 use App\Livewire\Pages\Saved;
 use App\Livewire\Pages\Search;
 use App\Livewire\Pages\ShowDispatch;
 use App\Livewire\Pages\UserProfile;
 use App\Models\Dispatch;
 use App\Models\MessageImage;
+use App\Models\Sponsorship;
 use App\Models\User;
 use App\Support\RidershipGraph;
 use App\Support\ShareImage;
@@ -29,6 +32,15 @@ Route::livewire('d/{dispatch}', ShowDispatch::class)->name('dispatches.show');
 Route::livewire('@{user:username}', UserProfile::class)->name('users.show');
 Route::view('rules', 'rules')->name('rules');
 Route::livewire('search', Search::class)->name('search');
+Route::livewire('places', PlacesIndex::class)->name('places');
+Route::livewire('places/{place}', PlaceShow::class)->name('places.show');
+
+// Sponsored placements count a click, then send people on to the sponsor.
+Route::get('s/{sponsorship}', function (Sponsorship $sponsorship) {
+    $sponsorship->increment('clicks');
+
+    return redirect()->away($sponsorship->url ?: ($sponsorship->place ? route('places.show', $sponsorship->place) : route('home')));
+})->middleware('throttle:60,1')->name('sponsorships.click');
 Route::get('stops/{code}', function (string $code) {
     abort_unless(config('stoop.stations.'.strtoupper($code)), 404);
 

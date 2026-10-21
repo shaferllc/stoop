@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Dispatch;
+use App\Models\Place;
 use App\Models\User;
 use App\Support\Bots;
 use Illuminate\Database\Seeder;
@@ -37,7 +38,15 @@ class DatabaseSeeder extends Seeder
         };
         $reply = fn (Dispatch $to, string $who, string $body, int $minutesAgo) => $post($who, ['parent_id' => $to->id, 'line' => $to->line, 'body' => $body], $minutesAgo);
 
-        $p1 = $post('mayaeats', ['type' => 'been', 'line' => 'red', 'stop' => 'B02', 'body' => 'Went back to the #4 spot on the list last night. The list is right. The dessert course is not, fight me.'], 12);
+        // Sample places. Real ones come from the magazine's lists through Admin → Places → Import.
+        $places = collect([
+            ['name' => 'Rowhouse Pupuseria', 'category' => 'Restaurant', 'neighborhood' => 'Mount Pleasant', 'stop' => 'E04', 'list_name' => 'Cheap Eats (sample)', 'list_rank' => 1, 'blurb' => 'Sample entry: a takeout window with a line around the corner on Saturdays.'],
+            ['name' => 'The Judiciary Table', 'category' => 'Restaurant', 'neighborhood' => 'Penn Quarter', 'stop' => 'B02', 'list_name' => 'Best Restaurants (sample)', 'list_rank' => 4, 'blurb' => 'Sample entry: a tasting menu that changes every season.'],
+            ['name' => 'Eastern Market Bagels', 'category' => 'Bakery', 'neighborhood' => 'Capitol Hill', 'stop' => 'D06', 'list_name' => 'Cheap Eats (sample)', 'list_rank' => 7],
+            ['name' => 'Navy Yard Taproom', 'category' => 'Bar', 'neighborhood' => 'Navy Yard', 'stop' => 'F05'],
+        ])->map(fn ($attrs) => Place::create($attrs));
+
+        $p1 = $post('mayaeats', ['type' => 'been', 'place_id' => $places[1]->id, 'line' => 'red', 'stop' => 'B02', 'body' => 'Went back to the #4 spot on the list last night. The list is right. The dessert course is not, fight me.'], 12);
         $reply($p1, 'dre_ward6', 'The dessert is the best part and I will not be taking questions.', 8);
         $reply($p1, 'priyak', 'Is it still impossible to get a table before 9?', 5);
 

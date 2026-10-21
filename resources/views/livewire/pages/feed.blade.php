@@ -37,6 +37,14 @@
         @endforeach
     </div>
 
+    @if ($sponsorship)
+        <a href="{{ route('sponsorships.click', $sponsorship) }}" target="_blank" rel="sponsored noopener" class="mb-3 block rounded-xl border border-rule bg-card p-3.5 hover:border-ink">
+            <div class="text-[11px] font-semibold uppercase tracking-wide text-mute">Sponsored · {{ $sponsorship->sponsor }}</div>
+            <div class="font-display text-lg font-bold">{{ $sponsorship->headline }}</div>
+            @if ($sponsorship->body)<p class="text-sm text-mute">{{ $sponsorship->body }}</p>@endif
+        </a>
+    @endif
+
     <livewire:composer />
 
     @if ($line || $stop || trim($q) !== '')

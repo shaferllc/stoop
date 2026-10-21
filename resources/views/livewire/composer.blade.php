@@ -88,6 +88,37 @@
                 </label>
             @endif
 
+            @if (! $parentId && ($type === 'been' || $place || $showPlace))
+                <div class="relative mt-2">
+                    @if ($place)
+                        <div class="flex flex-wrap items-center gap-2 rounded-lg border border-rule bg-paper px-2.5 py-1.5 text-sm">
+                            <span>At <b>{{ $place->name }}</b>{{ $place->neighborhood ? ' · '.$place->neighborhood : '' }}</span>
+                            @if ($place->owner_id === auth()->id())
+                                <label class="flex items-center gap-1.5 text-[13px]"><input type="checkbox" wire:model="asBusiness"> Post as {{ $place->name }}</label>
+                            @endif
+                            <button type="button" wire:click="selectPlace(null)" class="ml-auto text-mute" aria-label="Remove place">×</button>
+                        </div>
+                    @else
+                        <input wire:model.live.debounce.300ms="placeQuery" placeholder="{{ $type === 'been' ? 'Where did you go?' : 'Tag a place (optional)' }}" aria-label="Place" class="w-full rounded-md border border-rule bg-paper px-2.5 py-1.5 text-sm">
+                        @if ($placeResults->isNotEmpty())
+                            <ul class="absolute left-0 z-20 mt-1 w-full overflow-hidden rounded-lg border border-rule bg-card text-sm shadow-lg">
+                                @foreach ($placeResults as $result)
+                                    <li><button type="button" wire:click="selectPlace({{ $result->id }})" class="block w-full px-3 py-1.5 text-left hover:bg-chip">
+                                        <b>{{ $result->name }}</b> <span class="text-mute">{{ collect([$result->category, $result->neighborhood, $result->listLabel()])->filter()->join(' · ') }}</span>
+                                    </button></li>
+                                @endforeach
+                            </ul>
+                        @elseif (mb_strlen(trim($placeQuery)) >= 2)
+                            <p class="mt-1 text-[12.5px] text-mute">No place by that name yet. Staff add places from the magazine’s lists.</p>
+                        @endif
+                    @endif
+                </div>
+            @endif
+
+            @if ($type === 'callout' && auth()->user()->is_staff)
+                <input wire:model="sponsor" maxlength="120" placeholder="Sponsored by (leave empty if not sponsored)" aria-label="Sponsor" class="mt-2 w-full rounded-md border border-rule bg-paper px-2.5 py-1.5 text-sm">
+            @endif
+
             @if ($type === 'safety' && ! $parentId)
                 <div class="mt-2 space-y-1.5 rounded-lg border border-rule bg-paper p-2.5 text-sm">
                     <p class="text-[13px] text-mute">Say what happened, where and when. If you describe a person, describe clothing, height, a vehicle or what they did. Race or gender alone isn’t allowed.</p>
@@ -109,7 +140,7 @@
                 </div>
             @endif
 
-            @foreach (['body', 'options', 'happeningAt', 'type', 'line', 'stop', 'publishAt', 'photos', 'photos.*', 'alts.*', 'safetyWhen', 'safetyPerson'] as $field)
+            @foreach (['body', 'options', 'happeningAt', 'type', 'line', 'stop', 'publishAt', 'photos', 'photos.*', 'alts.*', 'safetyWhen', 'safetyPerson', 'placeId', 'sponsor'] as $field)
                 @error($field) <p class="mt-1 text-sm text-flag">{{ $message }}</p> @enderror
             @endforeach
 
@@ -126,6 +157,9 @@
                             <option value="{{ $code }}">{{ $code }} · {{ $station }}</option>
                         @endforeach
                     </select>
+                @endunless
+                @unless ($parentId || $place || $type === 'been')
+                    <button type="button" wire:click="$set('showPlace', true)" class="rounded-md border border-rule px-2 py-1 text-[13px] text-mute hover:text-ink">Place</button>
                 @endunless
                 <label class="cursor-pointer rounded-md border border-rule px-2 py-1 text-[13px] text-mute hover:text-ink" title="Add up to 3 photos">
                     Photo<input type="file" wire:model="photos" multiple accept="image/jpeg,image/png,image/webp" class="sr-only">

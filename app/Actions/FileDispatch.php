@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Exceptions\NudgeRequired;
 use App\Jobs\RunBots;
 use App\Models\Dispatch;
+use App\Models\Place;
 use App\Models\User;
 use App\Support\Civility;
 use App\Support\LinkPreviews;
@@ -35,7 +36,7 @@ class FileDispatch
         $input = [
             'type' => 'dispatch', 'body' => '', 'line' => 'red', 'stop' => null, 'happeningAt' => '',
             'options' => [], 'pollHours' => 24, 'publishAt' => '', 'photos' => [], 'alts' => [],
-            'safetyWhen' => '', 'safetyBlock' => '', 'safetyPerson' => '', 'parentId' => null, 'quoteId' => null,
+            'safetyWhen' => '', 'safetyBlock' => '', 'safetyPerson' => '', 'parentId' => null, 'quoteId' => null, 'placeId' => null, 'asBusiness' => false, 'sponsor' => '',
             ...array_filter($input, fn ($v) => $v !== null),
         ];
         $input['body'] = trim((string) $input['body']);
@@ -70,6 +71,8 @@ class FileDispatch
             'safetyWhen' => [Rule::requiredIf($input['type'] === 'safety' && $topLevel), 'nullable', 'string', 'max:60'],
             'safetyBlock' => ['nullable', 'string', 'max:80'],
             'safetyPerson' => ['nullable', 'string', 'max:280'],
+            'placeId' => ['nullable', 'integer', 'exists:places,id'],
+            'sponsor' => ['nullable', 'string', 'max:120'],
         ], [], ['happeningAt' => 'when', 'options.*' => 'option', 'publishAt' => 'scheduled time', 'photos.*' => 'photo', 'safetyWhen' => 'when it happened'])->validate();
 
         $options = array_values(array_unique(array_filter(array_map('trim', $input['options']))));
@@ -94,6 +97,17 @@ class FileDispatch
             $fail('body', $reason);
         }
 
+        $place = $topLevel && $input['placeId'] ? Place::find($input['placeId']) : null;
+        if ($input['type'] === 'been' && $topLevel && ! $place) {
+            $fail('placeId', 'Pick the place you went to.');
+        }
+        if ($input['asBusiness'] && $place?->owner_id !== $user->id) {
+            $fail('placeId', 'Only the verified owner can post as '.($place?->name ?? 'this place').'.');
+        }
+        if ($input['sponsor'] !== '' && ! ($user->is_staff && $input['type'] === 'callout')) {
+            $fail('sponsor', 'Only staff can label a callout as sponsored.');
+        }
+
         $scheduled = $topLevel && $input['publishAt'] !== '';
         if ($scheduled && $user->dispatches()->where('status', 'scheduled')->count() >= 10) {
             $fail('publishAt', 'You already have 10 scheduled dispatches.');
@@ -113,19 +127,22 @@ class FileDispatch
         $preview = $url ? LinkPreviews::for($url) : null;
         $type = $parent ? 'dispatch' : $input['type'];
 
-        $dispatch = DB::transaction(function () use ($user, $input, $parent, $quoted, $options, $publishAt, $preview, $type) {
+        $dispatch = DB::transaction(function () use ($user, $input, $parent, $quoted, $options, $publishAt, $preview, $type, $place) {
             $dispatch = $user->dispatches()->create([
                 'parent_id' => $parent?->id,
                 'quote_id' => $quoted?->id,
                 'type' => $type,
                 'line' => $parent?->line ?? ($type === 'ask' ? 'yellow' : $input['line']),
-                'stop' => $parent ? null : $input['stop'],
                 'body' => $input['body'],
                 'happening_at' => $type === 'happening' ? $input['happeningAt'] : null,
                 'status' => $publishAt ? 'scheduled' : (Civility::shouldHold($input['body']) ? 'held' : 'approved'),
                 'publish_at' => $publishAt,
                 'closes_at' => $type === 'poll' ? ($publishAt ?? now())->copy()->addHours((int) $input['pollHours']) : null,
                 'link_preview_id' => $preview?->id,
+                'place_id' => $place?->id,
+                'stop' => $parent ? null : ($input['stop'] ?: $place?->stop),
+                'as_business' => (bool) $input['asBusiness'],
+                'sponsor' => $input['sponsor'] ?: null,
                 'safety' => $type === 'safety'
                     ? array_filter(['when' => $input['safetyWhen'], 'block' => $input['safetyBlock'], 'person' => $input['safetyPerson']])
                     : null,

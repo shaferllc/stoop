@@ -68,6 +68,7 @@
             <nav class="hidden text-sm lg:block" aria-label="Stoop">
                 @php($navItem = 'flex items-center rounded-md px-2.5 py-1.5 text-mute hover:bg-chip hover:text-ink')
                 <a href="{{ route('home') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('home') && ! request('line') && ! request('stop') ? 'bg-chip text-ink' : '' }}">Front Stoop</a>
+                <a href="{{ route('places') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('places*') ? 'bg-chip text-ink' : '' }}">Places</a>
                 @auth
                     <a href="{{ route('notifications') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('notifications') ? 'bg-chip text-ink' : '' }}">
                         Notifications

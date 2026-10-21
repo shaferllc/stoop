@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Actions\FileDispatch;
 use App\Exceptions\NudgeRequired;
 use App\Models\Dispatch;
+use App\Models\Place;
 use App\Models\User;
 use App\Support\Achievements;
 use Flux\Flux;
@@ -55,6 +56,23 @@ class Composer extends Component
     public string $safetyBlock = '';
 
     public string $safetyPerson = '';
+
+    public ?int $placeId = null;
+
+    public bool $showPlace = false;
+
+    public string $placeQuery = '';
+
+    public bool $asBusiness = false;
+
+    public string $sponsor = '';
+
+    public function selectPlace(?int $id): void
+    {
+        $this->placeId = $id;
+        $this->placeQuery = '';
+        $this->asBusiness = false;
+    }
 
     public function updatedBody(): void
     {
@@ -125,7 +143,7 @@ class Composer extends Component
 
         try {
             $dispatch = FileDispatch::handle($user, [
-                ...$this->only(['type', 'body', 'line', 'stop', 'happeningAt', 'options', 'pollHours', 'publishAt', 'photos', 'alts', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'quoteId']),
+                ...$this->only(['type', 'body', 'line', 'stop', 'happeningAt', 'options', 'pollHours', 'publishAt', 'photos', 'alts', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'quoteId', 'placeId', 'asBusiness', 'sponsor']),
                 'parentId' => $this->parentId,
             ], confirmed: $this->warned);
         } catch (NudgeRequired) {
@@ -134,7 +152,7 @@ class Composer extends Component
             return;
         }
 
-        $this->reset('body', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson');
+        $this->reset('body', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'placeId', 'placeQuery', 'asBusiness', 'sponsor', 'showPlace');
         $this->type = 'dispatch';
         $this->dispatch('dispatch-filed', id: $dispatch->id);
 
@@ -151,8 +169,14 @@ class Composer extends Component
 
     public function render(): View
     {
+        $q = trim($this->placeQuery);
+
         return view('livewire.composer', [
             'quoted' => $this->quoteId ? Dispatch::with('user')->find($this->quoteId) : null,
+            'place' => $this->placeId ? Place::find($this->placeId) : null,
+            'placeResults' => mb_strlen($q) >= 2
+                ? Place::where('name', 'like', '%'.$q.'%')->orderByRaw('list_rank is null, list_rank')->take(6)->get()
+                : collect(),
         ]);
     }
 }

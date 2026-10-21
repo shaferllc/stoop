@@ -4,6 +4,7 @@ namespace App\Livewire\Pages;
 
 use App\Livewire\Concerns\HandlesDispatchActions;
 use App\Models\Dispatch;
+use App\Models\Sponsorship;
 use App\Models\User;
 use App\Support\Suggestions;
 use Illuminate\Database\Eloquent\Builder;
@@ -153,7 +154,11 @@ class Feed extends Component
 
     public function render(): View
     {
+        $sponsorship = Sponsorship::for($this->stop, $this->line);
+        $sponsorship?->increment('impressions');
+
         return view('livewire.pages.feed', [
+            'sponsorship' => $sponsorship,
             'state' => $this->viewerState($this->dispatches),
         ]);
     }
