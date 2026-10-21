@@ -43,7 +43,7 @@ class FileDispatch
         $input = [
             'type' => 'dispatch', 'body' => '', 'line' => 'red', 'stop' => null, 'happeningAt' => '',
             'options' => [], 'pollHours' => 24, 'publishAt' => '', 'photos' => [], 'alts' => [],
-            'safetyWhen' => '', 'safetyBlock' => '', 'safetyPerson' => '', 'parentId' => null, 'quoteId' => null, 'placeId' => null, 'asBusiness' => false, 'sponsor' => '', 'eventId' => null, 'rating' => null, 'snowInches' => null, 'plowed' => null,
+            'safetyWhen' => '', 'safetyBlock' => '', 'safetyPerson' => '', 'parentId' => null, 'quoteId' => null, 'placeId' => null, 'asBusiness' => false, 'sponsor' => '', 'eventId' => null, 'rating' => null, 'snowInches' => null, 'plowed' => null, 'quoteOk' => false,
             ...array_filter($input, fn ($v) => $v !== null),
         ];
         $input['body'] = trim((string) $input['body']);
@@ -163,6 +163,8 @@ class FileDispatch
             'rating' => $event?->rating_label && $input['rating'] ? (int) $input['rating'] : null,
             'snow_inches' => $type === 'snow' ? (float) $input['snowInches'] : null,
             'plowed' => $type === 'snow' ? $input['plowed'] : null,
+            // A reply to a newsroom callout that the newsroom may quote in a story.
+            'quote_ok' => $parent?->type === 'callout' && $input['quoteOk'] ? true : null,
         ], fn ($v) => $v !== null);
 
         $dispatch = DB::transaction(function () use ($user, $input, $parent, $quoted, $options, $publishAt, $preview, $type, $place, $event, $details) {

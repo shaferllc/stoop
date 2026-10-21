@@ -130,6 +130,7 @@
                     <a href="{{ route('transparency') }}" wire:navigate class="underline">Transparency</a> ·
                     <a href="{{ route('privacy') }}" wire:navigate class="underline">Privacy</a> ·
                     <a href="{{ route('terms') }}" wire:navigate class="underline">Terms</a> ·
+                    <a href="{{ route('tips.create') }}" wire:navigate class="underline">Send a tip</a> ·
                     <span>Station locations © <a href="https://www.openstreetmap.org/copyright" class="underline" target="_blank" rel="noopener">OpenStreetMap</a></span> ·
                     <button type="button" onclick="document.getElementById('shortcuts').showModal()" class="underline">Keyboard shortcuts</button>
                 </div>

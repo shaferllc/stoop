@@ -141,6 +141,7 @@ class DispatchController extends Controller
                 'parentId' => $request->integer('parent_id') ?: null,
                 'quoteId' => $request->integer('quote_id') ?: null,
                 'placeId' => $request->integer('place_id') ?: null,
+                'quoteOk' => $request->boolean('quote_ok'),
             ], confirmed: $request->boolean('confirm'));
         } catch (NudgeRequired) {
             $message = 'That reads as a personal attack. Would you say it to a neighbor?';

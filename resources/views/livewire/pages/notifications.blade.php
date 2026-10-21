@@ -28,6 +28,7 @@
                         'mention' => 'mentioned you',
                         'best' => 'picked your reply as the Best Answer',
                         'follow' => 'followed you',
+                        'update' => 'posted an update to an article you joined in on',
                         'moderation' => $data['message'] ?? 'A moderator reviewed your dispatch',
                         default => 'did something',
                     } }}</span>

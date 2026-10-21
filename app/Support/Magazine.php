@@ -95,23 +95,38 @@ class Magazine
         $posted = 0;
 
         foreach ($items as $item) {
-            if ($published($item)->lt(now()->subDays(2))) {
-                continue;
-            }
-
             $link = (string) ($item->link['href'] ?? $item->link);
             $title = trim(html_entity_decode(strip_tags((string) $item->title), ENT_QUOTES | ENT_HTML5));
             $guid = (string) ($item->guid ?? $item->id ?? $link);
             $category = trim((string) ($item->category['term'] ?? $item->category));
+            $summary = trim(html_entity_decode(strip_tags((string) ($item->description ?? $item->summary)), ENT_QUOTES | ENT_HTML5));
+            $hash = self::contentHash($item);
 
-            if (! $link || ! $title || in_array(strtolower($category), self::SKIP_SECTIONS, true)
-                || DB::table('articles')->where('guid_hash', hash('sha256', $guid))->exists()) {
+            // Already posted: if the article changed since, tell the thread. Articles imported
+            // before hashes were stored just get one, without an update.
+            if ($article = DB::table('articles')->where('guid_hash', hash('sha256', $guid))->first()) {
+                if ($article->content_hash !== $hash) {
+                    DB::table('articles')->where('id', $article->id)->update(['content_hash' => $hash, 'updated_at' => now()]);
+                    if ($article->content_hash !== null) {
+                        ArticleUpdates::post($article, 'The magazine updated this story since it was posted. '.$link, $hash);
+                    }
+                }
+
                 continue;
             }
+
+            if ($published($item)->lt(now()->subDays(2))
+                || ! $link || ! $title || in_array(strtolower($category), self::SKIP_SECTIONS, true)) {
+                continue;
+            }
+
+            // Tag the article with the stations it mentions; the first one becomes the post's stop.
+            $stations = Archive::tag($title.' '.$summary)['stations'];
 
             $dispatch = rescue(fn () => FileDispatch::handle(self::account(), [
                 'body' => Str::limit($title, config('stoop.max_length') - 30, '…').' '.$link,
                 'line' => self::SECTIONS[strtolower($category)] ?? self::lineFor($title),
+                'stop' => $stations[0] ?? null,
             ], confirmed: true), null, false);
 
             DB::table('articles')->insert([
@@ -121,6 +136,8 @@ class Magazine
                 'category' => $category ? Str::limit($category, 80, '') : null,
                 'dispatch_id' => $dispatch?->id,
                 'published_at' => rescue(fn () => Carbon::parse((string) ($item->pubDate ?? $item->published ?? $item->updated)), now(), false),
+                'content_hash' => $hash,
+                'stations' => $stations ? Str::limit(implode(',', $stations), 60, '') : null,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -129,6 +146,20 @@ class Magazine
         }
 
         return $posted;
+    }
+
+    /**
+     * A fingerprint of what readers see in an item: title, summary, full content and the
+     * feed's updated date. It changes when the article is corrected or updated.
+     */
+    protected static function contentHash(SimpleXMLElement $item): string
+    {
+        return hash('sha256', implode("\n", [
+            (string) $item->title,
+            (string) ($item->description ?? $item->summary),
+            (string) ($item->children('content', true)->encoded ?? $item->content),
+            (string) $item->updated,
+        ]));
     }
 
     public static function lineFor(string $text): string

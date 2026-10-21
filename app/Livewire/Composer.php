@@ -77,6 +77,9 @@ class Composer extends Component
 
     public ?string $plowed = null;
 
+    /** Replying to a newsroom callout: the newsroom may quote this reply. */
+    public bool $quoteOk = false;
+
     public function selectPlace(?int $id): void
     {
         $this->placeId = $id;
@@ -165,7 +168,7 @@ class Composer extends Component
 
         try {
             $dispatch = FileDispatch::handle($user, [
-                ...$this->only(['type', 'body', 'line', 'stop', 'happeningAt', 'options', 'pollHours', 'publishAt', 'photos', 'alts', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'quoteId', 'placeId', 'asBusiness', 'sponsor', 'eventId', 'rating', 'snowInches', 'plowed']),
+                ...$this->only(['type', 'body', 'line', 'stop', 'happeningAt', 'options', 'pollHours', 'publishAt', 'photos', 'alts', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'quoteId', 'placeId', 'asBusiness', 'sponsor', 'eventId', 'rating', 'snowInches', 'plowed', 'quoteOk']),
                 'parentId' => $this->parentId,
             ], confirmed: $this->warned);
         } catch (NudgeRequired) {
@@ -174,7 +177,7 @@ class Composer extends Component
             return;
         }
 
-        $this->reset('body', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'placeId', 'placeQuery', 'asBusiness', 'sponsor', 'showPlace', 'eventId', 'rating', 'snowInches', 'plowed');
+        $this->reset('body', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'placeId', 'placeQuery', 'asBusiness', 'sponsor', 'showPlace', 'eventId', 'rating', 'snowInches', 'plowed', 'quoteOk');
         $this->type = 'dispatch';
         $this->dispatch('dispatch-filed', id: $dispatch->id);
 
@@ -203,6 +206,7 @@ class Composer extends Component
             'place' => $this->placeId ? Place::find($this->placeId) : null,
             'events' => $this->parentId ? collect() : CityEvent::where('kind', 'event')->happening()->orderBy('ends_at')->get(),
             'snowDay' => Settings::snowDay(),
+            'replyingToCallout' => $this->parentId && Dispatch::whereKey($this->parentId)->where('type', 'callout')->exists(),
             'placeResults' => mb_strlen($q) >= 2
                 ? Place::where('name', 'like', '%'.$q.'%')->orderByRaw('list_rank is null, list_rank')->take(6)->get()
                 : collect(),

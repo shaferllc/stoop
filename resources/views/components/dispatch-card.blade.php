@@ -230,6 +230,7 @@
                     @if ($d->user_id === $me->id || $me->is_staff)
                         <flux:menu.item wire:click="deleteDispatch({{ $d->id }})">Delete</flux:menu.item>
                     @endif
+                    <flux:menu.item :href="route('tips.create', ['dispatch' => $d->id])" wire:navigate>Tip the newsroom about this</flux:menu.item>
                     @if ($d->user_id !== $me->id)
                         <flux:menu.item wire:click="startReport({{ $d->id }})">Report</flux:menu.item>
                         <flux:menu.item wire:click="silence({{ $d->user_id }}, 'mute')">Mute {{ '@'.$d->user->username }}</flux:menu.item>
