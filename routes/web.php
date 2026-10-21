@@ -149,6 +149,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('audit', Admin\AuditLog::class)->name('.audit');
         Route::livewire('quiz', Admin\QuizQuestions::class)->name('.quiz');
         Route::livewire('moments', Admin\Moments::class)->name('.moments');
+        Route::livewire('history', Admin\HistoryEntries::class)->name('.history');
     });
     Route::get('settings/export', ExportController::class)->middleware('throttle:5,1')->name('export');
     // Push notification sign-ups from a browser or the installed app...

@@ -40,6 +40,15 @@ Embed on magazine article pages:
 <script src="https://stoop.test/embed.js" async></script>
 ```
 
+## House bots
+
+Each bot is one class in `app/Bots`, found automatically, with its scheduled posts on the scheduler (DC time):
+
+- **@eats**: reply “@eats Ethiopian near U Street” for up to three places from the magazine’s lists near that station (stations within about 1.2 km) or neighborhood. Keyword matching; Claude re-ranks the matches when `ANTHROPIC_API_KEY` is set.
+- **@weekend**: Fridays at noon, a round-up of city events and Happening posts for Friday to Sunday. Staff mark editors’ picks from a Happening post’s ••• menu (“Pick for @weekend”). Skipped when nothing’s on.
+- **@history**: 9am “On this day in DC” from Admin → History. Seeded entries are marked VERIFY and don’t post until an editor checks them. “Draft with AI” fills the form when the key is set.
+- **@quizmaster**: The Daily at 7am, the five longest current streaks at 8pm, and one cheer per shared result.
+
 ## Tests
 
 ```

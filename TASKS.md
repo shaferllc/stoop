@@ -47,6 +47,10 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] On the scene (Going live): YouTube, Twitch or Instagram link for 1–12 hours, red ring and marker
 - [x] House bots: @stoop answers questions (Claude when `ANTHROPIC_API_KEY` is set, knowledge-base lookup otherwise); @dc answers “hello DC”
 - [x] New accounts start out following @stoop, and @stoop follows them back
+- [x] @eats (place picks from the magazine’s lists), @weekend (Friday round-up with editors’ picks), @history (On this day in DC, staff-edited at Admin → History), @quizmaster (The Daily, streak leaders, cheers for shared results)
+- [ ] Editors: check the seeded @history entries (marked VERIFY) so they start posting
+- [ ] A public-stats opt-out for the quiz streak leaderboard (everyone who plays is listed now, by username)
+- [ ] Ticketed events: a real field on events and Happening posts (@weekend guesses from the word “ticket”)
 
 ## Notifications
 - [x] Replies, quotes, mentions, follows and moderation outcomes

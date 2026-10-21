@@ -6,6 +6,7 @@ use App\Actions\DispatchActions;
 use App\Models\Dispatch;
 use App\Models\User;
 use App\Notifications\StoopActivity;
+use App\Support\Audit;
 use App\Support\Translator;
 use Flux\Flux;
 use Illuminate\Support\Collection;
@@ -231,6 +232,21 @@ trait HandlesDispatchActions
         $user->forceFill(['pinned_dispatch_id' => $pinned ? null : $dispatch->id])->save();
 
         Flux::toast($pinned ? 'Unpinned.' : 'Pinned to your profile.');
+    }
+
+    /**
+     * Staff mark a Happening post as an editors' pick for @weekend's Friday round-up.
+     */
+    public function toggleWeekendPick(int $id): void
+    {
+        abort_unless(Auth::user()?->is_staff, 403);
+
+        $dispatch = Dispatch::whereNull('parent_id')->where('type', 'happening')->where('status', 'approved')->findOrFail($id);
+        $picked = (bool) $dispatch->weekend_picked_at;
+        $dispatch->forceFill(['weekend_picked_at' => $picked ? null : now()])->saveQuietly();
+        Audit::log($picked ? 'weekend.unpicked' : 'weekend.picked', $dispatch);
+
+        Flux::toast($picked ? 'Removed from @weekend’s picks.' : 'Picked for @weekend.');
     }
 
     public function translate(int $id): void
