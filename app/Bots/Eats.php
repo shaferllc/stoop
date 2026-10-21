@@ -38,7 +38,9 @@ class Eats extends Bot
     public function reply(Dispatch $dispatch): ?string
     {
         $ask = trim(preg_replace('/(?<![\w.@])@eats\b/i', '', $dispatch->body));
-        [$craving, $where] = preg_match('/^(.*?)\s+(?:near|around|by|in)\s+(.+)$/is', $ask, $m) ? [$m[1], trim($m[2], " \t\n.?!")] : [$ask, ''];
+        // "near" wins ("pizza by the slice near Shaw"), then the first "around", "by" or "in".
+        $split = preg_match('/^(.*)\s+near\s+(.+)$/is', $ask, $m) || preg_match('/^(.*?)\s+(?:around|by|in)\s+(.+)$/is', $ask, $m);
+        [$craving, $where] = $split ? [$m[1], trim($m[2], " \t\n.?!")] : [$ask, ''];
 
         $station = $where !== '' ? self::station($where) : null;
         $stops = $station ? self::nearbyStops($station) : [];

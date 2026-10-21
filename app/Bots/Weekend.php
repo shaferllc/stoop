@@ -100,7 +100,7 @@ class Weekend extends Bot
             str_contains($when, 'tonight') || str_contains($when, 'today') => $inWeekend($posted),
             str_contains($when, 'tomorrow') => $inWeekend($posted->addDay()),
             // A weekday name posted since Monday means this coming one.
-            (bool) preg_match('/\b(fri|sat|sun|weekend)/', $when) => $posted->gte($friday->subDays(4)),
+            (bool) preg_match('/\b(fri(day)?|sat(urday)?|sun(day)?|weekend)\b/', $when) => $posted->gte($friday->subDays(4)),
             default => false,
         };
     }
@@ -117,6 +117,6 @@ class Weekend extends Bot
             preg_match('/\btickets?\b/i', $d->body) ? 'Ticketed' : null,
         ]);
 
-        return '• '.$excerpt.' ('.$d->happening_at.')'.($labels ? ' · '.implode(' · ', $labels) : '').' '.route('dispatches.show', $d);
+        return '• '.$excerpt.' ('.str_replace('@', '', $d->happening_at).')'.($labels ? ' · '.implode(' · ', $labels) : '').' '.route('dispatches.show', $d);
     }
 }

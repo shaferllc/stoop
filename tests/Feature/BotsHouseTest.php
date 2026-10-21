@@ -105,6 +105,7 @@ class BotsHouseTest extends TestCase
         $this->assertStringContainsString('Nothing on the magazine’s lists matches that around there. Browse them all: '.route('places'), $this->ask('@eats sushi near U Street')->body);
         $this->assertStringContainsString(route('places'), $this->ask('@eats tacos near Narnia')->body);
         $this->assertSame('U Street', config('stoop.stations.'.Eats::station('u st')));
+        $this->assertStringContainsString('Slice Joint', $this->ask('@eats pizza by the slice near U Street')->body);
     }
 
     public function test_eats_lets_claude_rank_only_when_it_is_on(): void
@@ -141,6 +142,7 @@ class BotsHouseTest extends TestCase
         $saturday = Dispatch::factory()->create(['type' => 'happening', 'happening_at' => 'Saturday · 2pm', 'body' => 'Stoop clean-up on Kenyon, tickets are free @someone', 'line' => 'orange']);
         $held = Dispatch::factory()->create(['type' => 'happening', 'happening_at' => 'Saturday · 4pm', 'body' => 'A held one', 'status' => 'held']);
         $tonightWednesday = Dispatch::factory()->create(['type' => 'happening', 'happening_at' => 'Tonight · 8pm', 'body' => 'A Wednesday show']);
+        Dispatch::factory()->create(['type' => 'happening', 'happening_at' => 'Half-price fries · 5pm', 'body' => 'Fries deal']);
         $picked = Dispatch::factory()->create(['type' => 'happening', 'happening_at' => 'Oct 25 · noon', 'body' => 'Fall festival at the farm', 'weekend_picked_at' => now()]);
         $this->travelToDc('2026-10-14 10:00');
         $lastWeek = Dispatch::factory()->create(['type' => 'happening', 'happening_at' => 'Saturday · 1pm', 'body' => 'Last week’s party']);
@@ -155,7 +157,7 @@ class BotsHouseTest extends TestCase
         $this->assertStringContainsString("Editors’ picks:\n• Fall festival at the farm (Oct 25 · noon) ".route('dispatches.show', $picked), $post->body);
         $this->assertStringContainsString('Marine Corps Marathon (Sun 7:00am) '.route('events.show', 'marathon'), $post->body);
         $this->assertStringContainsString('Stoop clean-up on Kenyon, tickets are free someone (Saturday · 2pm) · Ticketed '.route('dispatches.show', $saturday), $post->body);
-        foreach (['A held one', 'A Wednesday show', 'Last week’s party', 'Next Month Thing'] as $missing) {
+        foreach (['Fries deal', 'A held one', 'A Wednesday show', 'Last week’s party', 'Next Month Thing'] as $missing) {
             $this->assertStringNotContainsString($missing, $post->body);
         }
         $this->assertLessThanOrEqual(500, mb_strlen($post->body));
@@ -241,6 +243,20 @@ class BotsHouseTest extends TestCase
 
         $this->travelToDc('2026-10-21 20:00');
         $this->assertSame(['bot:quizmaster:leaders'], $this->dueNow($bot));
+    }
+
+    public function test_an_early_cheer_does_not_block_the_morning_post(): void
+    {
+        $this->seed(QuizQuestionSeeder::class);
+        $bot = app(Quizmaster::class);
+        $this->travelToDc('2026-10-21 06:30');
+        $player = User::factory()->create();
+        $shared = Dispatch::factory()->create(['user_id' => $player->id, 'body' => DailyQuiz::shareText($this->finish($player, '2026-10-21'))]);
+        (new RunBots($shared))->handle();
+        $this->assertSame(1, $shared->replies()->count());
+
+        $this->travelToDc('2026-10-21 07:00');
+        $this->assertNotNull($bot->postDaily());
     }
 
     protected function finish(User $user, string $day, int $score = 5): object

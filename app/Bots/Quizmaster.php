@@ -118,7 +118,8 @@ class Quizmaster extends Bot
 
     protected function postedToday(string $prefix): bool
     {
-        return $this->account()->dispatches()->withTrashed()
+        // Scheduled posts are top-level; cheers are replies and don't count.
+        return $this->account()->dispatches()->withTrashed()->whereNull('parent_id')
             ->where('created_at', '>=', DailyQuiz::today()->utc())->where('body', 'like', $prefix.'%')->exists();
     }
 }
