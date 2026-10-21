@@ -27,8 +27,6 @@ use App\Livewire\Pages\ShowDispatch;
 use App\Livewire\Pages\UserProfile;
 use App\Mail\WeeklyDigest;
 use App\Models\Ballot;
-use App\Models\CityEvent;
-use App\Models\Contest;
 use App\Models\Dispatch;
 use App\Models\Game;
 use App\Models\MessageImage;
@@ -61,6 +59,16 @@ Route::get('d/{dispatch}/replies-preview', function (Dispatch $dispatch) {
 })->middleware('throttle:120,1')->name('dispatches.replies-preview');
 Route::livewire('@{user:username}', UserProfile::class)->name('users.show');
 Route::view('rules', 'rules')->name('rules');
+
+// Local development only: one-click sign-in through a signed link that expires (see `php artisan stoop:login-link`).
+if (app()->isLocal()) {
+    Route::get('dev/login/{user}', function (User $user) {
+        auth()->login($user);
+        request()->session()->regenerate();
+
+        return redirect('/');
+    })->middleware(['signed:relative', 'throttle:20,1'])->name('dev.login');
+}
 Route::get('bots', fn () => view('bots', ['bots' => Bot::all()]))->name('bots');
 Route::view('privacy', 'privacy')->name('privacy');
 Route::view('terms', 'terms')->name('terms');

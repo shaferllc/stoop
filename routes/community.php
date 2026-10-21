@@ -6,8 +6,13 @@ use App\Livewire\Pages\HuntShow;
 use App\Livewire\Pages\HuntsIndex;
 use App\Livewire\Pages\LostFound;
 use App\Livewire\Pages\MetroBingo;
+use App\Models\Contest;
 use App\Models\Dispatch;
+use App\Models\Game;
+use App\Models\Hunt;
 use App\Models\User;
+use App\Support\Bingo;
+use App\Support\DailyQuiz;
 use App\Support\Happenings;
 use App\Support\ReadersPicks;
 use App\Support\Rivalries;
@@ -55,9 +60,9 @@ Route::redirect('line-cup', '/rivalries#line-cup')->name('line-cup');
 // Every game in one place.
 Route::get('play', function () {
     $user = auth()->user();
-    $quizDone = $user && DB::table('quiz_attempts')->where('user_id', $user->id)->where('day', App\Support\DailyQuiz::today()->toDateString())->whereNotNull('completed_at')->exists();
-    $bingo = $user ? App\Support\Bingo::card($user) : null;
-    $hunts = App\Models\Hunt::running()->count();
+    $quizDone = $user && DB::table('quiz_attempts')->where('user_id', $user->id)->where('day', DailyQuiz::today()->toDateString())->whereNotNull('completed_at')->exists();
+    $bingo = $user ? Bingo::card($user) : null;
+    $hunts = Hunt::running()->count();
     $cup = Rivalries::lineCup(Rivalries::monthStart());
 
     return view('play', [
@@ -71,8 +76,8 @@ Route::get('play', function () {
             ['title' => 'Rivalries & Line Cup', 'url' => route('rivalries'), 'when' => 'Weekly and monthly', 'live' => true, 'about' => 'Neighborhood matchups every week, and the six lines battle for the monthly cup.',
                 'status' => ($leader = $cup->keys()->first()) && $cup->first()['points'] > 0 ? ucfirst($leader).' line leads the cup' : null],
         ],
-        'games' => App\Models\Game::where('starts_at', '>=', now()->subDays(3))->orderBy('starts_at')->take(12)->get(),
-        'contests' => App\Models\Contest::where(fn ($q) => $q->where('closes_at', '>=', now())->orWhere('updated_at', '>=', now()->subMonth()))->latest('closes_at')->get(),
+        'games' => Game::where('starts_at', '>=', now()->subDays(3))->orderBy('starts_at')->take(12)->get(),
+        'contests' => Contest::where(fn ($q) => $q->where('closes_at', '>=', now())->orWhere('updated_at', '>=', now()->subMonth()))->latest('closes_at')->get(),
     ]);
 })->name('play');
 

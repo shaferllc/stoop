@@ -51,6 +51,18 @@
             </div>
         </form>
 
+        {{-- Local development only, and only on the .test address, never through a public tunnel. --}}
+        @if (app()->isLocal() && Route::has('dev.login') && ! request()->headers->has('X-Forwarded-For') && ! request()->headers->has('X-Forwarded-Host') && (str_ends_with(request()->getHost(), '.test') || in_array(request()->getHost(), ['localhost', '127.0.0.1'], true)))
+            <div class="rounded-lg border border-dashed border-zinc-300 p-3 text-sm dark:border-zinc-600">
+                <p class="font-semibold">Quick login (local only)</p>
+                <div class="mt-2 flex flex-wrap gap-1.5">
+                    @foreach (\App\Models\User::whereIn('username', ['tshafer', 'admin_app', 'margot_ellison', 'renata_okafor', 'calvin_brooks', 'dre_w13', 'jasper_cole', 'you'])->get() as $u)
+                        <a href="{{ URL::temporarySignedRoute('dev.login', now()->addMinutes(10), ['user' => $u], absolute: false) }}" class="rounded-md border border-zinc-300 px-2 py-1 hover:bg-zinc-100 dark:border-zinc-600 dark:hover:bg-zinc-800">{{ '@'.$u->username }}</a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         <div class="space-x-1 text-sm text-center rtl:space-x-reverse text-zinc-600 dark:text-zinc-400">
             <span>{{ __('Don\'t have an account?') }}</span>
             <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>

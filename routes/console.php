@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -136,3 +137,9 @@ Schedule::call(fn () => Cache::forever('stoop:schedule-ran', now()->toIso8601Str
 foreach (Bot::all() as $bot) {
     $bot->schedule(app(Illuminate\Console\Scheduling\Schedule::class));
 }
+
+Artisan::command('stoop:login-link {username} {--minutes=120}', function () {
+    abort_unless(app()->isLocal(), 403, 'Local development only.');
+    $user = User::where('username', ltrim($this->argument('username'), '@'))->firstOrFail();
+    $this->line(URL::temporarySignedRoute('dev.login', now()->addMinutes((int) $this->option('minutes')), ['user' => $user], absolute: false));
+})->purpose('Print a one-click sign-in path for local testing (add it to the site or tunnel address)');
