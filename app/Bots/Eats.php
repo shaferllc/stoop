@@ -6,6 +6,7 @@ use App\Models\Dispatch;
 use App\Models\Place;
 use App\Support\ClaudeText;
 use App\Support\Metro;
+use App\Support\Referrals;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -74,8 +75,9 @@ class Eats extends Bot
         foreach ($picks->values() as $i => $place) {
             $line = "\n".($i + 1).'. '.$place->name.($place->listLabel() ? ' ('.$place->listLabel().')' : '').' '.route('places.show', $place);
             $review = $place->article_url ? "\n   Review: ".$place->article_url : '';
+            $reserve = $place->reservation_url ? "\n   Reserve: ".route('places.reserve', $place).(Referrals::earns($place->reservation_url) ? ' ('.Referrals::COMMISSION.')' : '') : '';
             // Replies have to fit the 500-character limit, so drop what doesn't.
-            foreach ([$line.$review, $line] as $candidate) {
+            foreach (array_unique([$line.$reserve.$review, $line.$reserve, $line]) as $candidate) {
                 if (mb_strlen($body.$candidate) <= config('stoop.max_length')) {
                     $body .= $candidate;
                     break;

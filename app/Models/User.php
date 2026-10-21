@@ -242,13 +242,16 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 
     /**
      * Staff roles: moderator, editor, sales and admin (admin can do everything). With no
-     * role given, any staff role will do. Staff from before roles existed count as admins.
+     * role given, any staff role will do; with a list, any of them. Staff from before roles
+     * existed count as admins.
+     *
+     * @param  string|array<int, string>|null  $role
      */
-    public function hasRole(?string $role = null): bool
+    public function hasRole(string|array|null $role = null): bool
     {
         $roles = $this->staffRoles();
 
-        return $roles && ($role === null || in_array('admin', $roles, true) || in_array($role, $roles, true));
+        return $roles && ($role === null || in_array('admin', $roles, true) || (bool) array_intersect((array) $role, $roles));
     }
 
     /**

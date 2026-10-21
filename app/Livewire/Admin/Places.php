@@ -7,6 +7,7 @@ use App\Models\PlaceClaim;
 use App\Notifications\ModerationNotice;
 use App\Support\Audit;
 use App\Support\Business;
+use App\Support\Referrals;
 use Flux\Flux;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -23,9 +24,10 @@ class Places extends Component
 {
     use StaffOnly, WithFileUploads, WithPagination;
 
-    protected const ROLE = 'sales';
+    // Editors keep places and reservation links up to date; imports, deletes and claims stay with sales.
+    protected const ROLE = ['sales', 'editor'];
 
-    public const COLUMNS = ['name', 'category', 'neighborhood', 'stop', 'address', 'website', 'blurb', 'list_name', 'list_rank', 'article_url'];
+    public const COLUMNS = ['name', 'category', 'neighborhood', 'stop', 'address', 'website', 'blurb', 'list_name', 'list_rank', 'article_url', 'reservation_url'];
 
     #[Url(except: 'places')]
     public string $tab = 'places';
@@ -59,6 +61,7 @@ class Places extends Component
             'form.list_name' => ['nullable', 'string', 'max:120'],
             'form.list_rank' => ['nullable', 'integer', 'min:1', 'max:1000'],
             'form.article_url' => ['nullable', 'url:http,https', 'max:300'],
+            'form.reservation_url' => Referrals::rules(),
         ];
     }
 
@@ -75,6 +78,7 @@ class Places extends Component
 
     public function delete(int $id): void
     {
+        abort_unless($this->staff()->hasRole('sales'), 403);
         $place = Place::findOrFail($id);
         Audit::log('place.deleted', $place, ['name' => $place->name]);
         $place->delete();
@@ -86,6 +90,7 @@ class Places extends Component
      */
     public function import(): void
     {
+        abort_unless($this->staff()->hasRole('sales'), 403);
         $this->validate(['csv' => ['required', 'file', 'mimes:csv,txt', 'max:2048']]);
 
         $handle = fopen($this->csv->getRealPath(), 'r');
@@ -123,6 +128,7 @@ class Places extends Component
 
     public function decideClaim(int $claimId, bool $approve): void
     {
+        abort_unless($this->staff()->hasRole('sales'), 403);
         $claim = PlaceClaim::with(['place', 'user'])->where('status', 'pending')->findOrFail($claimId);
         if ($approve && Place::where('owner_id', $claim->user_id)->count() >= Business::plan($claim->user)['locations']) {
             Flux::toast('They already manage a place. More locations need the Business plan.', variant: 'danger');

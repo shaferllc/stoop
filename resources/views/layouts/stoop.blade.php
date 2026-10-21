@@ -81,6 +81,7 @@
                 <a href="{{ route('happenings') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('happenings', 'events.*', 'snow') ? 'bg-chip text-ink' : '' }}">Happenings</a>
                 <a href="{{ route('play') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('play', 'quiz', 'bingo', 'hunts', 'hunts.show', 'line-cup', 'rivalries', 'passports', 'contests.*') ? 'bg-chip text-ink' : '' }}">Play</a>
                 <a href="{{ route('lost-found') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('lost-found') ? 'bg-chip text-ink' : '' }}">Lost &amp; found</a>
+                <a href="{{ route('classifieds') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('classifieds*') ? 'bg-chip text-ink' : '' }}">Classifieds</a>
                 @auth
                     <a href="{{ route('notifications') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('notifications') ? 'bg-chip text-ink' : '' }}">
                         Notifications
@@ -173,6 +174,7 @@
                     <a href="{{ route('happenings') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.calendar-days variant="mini" />Happenings</a>
                     <a href="{{ route('play') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.trophy variant="mini" />Play</a>
                     <a href="{{ route('lost-found') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.magnifying-glass-circle variant="mini" />Lost &amp; found</a>
+                    <a href="{{ route('classifieds') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.newspaper variant="mini" />Classifieds</a>
                     <a href="{{ route('bots') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.cpu-chip variant="mini" />Bots</a>
                     @auth
                         <a href="{{ route('saved') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.bookmark variant="mini" />Saved</a>

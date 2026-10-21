@@ -241,3 +241,4 @@ require __DIR__.'/web-newsroom.php';
 require __DIR__.'/web-ads.php';
 require __DIR__.'/web-challenges.php';
 require __DIR__.'/web-business.php';
+require __DIR__.'/web-revenue.php';

@@ -60,6 +60,7 @@ Route::prefix('app')->name('app.')->group(function () {
 
             require __DIR__.'/api-app-community.php';
             require __DIR__.'/api-app-sports.php';
+            require __DIR__.'/api-app-classifieds.php';
 
             Route::get('challenges', [ChallengesController::class, 'index'])->middleware('throttle:60,1,app-challenges');
             Route::get('challenges/{slug}', [ChallengesController::class, 'show'])->middleware('throttle:60,1,app-challenges');
