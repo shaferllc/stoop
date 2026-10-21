@@ -1,6 +1,8 @@
 <?php
 
+use App\Bots\Sentinel;
 use App\Http\Controllers\Api\AdminOpsController as Ops;
+use App\Support\ClaudeText;
 use Illuminate\Support\Facades\Route;
 
 // Bots, spam and operations for the Stoop Admin desktop app. Required inside the
@@ -22,6 +24,9 @@ Route::post('bots/knowledge', [Ops::class, 'saveKnowledge']);
 Route::delete('bots/knowledge/{entry}', [Ops::class, 'deleteKnowledge'])->whereNumber('entry');
 
 Route::get('activity', [Ops::class, 'activity']);
+
+// @sentinel's hourly moderation summaries, newest first.
+Route::get('sentinel', fn () => ['claude' => ClaudeText::enabled(), 'summaries' => Sentinel::latest()]);
 
 Route::get('roles', [Ops::class, 'roles']);
 Route::post('roles', [Ops::class, 'setRoles']);
