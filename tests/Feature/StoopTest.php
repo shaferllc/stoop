@@ -8,6 +8,7 @@ use App\Livewire\Pages\Moderation;
 use App\Models\Dispatch;
 use App\Models\Penalty;
 use App\Models\User;
+use App\Support\Civility;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -66,6 +67,14 @@ class StoopTest extends TestCase
 
         $this->assertSame(1, $dispatch->replies()->count());
         $this->assertSame('reply', $dispatch->user->notifications()->first()->data['kind']);
+    }
+
+    public function test_profanity_aimed_at_someone_gets_the_nudge(): void
+    {
+        foreach (['fuck you', 'Fuck off', 'screw you', 'go to hell'] as $text) {
+            $this->assertTrue(Civility::needsNudge($text), $text);
+        }
+        $this->assertFalse(Civility::needsNudge('This fucking line at the DMV'));
     }
 
     public function test_heated_posts_get_a_nudge_before_going_out(): void

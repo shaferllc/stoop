@@ -25,7 +25,7 @@ Artisan::command('inspire', function () {
 
 Artisan::command('stoop:publish-scheduled', function () {
     Dispatch::where('status', 'scheduled')->where('publish_at', '<=', now())->each(function (Dispatch $dispatch) {
-        $pending = (ModerationModel::enabled() || OpenAiModeration::enabled()) && ! $dispatch->user->is_staff;
+        $pending = (ModerationModel::enabled() || OpenAiModeration::enabled()) && ! $dispatch->user->isHouseAccount();
         $dispatch->forceFill([
             'status' => Civility::shouldHold($dispatch->body) ? 'held' : ($pending ? 'pending' : 'approved'),
             'created_at' => $dispatch->publish_at,

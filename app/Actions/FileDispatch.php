@@ -212,8 +212,8 @@ class FileDispatch
     }
 
     /**
-     * Held if it matches a held pattern; pending a model check when model moderation is on,
-     * except for staff and house accounts; otherwise approved.
+     * Held if it matches a held pattern; pending the automatic check when it's on, for
+     * everyone but Stoop's house accounts (staff too); otherwise approved.
      */
     protected static function initialStatus(User $user, string $body): string
     {
@@ -223,7 +223,7 @@ class FileDispatch
 
         $screened = ModerationModel::enabled() || OpenAiModeration::enabled();
 
-        return $screened && ! $user->is_staff && ! $user->is_bot ? 'pending' : 'approved';
+        return $screened && ! $user->isHouseAccount() ? 'pending' : 'approved';
     }
 
     /**

@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Actions\FileDispatch;
 use App\Livewire\Composer;
 use App\Models\Dispatch;
 use App\Models\User;
+use App\Support\Bots;
 use App\Support\ModerationModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -46,13 +48,15 @@ class ScreeningTest extends TestCase
         $this->actingAs(User::factory()->create())->get('/?tab=latest')->assertDontSee('Hello neighbors');
     }
 
-    public function test_staff_skip_the_model_check(): void
+    public function test_staff_are_checked_too_but_house_accounts_skip(): void
     {
         ModerationModel::fake(fn () => 'hold');
 
         Livewire::actingAs(User::factory()->create(['is_staff' => true]))->test(Composer::class)->set('body', 'Staff note')->call('file');
+        $this->assertSame('held', Dispatch::first()->status);
 
-        $this->assertSame('approved', Dispatch::first()->status);
+        FileDispatch::handle(Bots::account('dc'), ['body' => 'Welcome to the neighborhood']);
+        $this->assertSame('approved', Dispatch::latest('id')->first()->status);
     }
 
     public function test_turnstile_is_required_when_configured(): void

@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Actions\FileDispatch;
 use App\Livewire\Composer;
 use App\Livewire\Pages\AppealCreate;
 use App\Livewire\Pages\Moderation;
 use App\Models\Dispatch;
 use App\Models\User;
+use App\Support\Magazine;
 use App\Support\ModerationModel;
 use App\Support\Strikes;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -92,14 +94,16 @@ class OpenAiModerationTest extends TestCase
         $this->assertSame('pending', Dispatch::first()->status);
     }
 
-    public function test_staff_posts_skip_the_check(): void
+    public function test_staff_posts_are_checked_and_house_accounts_are_not(): void
     {
-        Http::fake();
+        $this->fakeScores(['harassment' => 0.93]);
 
-        Livewire::actingAs(User::factory()->create(['is_staff' => true]))->test(Composer::class)->set('body', 'Staff update')->call('file');
+        Livewire::actingAs(User::factory()->create(['is_staff' => true]))->test(Composer::class)->set('body', 'f you')->call('file');
+        $this->assertSame('held', Dispatch::first()->status);
 
-        $this->assertSame('approved', Dispatch::first()->status);
-        Http::assertNothingSent();
+        FileDispatch::handle(Magazine::account(), ['body' => 'New article https://magazine.example/a']);
+        $this->assertSame('approved', Dispatch::latest('id')->first()->status);
+        Http::assertSentCount(1);
     }
 
     public function test_clear_hate_is_removed_automatically_and_strikes_climb_the_ladder(): void

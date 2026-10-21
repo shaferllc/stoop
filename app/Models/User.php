@@ -225,6 +225,15 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return null;
     }
 
+    /**
+     * Stoop's own accounts (@stoop, @dc, and the magazine's article feed). Their posts skip
+     * the automatic check; everyone else's, staff included, goes through it.
+     */
+    public function isHouseAccount(): bool
+    {
+        return $this->is_bot || $this->username === config('stoop.magazine_account');
+    }
+
     public function isLive(): bool
     {
         return $this->live_url && $this->live_until?->isFuture();

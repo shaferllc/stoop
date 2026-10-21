@@ -139,6 +139,6 @@ return [
     'new_account_dm_hours' => 72,
     'new_account_daily_posts' => 20,
 
-    'nudge_pattern' => '/\b(idiots?|stupid|morons?|trash people|go back to|shut up|losers?|scum|hate (you|them|these))\b/i',
+    'nudge_pattern' => '/\b(idiots?|stupid|morons?|trash people|go back to|shut up|losers?|scum|hate (you|them|these)|f+u+c+k+ (you|u|off|them|this guy)|fck (you|u|off)|screw (you|u)|go to hell|kill yourself|kys)\b/i',
 
 ];
