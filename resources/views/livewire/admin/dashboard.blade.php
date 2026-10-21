@@ -1,5 +1,15 @@
 <div>
-    <h1 class="font-display text-3xl font-bold">Operations</h1>
+    <h1 class="mb-2 font-display text-3xl font-bold">Admin</h1>
+    @include('partials.admin-nav')
+
+    <div class="grid gap-3 sm:grid-cols-2">
+        @foreach ($todo as [$label, $count, $url])
+            <a href="{{ $url }}" wire:navigate @class(['flex items-center justify-between rounded-xl border bg-card p-4', 'border-flag' => $count, 'border-rule' => ! $count])>
+                <span>{{ $label }}</span><b @class(['font-display text-2xl tabular-nums', 'text-flag' => $count])>{{ $count }}</b>
+            </a>
+        @endforeach
+    </div>
+
     <dl class="mt-4 grid gap-x-8 rounded-xl border border-rule bg-card p-4 sm:grid-cols-2">
         @foreach ($stats as $label => $value)
             <div class="flex justify-between border-b border-rule py-2"><dt class="text-mute">{{ $label }}</dt><dd class="font-semibold tabular-nums">{{ number_format($value) }}</dd></div>

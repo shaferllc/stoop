@@ -83,7 +83,7 @@
                     <a href="{{ route('users.show', $me) }}" wire:navigate class="{{ $navItem }}">Profile</a>
                     @if ($me->is_staff)
                         <a href="{{ route('moderation') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('moderation') ? 'bg-chip text-ink' : '' }}">Moderation</a>
-                        <a href="{{ route('operations') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('operations') ? 'bg-chip text-ink' : '' }}">Operations</a>
+                        <a href="{{ route('admin') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('admin*') ? 'bg-chip text-ink' : '' }}">Admin</a>
                     @endif
                 @endauth
 

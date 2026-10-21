@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Livewire\Pages\Operations;
+use App\Livewire\Admin\Dashboard;
 use App\Livewire\Pages\Search;
 use App\Models\Dispatch;
 use App\Models\LinkPreview;
@@ -99,7 +99,7 @@ class PlatformTest extends TestCase
         $this->assertSame('Stoop', json_decode(file_get_contents(public_path('manifest.webmanifest')), true)['name']);
         $this->get('/')->assertSee('manifest.webmanifest', false);
 
-        $this->actingAs(User::factory()->create())->get(route('operations'))->assertForbidden();
-        Livewire::actingAs(User::factory()->create(['is_staff' => true]))->test(Operations::class)->assertSee('Dispatches, last 24 hours');
+        $this->actingAs(User::factory()->create())->get(route('admin'))->assertForbidden();
+        Livewire::actingAs(User::factory()->create(['is_staff' => true]))->test(Dashboard::class)->assertSee('Dispatches, last 24 hours');
     }
 }

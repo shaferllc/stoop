@@ -3,13 +3,13 @@
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\TransparencyController;
+use App\Livewire\Admin;
 use App\Livewire\Pages\AppealCreate;
 use App\Livewire\Pages\ConversationView;
 use App\Livewire\Pages\Feed;
 use App\Livewire\Pages\Inbox;
 use App\Livewire\Pages\Moderation;
 use App\Livewire\Pages\Notifications;
-use App\Livewire\Pages\Operations;
 use App\Livewire\Pages\PlaceShow;
 use App\Livewire\Pages\PlacesIndex;
 use App\Livewire\Pages\Saved;
@@ -80,7 +80,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('notifications', Notifications::class)->name('notifications');
     Route::livewire('moderation', Moderation::class)->name('moderation');
     Route::livewire('appeal', AppealCreate::class)->name('appeals.create');
-    Route::livewire('operations', Operations::class)->name('operations');
+    Route::redirect('operations', '/admin')->name('operations');
+
+    Route::prefix('admin')->name('admin')->group(function () {
+        Route::livewire('/', Admin\Dashboard::class);
+        Route::livewire('people', Admin\Users::class)->name('.users');
+        Route::livewire('people/{user}', Admin\UserShow::class)->name('.users.show');
+        Route::livewire('places', Admin\Places::class)->name('.places');
+        Route::livewire('sponsorships', Admin\Sponsorships::class)->name('.sponsorships');
+        Route::livewire('content', Admin\Content::class)->name('.content');
+        Route::livewire('audit', Admin\AuditLog::class)->name('.audit');
+    });
     Route::get('settings/export', ExportController::class)->middleware('throttle:5,1')->name('export');
     Route::livewire('messages', Inbox::class)->name('messages');
     Route::livewire('messages/{conversation}', ConversationView::class)->name('messages.show');

@@ -8,6 +8,7 @@ use App\Models\MessageReport;
 use App\Models\Penalty;
 use App\Models\User;
 use App\Notifications\ModerationNotice;
+use App\Support\Audit;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -54,6 +55,7 @@ class Moderation extends Component
         $dispatch = Dispatch::findOrFail($id);
         $dispatch->forceFill(['status' => 'approved', 'flagged_at' => null, 'moderated_by' => $moderator->id])->save();
         $dispatch->reports()->whereNull('resolved_at')->update(['resolved_at' => now()]);
+        Audit::log('dispatch.approved', $dispatch);
         Flux::toast('Approved.');
     }
 
@@ -85,6 +87,7 @@ class Moderation extends Component
         $dispatch->forceFill(['status' => 'removed', 'flagged_at' => null, 'moderated_by' => $moderator->id, 'moderation_reason' => $why])->save();
         $dispatch->reports()->whereNull('resolved_at')->update(['resolved_at' => now()]);
         $dispatch->user->notify(new ModerationNotice('A moderator removed your dispatch: '.$why.'. You can appeal once.', $dispatch));
+        Audit::log('dispatch.removed', $dispatch, ['reason' => $why, 'penalty' => $this->penalty]);
 
         if ($this->penalty !== 'none') {
             $this->penalize($dispatch->user, $this->penalty, $why, $dispatch, $moderator);
@@ -107,6 +110,7 @@ class Moderation extends Component
             'moderator_id' => $moderator->id,
             'ends_at' => $hours ? now()->addHours($hours) : null,
         ]);
+        Audit::log('penalty.issued', $user, ['type' => $penalty->type, 'hours' => $hours, 'reason' => $reason]);
 
         $user->notify(new ModerationNotice(match ($penalty->type) {
             'warning' => 'You received a warning: '.$reason.'.',
@@ -123,6 +127,7 @@ class Moderation extends Component
         $moderator = $this->moderator();
         $report = MessageReport::with('message.user')->findOrFail($reportId);
         MessageReport::where('message_id', $report->message_id)->whereNull('resolved_at')->update(['resolved_at' => now()]);
+        Audit::log('message_report.resolved', $report, ['timeout_hours' => $timeoutHours]);
 
         if ($timeoutHours && $sender = $report->message->user) {
             abort_unless(isset(Penalty::TIMEOUTS[$timeoutHours]), 422);
@@ -135,7 +140,9 @@ class Moderation extends Component
     public function lift(int $penaltyId): void
     {
         $this->moderator();
-        Penalty::findOrFail($penaltyId)->update(['lifted_at' => now()]);
+        $penalty = Penalty::findOrFail($penaltyId);
+        $penalty->update(['lifted_at' => now()]);
+        Audit::log('penalty.lifted', $penalty);
         Flux::toast('Lifted.');
     }
 
@@ -149,6 +156,7 @@ class Moderation extends Component
         abort_if($appeal->originalModeratorId() === $moderator->id, 403);
 
         $appeal->update(['status' => $grant ? 'granted' : 'denied', 'decided_by' => $moderator->id, 'decided_at' => now()]);
+        Audit::log($grant ? 'appeal.granted' : 'appeal.denied', $appeal);
 
         if ($grant) {
             $appeal->penalty?->update(['lifted_at' => now()]);
