@@ -158,7 +158,31 @@ class SportsTest extends TestCase
         $this->fakeEspn([$this->event('405', '2026-10-19T23:00Z', 'post', 2, 2)]);
         Sports::sync(force: true);
 
-        $this->assertSame('draw', Game::first()->winner);
+        $game = Game::first();
+        $this->assertSame('draw', $game->winner);
+
+        $thread = Dispatch::factory()->create(['type' => 'poll', 'status' => 'approved']);
+        $game->update(['dispatch_id' => $thread->id]);
+        $this->get(route('play'))->assertSee('Draw')->assertDontSee('Bruins won');
+    }
+
+    public function test_two_dc_teams_playing_each_other_get_one_thread(): void
+    {
+        Cache::flush();
+        $hoyas = fn (string $us) => ['id' => '777', 'date' => '2026-10-20T23:30Z', 'season' => ['year' => 2027], 'competitions' => [[
+            'competitors' => [['homeAway' => 'home', 'team' => ['id' => '46', 'displayName' => 'Georgetown Hoyas']], ['homeAway' => 'away', 'team' => ['id' => '120', 'displayName' => 'Maryland Terrapins']]],
+            'status' => ['type' => ['state' => 'pre', 'completed' => false]],
+        ]]];
+        Http::fake([
+            'site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/*' => Http::response(['events' => [$hoyas('x')]]),
+            'site.api.espn.com/*' => Http::response(['events' => []]),
+        ]);
+        Sports::sync(force: true);
+
+        $this->assertSame(2, Game::where('external_id', '777')->count());
+        $this->assertSame(1, (new GameDay)->postThreads());
+        $this->assertSame(0, (new GameDay)->postThreads());
+        $this->get(route('sports.team', 'terps-basketball'))->assertOk()->assertSee('Terps basketball at Georgetown Hoyas');
     }
 
     public function test_gameday_answers_with_the_next_game_and_the_last_result(): void
@@ -236,6 +260,7 @@ class SportsTest extends TestCase
 
         Livewire::actingAs($host)->test(Composer::class)
             ->set('type', 'happening')->set('body', 'Caps watch party at the Bullpen, wear red')->set('happeningAt', 'Tonight · 6:30pm')->set('stop', 'F05')
+            ->set('watchGameId', '')->assertSet('watchGameId', null)
             ->set('watchGameId', $game->id)->call('file')->assertHasNoErrors();
 
         $party = Dispatch::where('type', 'happening')->firstOrFail();

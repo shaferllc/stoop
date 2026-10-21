@@ -53,6 +53,8 @@ class GameDay extends Bot
         $opened = Game::whereNotNull('team_key')->whereNotNull('dispatch_id')->where('starts_at', '>=', $now->copy()->startOfDay()->utc())->count();
         $games = Game::whereNotNull('external_id')->whereNull('dispatch_id')->where('status', 'pre')
             ->where(fn ($q) => $q->whereNull('status_detail')->orWhere('status_detail', '!=', 'TBA'))
+            // Two DC teams playing each other (Hoyas vs. Terps) get one thread, not two.
+            ->whereNotIn('external_id', Game::whereNotNull('dispatch_id')->whereNotNull('external_id')->select('external_id'))
             ->whereBetween('starts_at', [now(), $now->copy()->endOfDay()->utc()])
             ->orderBy('starts_at')->take(max(0, self::DAILY_LIMIT - $opened))->get();
 
@@ -61,6 +63,10 @@ class GameDay extends Bot
 
     public function openThread(Game $game): bool
     {
+        if ($game->external_id && Game::where('external_id', $game->external_id)->whereNotNull('dispatch_id')->exists()) {
+            return false;
+        }
+
         try {
             $team = $game->teamConfig();
             $dispatch = $this->post([
