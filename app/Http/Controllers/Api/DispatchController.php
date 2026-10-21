@@ -61,12 +61,22 @@ class DispatchController extends Controller
         $request->validate(['url' => ['required', 'url', 'max:2048']]);
         $url = $request->query('url');
 
-        $count = Dispatch::visibleTo(null)
-            ->whereHas('linkPreview', fn ($q) => $q->where('url_hash', hash('sha256', $url)))
-            ->count();
+        $query = Dispatch::visibleTo(null)
+            ->whereHas('linkPreview', fn ($q) => $q->where('url_hash', hash('sha256', $url)));
+        $ids = (clone $query)->pluck('id');
 
-        return response()->json(['url' => $url, 'count' => $count, 'search' => route('search', ['q' => $url])])
-            ->header('Access-Control-Allow-Origin', '*');
+        // Replies under posts that share the article count as part of the conversation.
+        $latest = Dispatch::visibleTo(null)->with('user')
+            ->where(fn ($q) => $q->whereIn('id', $ids)->orWhereIn('parent_id', $ids))
+            ->latest()->take(3)->get()
+            ->map(fn ($d) => ['body' => $d->body, 'author' => $d->user?->username, 'url' => route('dispatches.show', $d), 'at' => $d->created_at->toIso8601String()]);
+
+        return response()->json([
+            'url' => $url,
+            'count' => Dispatch::visibleTo(null)->where(fn ($q) => $q->whereIn('id', $ids)->orWhereIn('parent_id', $ids))->count(),
+            'latest' => $latest,
+            'join' => route('home', ['share' => $url]),
+        ])->header('Access-Control-Allow-Origin', '*')->header('Cache-Control', 'public, max-age=60');
     }
 
     public function store(Request $request): JsonResponse

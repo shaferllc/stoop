@@ -1,10 +1,15 @@
 <?php
 
 use App\Actions\AnnounceDispatch;
+use App\Mail\WeeklyDigest;
 use App\Models\Dispatch;
+use App\Models\User;
 use App\Support\Civility;
+use App\Support\Magazine;
+use App\Support\Newsletter;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Storage;
 
@@ -35,5 +40,27 @@ Artisan::command('stoop:purge-deleted', function () {
         });
 })->purpose('Erase deleted dispatches once the undo window has passed');
 
+Artisan::command('stoop:import-articles', function () {
+    $this->info('Posted '.Magazine::import().' new articles.');
+})->purpose('Post new magazine articles from the site feed');
+
+Artisan::command('stoop:send-newsletter {--to= : Send one copy to this email instead of every subscriber}', function () {
+    $digest = Newsletter::digest();
+    if ($to = $this->option('to')) {
+        Mail::to($to)->send(new WeeklyDigest($digest, null));
+        $this->info("Sent a test to $to.");
+
+        return;
+    }
+    $sent = 0;
+    User::where('newsletter', true)->whereNotNull('email_verified_at')->where('is_bot', false)->each(function ($user) use ($digest, &$sent) {
+        Mail::to($user)->queue(new WeeklyDigest($digest, $user));
+        $sent++;
+    });
+    $this->info("Queued $sent newsletters.");
+})->purpose('Send the weekly Stoop newsletter');
+
+Schedule::command('stoop:import-articles')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('stoop:send-newsletter')->weeklyOn(1, '8:00')->timezone('America/New_York');
 Schedule::command('stoop:publish-scheduled')->everyMinute()->withoutOverlapping();
 Schedule::command('stoop:purge-deleted')->everyMinute()->withoutOverlapping();

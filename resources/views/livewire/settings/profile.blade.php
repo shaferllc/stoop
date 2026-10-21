@@ -21,6 +21,8 @@
                 @endforeach
             </flux:select>
 
+            <flux:checkbox wire:model="newsletter" :label="__('Weekly email')" :description="__('The week’s best dispatches, poll results and where people went. Mondays.')" />
+
             <flux:checkbox wire:model="half_smokes_on" :label="__('Half-smokes')" :description="__('Get 10 a day to hand out to dispatches you love. Just for fun; they don’t affect rankings.')" />
 
             <flux:checkbox.group wire:model="stops" :label="__('Your stops (up to 3)')" :description="__('Near me shows dispatches tagged with these stations.')">

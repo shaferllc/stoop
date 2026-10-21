@@ -74,6 +74,18 @@ class Composer extends Component
         $this->asBusiness = false;
     }
 
+    /**
+     * "Join the conversation" links from article pages arrive with ?share=<article url>.
+     */
+    public function mount(): void
+    {
+        $share = request()->query('share');
+
+        if (! $this->parentId && is_string($share) && filter_var($share, FILTER_VALIDATE_URL) && str_starts_with($share, 'http')) {
+            $this->body = ' '.$share;
+        }
+    }
+
     public function updatedBody(): void
     {
         $this->warned = false;

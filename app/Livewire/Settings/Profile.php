@@ -27,6 +27,8 @@ class Profile extends Component
 
     public bool $half_smokes_on = false;
 
+    public bool $newsletter = false;
+
     public string $translation_language = 'en';
 
     public ?int $dc_since = null;
@@ -44,6 +46,7 @@ class Profile extends Component
         $this->email = Auth::user()->email;
         $this->is_native = (bool) Auth::user()->is_native;
         $this->half_smokes_on = (bool) Auth::user()->half_smokes_on;
+        $this->newsletter = (bool) Auth::user()->newsletter;
         $this->translation_language = Auth::user()->translation_language ?? 'en';
         $this->dc_since = Auth::user()->dc_since;
         $this->stops = Auth::user()->stops ?? [];
@@ -60,6 +63,7 @@ class Profile extends Component
             ...$this->profileRules($user->id),
             'is_native' => ['boolean'],
             'half_smokes_on' => ['boolean'],
+            'newsletter' => ['boolean'],
             'translation_language' => [Rule::in(array_keys(Translator::LANGUAGES))],
             'dc_since' => ['nullable', 'integer', 'min:1940', 'max:'.now()->year],
             'stops' => ['array', 'max:3'],

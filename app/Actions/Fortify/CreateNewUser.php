@@ -6,6 +6,7 @@ use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\User;
 use App\Support\Bots;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
@@ -31,6 +32,12 @@ class CreateNewUser implements CreatesNewUsers
             'email' => $input['email'],
             'password' => $input['password'],
         ]);
+
+        // The magazine may already have told us this email is a subscriber.
+        $subscription = DB::table('subscribers')->where('email_hash', User::hashSubject($user->email))->value('subscribed_until');
+        if ($subscription) {
+            $user->forceFill(['subscribed_until' => $subscription])->save();
+        }
 
         // For now every new account is verified on sign-up (STOOP_AUTO_VERIFY=false turns this off).
         if (config('stoop.auto_verify')) {

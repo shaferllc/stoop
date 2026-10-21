@@ -16,12 +16,15 @@ use App\Livewire\Pages\Saved;
 use App\Livewire\Pages\Search;
 use App\Livewire\Pages\ShowDispatch;
 use App\Livewire\Pages\UserProfile;
+use App\Mail\WeeklyDigest;
 use App\Models\Dispatch;
 use App\Models\MessageImage;
 use App\Models\Sponsorship;
 use App\Models\User;
+use App\Support\Newsletter;
 use App\Support\RidershipGraph;
 use App\Support\ShareImage;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -47,6 +50,16 @@ Route::get('stops/{code}', function (string $code) {
     return redirect()->route('home', ['stop' => strtoupper($code)]);
 })->name('stops.show');
 Route::get('transparency', TransparencyController::class)->name('transparency');
+
+// The weekly email's one-click unsubscribe link...
+Route::match(['get', 'post'], 'newsletter/unsubscribe/{user}', function (User $user) {
+    $user->forceFill(['newsletter' => false])->save();
+
+    return response('You’re unsubscribed from the weekly Stoop email.', 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
+})->middleware('signed')->name('newsletter.unsubscribe')->withoutMiddleware(ValidateCsrfToken::class);
+
+// The embed for magazine article pages...
+Route::get('embed.js', fn () => response()->view('embed')->header('Content-Type', 'application/javascript; charset=UTF-8')->header('Cache-Control', 'public, max-age=3600'))->name('embed');
 
 // Terminal posting script and Atom feeds...
 Route::get('dispatch', fn () => response()->view('terminal')->header('Content-Type', 'text/plain; charset=UTF-8'))->name('terminal');
@@ -89,6 +102,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('places', Admin\Places::class)->name('.places');
         Route::livewire('sponsorships', Admin\Sponsorships::class)->name('.sponsorships');
         Route::livewire('content', Admin\Content::class)->name('.content');
+        Route::get('newsletter/preview', function () {
+            abort_unless(auth()->user()->is_staff, 403);
+
+            return new WeeklyDigest(Newsletter::digest(), null);
+        })->name('.newsletter.preview');
         Route::livewire('audit', Admin\AuditLog::class)->name('.audit');
     });
     Route::get('settings/export', ExportController::class)->middleware('throttle:5,1')->name('export');

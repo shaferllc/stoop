@@ -84,6 +84,10 @@ return [
     // on a thread for an hour and flag it for moderators.
     'pile_on_threshold' => 15,
 
+    // The magazine's RSS or Atom feed. New articles post to Stoop from the account below.
+    'magazine_feed' => env('STOOP_MAGAZINE_FEED'),
+    'magazine_account' => env('STOOP_MAGAZINE_ACCOUNT', 'magazine'),
+
     // Mark new accounts as verified on sign-up, skipping the email link.
     'auto_verify' => env('STOOP_AUTO_VERIFY', true),
 

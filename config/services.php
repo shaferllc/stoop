@@ -35,6 +35,11 @@ return [
         ],
     ],
 
+    // Shared secret the magazine's subscription system signs webhooks with.
+    'subscriptions' => [
+        'secret' => env('STOOP_SUBSCRIPTION_SECRET'),
+    ],
+
     // Optional. Shows live Metro delays in the sidebar. Free key at developer.wmata.com.
     'wmata' => [
         'key' => env('WMATA_API_KEY'),

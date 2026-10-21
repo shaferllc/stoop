@@ -35,7 +35,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'username', 'email', 'password', 'is_native', 'dc_since', 'stops', 'half_smokes_on', 'translation_language'])]
+#[Fillable(['name', 'username', 'email', 'password', 'is_native', 'dc_since', 'stops', 'half_smokes_on', 'translation_language', 'newsletter'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
@@ -53,6 +53,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         'message_requests' => false,
         'read_receipts' => true,
         'half_smokes_on' => false,
+        'newsletter' => false,
         'is_bot' => false,
         'is_staff' => false,
         'is_native' => false,
@@ -73,6 +74,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'stops' => 'array',
             'subscribed_until' => 'datetime',
             'half_smokes_on' => 'boolean',
+            'newsletter' => 'boolean',
             'is_bot' => 'boolean',
             'dms_on' => 'boolean',
             'message_requests' => 'boolean',

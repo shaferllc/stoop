@@ -178,7 +178,7 @@ class StoopTest extends TestCase
         $this->seed();
         $staff = User::where('username', 'food')->first();
 
-        foreach (['/', '/?tab=following', '/?tab=near', '/?line=red', '/?q=lunch', '/saved', '/notifications', '/moderation', '/@mayaeats', '/d/1', '/rules', '/settings/profile', '/settings/safety', '/settings/tokens', '/messages', '/search?q=lunch', '/search?q=maya&tab=people', '/admin', '/admin/people', '/admin/people/1', '/admin/places', '/admin/places?tab=claims', '/admin/sponsorships', '/admin/content', '/admin/audit', '/places', '/places/rowhouse-pupuseria', '/transparency', '/@mayaeats/ridership.svg', '/feeds/latest.atom'] as $url) {
+        foreach (['/', '/?tab=following', '/?tab=near', '/?line=red', '/?q=lunch', '/saved', '/notifications', '/moderation', '/@mayaeats', '/d/1', '/rules', '/settings/profile', '/settings/safety', '/settings/tokens', '/messages', '/search?q=lunch', '/search?q=maya&tab=people', '/admin', '/admin/people', '/admin/people/1', '/admin/places', '/admin/places?tab=claims', '/admin/sponsorships', '/admin/content', '/admin/newsletter/preview', '/admin/audit', '/places', '/places/rowhouse-pupuseria', '/transparency', '/@mayaeats/ridership.svg', '/feeds/latest.atom'] as $url) {
             $this->actingAs($staff)->get($url)->assertOk();
         }
     }

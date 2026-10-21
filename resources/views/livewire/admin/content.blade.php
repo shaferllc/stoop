@@ -2,6 +2,30 @@
     <h1 class="mb-2 font-display text-3xl font-bold">Content</h1>
     @include('partials.admin-nav')
 
+    <div class="mb-3 grid gap-3 lg:grid-cols-2">
+        <section class="rounded-xl border border-rule bg-card p-4 text-sm">
+            <h2 class="font-semibold">Magazine articles</h2>
+            <p class="mt-1 text-mute">{{ $feed ? 'New articles from '.$feed.' post automatically every 15 minutes.' : 'Set STOOP_MAGAZINE_FEED in .env to the site’s RSS feed to post new articles automatically.' }}</p>
+            <button type="button" wire:click="importNow" class="mt-2 rounded-lg border border-rule px-3 py-1.5">Check the feed now</button>
+            <ul class="mt-3 divide-y divide-rule">
+                @forelse ($articles as $a)
+                    <li class="py-1.5">{{ $a->title }} @if ($a->dispatch_id)<a href="{{ route('dispatches.show', $a->dispatch_id) }}" class="text-mute underline">posted</a>@else<span class="text-flag">not posted</span>@endif</li>
+                @empty
+                    <li class="py-1.5 text-mute">Nothing imported yet.</li>
+                @endforelse
+            </ul>
+        </section>
+
+        <section class="rounded-xl border border-rule bg-card p-4 text-sm">
+            <h2 class="font-semibold">Weekly email</h2>
+            <p class="mt-1 text-mute">Goes out Mondays at 8am to the {{ number_format($newsletterReaders) }} {{ str('person')->plural($newsletterReaders) }} who turned it on.</p>
+            <div class="mt-2 flex gap-2">
+                <a href="{{ route('admin.newsletter.preview') }}" target="_blank" class="rounded-lg border border-rule px-3 py-1.5">Preview this week’s</a>
+                <button type="button" wire:click="sendTest" class="rounded-lg border border-rule px-3 py-1.5">Send me a test</button>
+            </div>
+        </section>
+    </div>
+
     <section class="rounded-xl border border-rule bg-card p-4 text-sm">
         <h2 class="font-semibold">Callouts</h2>
         <p class="mt-1 text-mute">A callout a day keeps the feed alive. Write one from the composer (pick Callout), and use Schedule to line up the week.</p>
