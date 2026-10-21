@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\FileDispatch;
 use App\Bots\Homes;
 use App\Livewire\Admin\RealEstate;
+use App\Livewire\Composer;
 use App\Models\Dispatch;
 use App\Models\User;
 use App\Support\HomeSales;
@@ -169,6 +170,25 @@ class RealEstateTest extends TestCase
             'type' => 'openhouse', 'stop' => 'E02', 'body' => 'Unverified open house.',
             'openHouse' => ['block' => '1428 Q St NW', 'date' => $date, 'from' => '13:00', 'to' => '16:00'],
         ]);
+    }
+
+    public function test_the_composer_posts_an_open_house(): void
+    {
+        Livewire::actingAs(User::factory()->create())->test(Composer::class)
+            ->set('type', 'openhouse')
+            ->set('body', 'Corner rowhouse, new kitchen.')
+            ->set('stop', 'E02')
+            ->set('openHouse.block', '1517 7th St NW')
+            ->set('openHouse.date', now(config('stoop.timezone'))->addDay()->toDateString())
+            ->set('openHouse.from', '11:00')
+            ->set('openHouse.to', '13:00')
+            ->call('file')
+            ->assertHasNoErrors()
+            ->assertSet('openHouse', []);
+
+        $dispatch = Dispatch::where('type', 'openhouse')->sole();
+        $this->assertSame('green', $dispatch->line);
+        $this->assertSame('1500 block of 7th St NW', $dispatch->details['block']);
     }
 
     public function test_only_staff_mark_open_houses_sponsored(): void

@@ -31,7 +31,7 @@ class DispatchController extends Controller
     {
         $user = $request->user();
         $types = collect(config('stoop.types'))
-            ->reject(fn ($label, $key) => ($key === 'callout' && ! $user->is_staff) || ($key === 'snow' && ! Settings::snowDay()));
+            ->reject(fn ($label, $key) => ($key === 'callout' && ! $user->is_staff) || ($key === 'snow' && ! Settings::snowDay()) || $key === 'openhouse');
 
         return response()->json(['data' => [
             'lines' => collect(config('stoop.lines'))->map(fn ($line, $key) => ['key' => $key, 'name' => $line['name'], 'color' => $line['color'], 'stops' => config("metro.lines.$key")])->values(),

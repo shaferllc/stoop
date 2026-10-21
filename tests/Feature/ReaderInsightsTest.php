@@ -79,6 +79,23 @@ class ReaderInsightsTest extends TestCase
         $this->assertSame(70, $report['totals']['posts']);
     }
 
+    public function test_a_lone_hidden_topic_cannot_be_worked_out_from_the_total(): void
+    {
+        foreach ($this->people(10) as $person) {
+            foreach (['red', 'orange', 'blue', 'green', 'yellow'] as $line) {
+                Dispatch::factory()->create(['user_id' => $person->id, 'line' => $line, 'stop' => null]);
+            }
+        }
+        foreach ($this->people(2) as $person) {
+            Dispatch::factory()->create(['user_id' => $person->id, 'line' => 'silver', 'stop' => null]);
+        }
+
+        $topics = collect($this->report()['topics']);
+
+        $this->assertSame('<10', $topics->firstWhere('topic', 'MD/VA')['posts']);
+        $this->assertCount(2, $topics->where('posts', '<10'));
+    }
+
     public function test_rising_keywords_need_ten_authors_and_hide_who_said_them(): void
     {
         $people = $this->people(12);

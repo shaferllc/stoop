@@ -22,7 +22,7 @@ Seeded logins (password `password`): `demo@example.com` (regular user) and `food
 
 Optional settings in `.env`:
 
-- `ANTHROPIC_API_KEY`: lets @stoop answer with Claude and turns on translation. Without it, @stoop answers from `resources/knowledge/stoop.md` and the Translate button is hidden.
+- `ANTHROPIC_API_KEY`: lets @stoop answer with Claude, turns on translation and the reader insights summary. Without it, @stoop answers from `resources/knowledge/stoop.md` and the Translate button is hidden.
 - `WMATA_API_KEY`: shows live Metro delays in the sidebar.
 - `STOOP_REQUIRE_SUBSCRIPTION=true`: only subscribers can post.
 - `STOOP_MAGAZINE_FEED`: the magazine’s RSS or Atom feed. New articles post to Stoop automatically.
@@ -32,6 +32,8 @@ Optional settings in `.env`:
 - `OPENAI_API_KEY`: OpenAI’s free moderation endpoint checks every new post (text and photos) first and holds hate, harassment, threats and similar. Thresholds are in `config/stoop.php` (`openai_thresholds`).
 - `STOOP_MODEL_MODERATION=false`: turn off the Claude check on new posts while keeping the bot and translation. The model defaults to `claude-opus-5-5`; `STOOP_MODERATION_MODEL` changes it.
 - `STOOP_AUTO_VERIFY=false`: require the email link again.
+
+Staff pages for this area: Admin → Real estate (sales import status, open houses, the sponsored label) and Admin → Insights (the k-anonymous reader report for advertisers, with CSV and printable views).
 
 Home sales on station pages come from DC GIS’s public property records (no key). `php artisan stoop:import-home-sales` loads the last 120 days of market sales; the scheduler runs it nightly at 3:30.
 

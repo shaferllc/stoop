@@ -87,8 +87,19 @@ class ReaderInsights
                 'posts' => self::cell($rows->count(), $people),
                 'people' => self::cell($people, $people),
                 'sentiment' => self::cell(self::sentiment($rows->pluck('body')), $people),
+                '_people' => $people,
             ];
-        })->values()->all();
+        })->values();
+
+        // Every post has a line, so the topics' posts add up to the total. With exactly one topic
+        // hidden, its count would be the total minus the rest: hide the next smallest one too.
+        if ($topics->where('posts', self::SUPPRESSED)->count() === 1) {
+            $next = $topics->where('posts', '!==', self::SUPPRESSED)->sortBy('_people')->keys()->first();
+            if ($next !== null) {
+                $topics[$next] = [...$topics[$next], 'posts' => self::SUPPRESSED, 'people' => self::SUPPRESSED, 'sentiment' => self::SUPPRESSED];
+            }
+        }
+        $topics = $topics->map(fn ($row) => collect($row)->except('_people')->all())->all();
 
         $everyone = $posts->unique('user_id')->count();
 
