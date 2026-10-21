@@ -70,10 +70,12 @@ class CherryBot extends Bot
         $dates = self::stages($html, $year);
         $stage = count($dates);
 
-        // Only the latest stage, so starting mid-season doesn't post a backlog.
-        if (! $stage || ! Cache::add("cherry:stage:$year:$stage", true, now()->addYear())) {
+        // Only a stage past the last one posted: no backlog when starting mid-season, and a
+        // page that parses short (a new footnote, say) never announces an earlier stage again.
+        if ($stage <= Cache::get("cherry:stage:$year", 0)) {
             return null;
         }
+        Cache::put("cherry:stage:$year", $stage, now()->addYear());
 
         $date = end($dates);
         $contest = Contest::whereNull('answer')->where(fn ($q) => $q->where('slug', 'like', '%bloom%')->orWhere('title', 'like', '%bloom%'))->latest('closes_at')->first();
@@ -114,7 +116,7 @@ class CherryBot extends Bot
         $text = preg_replace(['/<(script|style)\b.*?<\/\1>/is', '/<[^>]*>/'], ' ', $html);
         $text = preg_replace('/[\s\x{00A0}]+/u', ' ', html_entity_decode((string) $text, ENT_QUOTES | ENT_HTML5));
 
-        if (! preg_match('/\b'.$year.'((?:\s+(?:Feb|Mar|Apr)[a-z]*\.?\s+\d{1,2}\b)+)/', (string) $text, $row)) {
+        if (! preg_match('/\b'.$year.'((?:\s+(?:Feb|Mar|Apr)[a-z]*\.?\s+\d{1,2}\b\*?)+)/', (string) $text, $row)) {
             return [];
         }
 

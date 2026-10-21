@@ -221,6 +221,10 @@ class BotsCityTest extends TestCase
         $this->assertStringContainsString('/contests/peak-bloom-2027', $post->body);
         $this->assertNull($bot->checkBloom());
 
+        // A page that parses short never announces an earlier stage again.
+        Cache::put('cherry:page', $this->bloomPage('<tr><td>2027</td><td>Mar 11</td><td>Mar 14</td></tr>'));
+        $this->assertNull($bot->checkBloom());
+
         $this->at('2027-03-20 23:05');
         $this->assertFalse($this->due($bot, 'bot:cherry'));
     }
@@ -267,6 +271,7 @@ class BotsCityTest extends TestCase
         $dispatch = $this->mention('@311 graffiti by Eastern Market');
         (new RunBots($dispatch))->handle();
         $this->assertSame('311', $dispatch->replies()->sole()->user->username);
+        $this->get(route('users.show', '311'))->assertOk()->assertSee('DC 311');
     }
 
     public function test_311_posts_a_weekly_sunday_summary(): void

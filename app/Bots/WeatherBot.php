@@ -25,7 +25,7 @@ class WeatherBot extends Bot
 
     public const ALERTS = 'https://api.weather.gov/alerts/active?area=DC&status=actual&message_type=alert';
 
-    protected const SNOW = '/snow|blizzard|winter storm|ice storm|sleet|freezing rain/i';
+    protected const SNOW = '/snow|blizzard|winter storm|winter weather|ice storm|sleet|freezing rain/i';
 
     public const DAILY_ALERTS = 3;
 
@@ -87,7 +87,7 @@ class WeatherBot extends Bot
                 continue;
             }
 
-            if (preg_match('/winter storm|blizzard|ice storm|snow/i', $event)) {
+            if (preg_match('/winter storm|winter weather|blizzard|ice storm|snow/i', $event)) {
                 $this->suggestSnowDay($event, 'NWS issued a '.$event);
             }
 
