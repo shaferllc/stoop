@@ -30,7 +30,8 @@
                     No mayor yet. Post and answer questions here to claim it.
                 @endif
             </p>
-            <a href="{{ route('feeds.stop', $stop) }}" class="text-[12.5px] text-mute underline">Follow this stop in a feed reader</a>
+            <livewire:station-live :code="$stop" :key="'live-'.$stop" />
+            <a href="{{ route('feeds.stop', $stop) }}" class="mt-2 inline-block text-[12.5px] text-mute underline">Follow this stop in a feed reader</a>
         </div>
     @endif
 
