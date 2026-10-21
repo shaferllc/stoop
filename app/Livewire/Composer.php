@@ -3,12 +3,14 @@
 namespace App\Livewire;
 
 use App\Actions\FileDispatch;
+use App\Bots\Bot;
 use App\Exceptions\NudgeRequired;
 use App\Models\CityEvent;
 use App\Models\Dispatch;
 use App\Models\Place;
 use App\Models\User;
 use App\Support\Achievements;
+use App\Support\Bots;
 use App\Support\ComposeHints;
 use App\Support\Settings;
 use Flux\Flux;
@@ -26,6 +28,10 @@ class Composer extends Component
 
     #[Locked]
     public ?int $parentId = null;
+
+    /** On a thread page, the dispatch the page is about; parentId can move to any reply under it. */
+    #[Locked]
+    public ?int $threadId = null;
 
     public ?int $quoteId = null;
 
@@ -107,11 +113,28 @@ class Composer extends Component
      */
     public function mount(): void
     {
+        $this->threadId = $this->parentId;
+
         $share = request()->query('share');
 
         if (! $this->parentId && is_string($share) && filter_var($share, FILTER_VALIDATE_URL) && str_starts_with($share, 'http')) {
             $this->body = ' '.$share;
         }
+    }
+
+    /** "Reply" on a reply in this thread points the box at that reply. */
+    #[On('reply-to')]
+    public function replyTo(int $id): void
+    {
+        if ($this->threadId && Dispatch::visibleTo(Auth::user())->whereKey($id)->exists()) {
+            $this->parentId = $id;
+            $this->js("document.getElementById('reply')?.scrollIntoView({block: 'center'}); document.getElementById('body-{$this->getId()}')?.focus()");
+        }
+    }
+
+    public function replyToThread(): void
+    {
+        $this->parentId = $this->threadId;
     }
 
     public function updatedBody(): void
@@ -177,8 +200,17 @@ class Composer extends Component
             ? $query->whereIn('id', $priority->merge($user->following()->pluck('users.id')))->take(20)->get()
             : $query->where(fn ($q) => $q->where('username', 'like', $term.'%')->orWhere('name', 'like', '%'.$term.'%'))->take(20)->get();
 
-        return $matches->sortBy(fn ($u) => [($i = $priority->search($u->id)) === false ? 999 : $i, $u->username])
-            ->take(6)->map(fn ($u) => ['username' => $u->username, 'name' => $u->name])->values()->all();
+        $people = $matches->reject(fn ($u) => Bot::find($u->username) || isset(Bots::ACCOUNTS[$u->username]))
+            ->sortBy(fn ($u) => [($i = $priority->search($u->id)) === false ? 999 : $i, $u->username])
+            ->take(6)->map(fn ($u) => ['username' => $u->username, 'name' => $u->name])->values();
+
+        // Bots come after people, with what they do, so "@" doubles as a list of them.
+        $bots = collect([['username' => 'stoop', 'name' => 'Stoop', 'about' => 'Questions about how Stoop works'], ['username' => 'dc', 'name' => 'DC', 'about' => 'Say hello DC']])
+            ->concat(collect(Bot::all())->map(fn (Bot $bot) => ['username' => $bot->username(), 'name' => $bot->name(), 'about' => $bot->description()]))
+            ->filter(fn ($bot) => $term === '' || str_starts_with($bot['username'], strtolower($term)))
+            ->sortBy('username')->map(fn ($bot) => $bot + ['bot' => true]);
+
+        return $people->concat($bots)->values()->all();
     }
 
     public function file(): void
@@ -206,6 +238,7 @@ class Composer extends Component
         }
 
         $this->reset('body', 'hints', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'placeId', 'placeQuery', 'asBusiness', 'sponsor', 'showPlace', 'eventId', 'rating', 'snowInches', 'plowed', 'openHouse', 'happeningStarts', 'lostKind', 'lostStatus', 'quoteOk');
+        $this->parentId = $this->threadId ?? $this->parentId;
         $this->type = 'dispatch';
         $this->dispatch('dispatch-filed', id: $dispatch->id);
 
@@ -234,6 +267,7 @@ class Composer extends Component
             'place' => $this->placeId ? Place::find($this->placeId) : null,
             'events' => $this->parentId ? collect() : CityEvent::where('kind', 'event')->happening()->orderBy('ends_at')->get(),
             'snowDay' => Settings::snowDay(),
+            'replyingTo' => $this->threadId && $this->parentId !== $this->threadId ? Dispatch::with('user')->find($this->parentId) : null,
             'replyingToCallout' => $this->parentId && Dispatch::whereKey($this->parentId)->where('type', 'callout')->exists(),
             'placeResults' => mb_strlen($q) >= 2
                 ? Place::where('name', 'like', '%'.$q.'%')->orderByRaw('list_rank is null, list_rank')->take(6)->get()

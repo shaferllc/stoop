@@ -33,6 +33,12 @@ abstract class Bot
         return null;
     }
 
+    /** What the bot says when someone mentions it but it has nothing more specific to say. */
+    public function help(): string
+    {
+        return 'Hi, I’m @'.$this->username().', a Stoop bot. '.$this->description().' All the bots: '.route('bots');
+    }
+
     public function wantsToReply(Dispatch $dispatch): bool
     {
         return in_array($this->username(), Mentions::usernames($dispatch->body), true);

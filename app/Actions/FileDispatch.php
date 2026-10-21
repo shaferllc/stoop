@@ -279,7 +279,8 @@ class FileDispatch
             return null;
         }
 
-        if ($parent->replies_locked_until?->isFuture()) {
+        // A pause on the thread covers replies to replies too.
+        if ($parent->replies_locked_until?->isFuture() || ($parent->parent_id && $parent->threadRoot()->replies_locked_until?->isFuture())) {
             return 'Replies are paused on this thread for a little while.';
         }
 

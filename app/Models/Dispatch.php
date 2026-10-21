@@ -59,6 +59,17 @@ class Dispatch extends Model
         return $this->hasMany(self::class, 'parent_id');
     }
 
+    /** The top-level dispatch this reply chain hangs from (itself if it is top-level). */
+    public function threadRoot(): self
+    {
+        $root = $this;
+        for ($i = 0; $root->parent_id && $i < 50; $i++) {
+            $root = $root->parent ?? $root;
+        }
+
+        return $root;
+    }
+
     public function quotes(): HasMany
     {
         return $this->hasMany(self::class, 'quote_id');

@@ -32,6 +32,12 @@
             @endunless
 
             <div class="relative" x-data="mentionPicker($wire)">
+                @if ($replyingTo)
+                    <p class="mb-1.5 flex items-center gap-2 text-[13px] text-mute">
+                        Replying to <b class="text-ink">{{ '@'.$replyingTo->user->username }}</b>
+                        <button type="button" wire:click="replyToThread" class="rounded-md px-1.5 hover:bg-chip hover:text-ink" aria-label="Reply to the thread instead">×</button>
+                    </p>
+                @endif
                 <label for="body-{{ $this->getId() }}" class="sr-only">{{ $parentId ? 'Reply' : 'New dispatch' }}</label>
                 <textarea id="body-{{ $this->getId() }}" x-ref="input" wire:model.live.debounce.400ms="body" rows="2" maxlength="{{ config('stoop.max_length') }}"
                     x-on:input="lookup()" x-on:keydown="keys($event)" x-on:input.debounce.2500ms="{{ ! $parentId && \App\Support\Claude::enabled() ? '$wire.refineHints()' : '' }}" x-on:blur="setTimeout(() => open = false, 150)"
@@ -50,10 +56,13 @@
                         default => 'What’s happening on your block?',
                     } }}"
                     class="w-full resize-none bg-transparent outline-none"></textarea>
-                <ul x-show="open && items.length" x-cloak role="listbox" class="absolute left-0 z-20 mt-1 w-64 overflow-hidden rounded-lg border border-rule bg-card text-sm shadow-lg">
+                <ul x-show="open && items.length" x-cloak role="listbox" class="absolute left-0 z-20 mt-1 max-h-80 w-80 overflow-y-auto rounded-lg border border-rule bg-card text-sm shadow-lg">
                     <template x-for="(item, i) in items" :key="item.username">
                         <li role="option" :aria-selected="i === active" x-on:mousedown.prevent="pick(item)" :class="i === active ? 'bg-chip' : ''" class="cursor-pointer px-3 py-1.5">
+                            <template x-if="item.bot && (i === 0 || !items[i - 1].bot)"><p class="-mx-3 -mt-1.5 mb-1 border-t border-rule bg-paper px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-mute">Bots</p></template>
                             <b x-text="'@' + item.username"></b> <span class="text-mute" x-text="item.name"></span>
+                            <span x-show="item.bot" class="ml-1 rounded bg-chip px-1 text-[10px] font-semibold text-mute">BOT</span>
+                            <p x-show="item.about" x-text="item.about" class="truncate text-[12px] text-mute"></p>
                         </li>
                     </template>
                 </ul>

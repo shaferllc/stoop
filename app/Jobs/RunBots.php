@@ -35,8 +35,14 @@ class RunBots implements ShouldQueue
             $this->reply($dispatch, 'stoop', Bots::answer($dispatch->body));
         }
 
+        // A bot that's mentioned always answers, with its how-to if it has nothing else to say.
+        $mentioned = Mentions::usernames($dispatch->body);
         foreach (Bot::all() as $bot) {
-            if ($bot->wantsToReply($dispatch) && ($body = $bot->reply($dispatch))) {
+            $body = $bot->wantsToReply($dispatch) ? $bot->reply($dispatch) : null;
+            if (! $body && in_array($bot->username(), $mentioned, true)) {
+                $body = $bot->help();
+            }
+            if ($body) {
                 $this->reply($dispatch, $bot->username(), $body);
             }
         }

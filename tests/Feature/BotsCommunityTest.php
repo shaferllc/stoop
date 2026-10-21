@@ -289,7 +289,7 @@ class BotsCommunityTest extends TestCase
         $this->assertCount(1, $this->claudeCalls);
     }
 
-    public function test_translate_ignores_removed_parents_and_top_level_mentions(): void
+    public function test_translate_never_translates_removed_parents_or_top_level_mentions(): void
     {
         $this->fakeClaude('nope');
         $parent = Dispatch::factory()->create(['body' => 'Something later removed']);
@@ -300,7 +300,10 @@ class BotsCommunityTest extends TestCase
         (new RunBots($ask))->handle();
         (new RunBots($top))->handle();
 
-        $this->assertSame(0, $ask->replies()->count() + $top->replies()->count());
+        // Nothing gets translated; a mention only gets the bot's how-to.
+        foreach ($ask->replies->concat($top->replies) as $reply) {
+            $this->assertStringContainsString('a Stoop bot', $reply->body);
+        }
         $this->assertSame([], $this->claudeCalls);
     }
 

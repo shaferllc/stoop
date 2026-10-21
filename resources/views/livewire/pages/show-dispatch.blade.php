@@ -18,22 +18,7 @@
 
     <h2 class="pt-2 text-[11px] font-semibold uppercase tracking-[0.13em] text-mute">{{ $replies->count() }} {{ str('reply')->plural($replies->count()) }}</h2>
     @if ($replies->isNotEmpty())
-        <ol class="relative space-y-2.5 pl-6" aria-label="Replies">
-            <span class="absolute bottom-4 left-[9px] top-4 w-1 rounded-full" style="background: {{ $dispatch->lineColor() }}" aria-hidden="true"></span>
-            @foreach ($replies as $reply)
-                <li class="relative" wire:key="reply-{{ $reply->id }}">
-                    <span class="absolute -left-[21px] top-5 size-3.5 rounded-full border-[3px] bg-paper" style="border-color: {{ $dispatch->lineColor() }}" aria-hidden="true"></span>
-                    @if ($reply->hidden_by_author)
-                        <div x-data="{ reveal: false }">
-                            <button type="button" x-show="!reveal" x-on:click="reveal = true" class="w-full rounded-xl border border-dashed border-rule p-3 text-sm text-mute">A reply hidden by the author. Show it</button>
-                            <div x-show="reveal" x-cloak><x-dispatch-card :dispatch="$reply" :translated="$translations[$reply->id] ?? null" :state="$state" /></div>
-                        </div>
-                    @else
-                        <x-dispatch-card :dispatch="$reply" :translated="$translations[$reply->id] ?? null" :state="$state" />
-                    @endif
-                </li>
-            @endforeach
-        </ol>
+        @include('partials.reply-tree', ['parentId' => $dispatch->id, 'depth' => 0])
     @endif
 
     @include('partials.report-dialog')

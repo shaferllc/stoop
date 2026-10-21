@@ -1,4 +1,4 @@
-@props(['dispatch', 'state' => ['marks' => [], 'votes' => []], 'focus' => false, 'pinned' => false, 'translated' => null])
+@props(['dispatch', 'state' => ['marks' => [], 'votes' => []], 'focus' => false, 'pinned' => false, 'translated' => null, 'inThread' => false])
 
 @php
     $d = $dispatch;
@@ -195,9 +195,15 @@
 
     @php($act = 'inline-flex items-center gap-1 rounded-md px-1.5 py-1 hover:bg-chip hover:text-ink tabular-nums')
     <div class="-ml-1.5 mt-2 flex flex-wrap items-center gap-x-1 gap-y-1 text-[13px] text-mute sm:ml-[40px]">
-        <a href="{{ route('dispatches.show', $d) }}#reply" wire:navigate class="{{ $act }}" title="Reply">
-            <flux:icon.chat-bubble-oval-left variant="micro" /><span class="sr-only">Reply</span>{{ $d->replies_count ?: '' }}
-        </a>
+        @if ($inThread && $me)
+            <button type="button" wire:click="$dispatch('reply-to', { id: {{ $d->id }} })" class="{{ $act }}" title="Reply to this">
+                <flux:icon.chat-bubble-oval-left variant="micro" /><span>Reply</span>
+            </button>
+        @else
+            <a href="{{ route('dispatches.show', $d) }}#reply" wire:navigate class="{{ $act }}" title="Reply">
+                <flux:icon.chat-bubble-oval-left variant="micro" /><span class="sr-only">Reply</span>{{ $d->replies_count ?: '' }}
+            </a>
+        @endif
         @unless ($d->parent_id)
             <button type="button" wire:click="quote({{ $d->id }})" class="{{ $act }}" title="Quote">
                 <flux:icon.arrow-path-rounded-square variant="micro" /><span class="sr-only">Quote</span>{{ $d->quotes_count ?: '' }}
@@ -270,4 +276,13 @@
             </flux:dropdown>
         @endauth
     </div>
+    @if (! $d->parent_id && ! $focus && ! $inThread && $d->replies_count)
+        <div x-data="{ open: false, html: '' }" class="mt-1.5 sm:ml-[40px]">
+            <button type="button" x-on:click="open = !open; if (open && !html) html = await (await fetch('{{ route('dispatches.replies-preview', $d) }}')).text()" :aria-expanded="open" class="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[13px] font-semibold text-mute hover:bg-chip hover:text-ink">
+                <flux:icon.chevron-down variant="micro" x-bind:class="open ? '' : '-rotate-90'" class="transition-transform" />
+                <span x-text="open ? 'Hide replies' : 'Show {{ $d->replies_count }} {{ str('reply')->plural($d->replies_count) }}'"></span>
+            </button>
+            <div x-show="open" x-cloak x-html="html || '<p class=&quot;text-sm text-mute&quot;>Loading…</p>'" class="mt-1.5"></div>
+        </div>
+    @endif
 </article>

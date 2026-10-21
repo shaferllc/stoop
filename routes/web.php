@@ -1,5 +1,6 @@
 <?php
 
+use App\Bots\Bot;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\InsightsController;
@@ -51,8 +52,16 @@ use Illuminate\Support\Facades\Storage;
 // Guests can read the public feeds, threads and profiles...
 Route::livewire('/', Feed::class)->name('home');
 Route::livewire('d/{dispatch}', ShowDispatch::class)->name('dispatches.show');
+// The latest few replies, shown under a card when someone taps "Show replies" in a feed.
+Route::get('d/{dispatch}/replies-preview', function (Dispatch $dispatch) {
+    abort_unless(Dispatch::visibleTo(auth()->user())->whereKey($dispatch->id)->exists(), 404);
+    $replies = $dispatch->replies()->visibleTo(auth()->user())->with('user')->withCount('replies')->latest()->take(3)->get()->reverse();
+
+    return view('partials.reply-preview', ['dispatch' => $dispatch, 'replies' => $replies, 'total' => $dispatch->replies()->visibleTo(auth()->user())->count()]);
+})->middleware('throttle:120,1')->name('dispatches.replies-preview');
 Route::livewire('@{user:username}', UserProfile::class)->name('users.show');
 Route::view('rules', 'rules')->name('rules');
+Route::get('bots', fn () => view('bots', ['bots' => Bot::all()]))->name('bots');
 Route::view('privacy', 'privacy')->name('privacy');
 Route::view('terms', 'terms')->name('terms');
 Route::livewire('search', Search::class)->name('search');
