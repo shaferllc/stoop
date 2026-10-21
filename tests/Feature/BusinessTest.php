@@ -24,6 +24,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Once;
 use Illuminate\Testing\TestResponse;
 use Illuminate\Validation\ValidationException;
@@ -61,7 +62,7 @@ class BusinessTest extends TestCase
         $t = time();
         $sig = hash_hmac('sha256', "$t.$payload", $secret ?? self::WEBHOOK_SECRET);
 
-        return $this->call('POST', '/stripe/webhook', [], [], [], ['HTTP_STRIPE_SIGNATURE' => "t=$t,v1=$sig", 'CONTENT_TYPE' => 'application/json'], $payload);
+        return $this->call('POST', '/api/stripe/webhook', [], [], [], ['HTTP_STRIPE_SIGNATURE' => "t=$t,v1=$sig", 'CONTENT_TYPE' => 'application/json'], $payload);
     }
 
     protected function subscribe(User $user): void
@@ -126,13 +127,22 @@ class BusinessTest extends TestCase
         $failed = ['id' => 'evt_fail_1', 'type' => 'invoice.payment_failed', 'data' => ['object' => ['customer' => 'cus_'.$owner->id]]];
 
         $this->webhook($failed, 'whsec_wrong')->assertStatus(400);
-        $this->call('POST', '/stripe/webhook', [], [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($failed))->assertStatus(400);
+        $this->call('POST', '/api/stripe/webhook', [], [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($failed))->assertStatus(400);
 
         $this->subscribe($owner);
         $this->webhook($failed)->assertOk()->assertSee('ok');
         $this->webhook($failed)->assertOk()->assertSee('duplicate');
         $this->assertSame(1, BusinessAccount::where('user_id', $owner->id)->value('failed_payments'));
         $this->assertSame(2, DB::table('stripe_events')->count());
+
+        // A late cancel for an old subscription leaves the current one alone.
+        $this->webhook(['id' => 'evt_old', 'type' => 'customer.subscription.deleted', 'data' => ['object' => ['id' => 'sub_old', 'metadata' => ['user_id' => (string) $owner->id]]]])->assertOk();
+        $this->assertSame('active', BusinessAccount::where('user_id', $owner->id)->value('status'));
+
+        // Stripe posts without a session or CSRF token: the route is in the api group.
+        $middleware = Route::getRoutes()->getByName('stripe.webhook')->gatherMiddleware();
+        $this->assertContains('api', $middleware);
+        $this->assertNotContains('web', $middleware);
     }
 
     public function test_subscribing_raises_limits_and_adds_the_badge_and_canceling_takes_them_away(): void

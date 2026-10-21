@@ -1,18 +1,15 @@
 <?php
 
-use App\Http\Controllers\StripeWebhookController;
 use App\Livewire\Admin;
 use App\Livewire\Pages\BusinessAnalytics;
 use App\Livewire\Pages\Promote;
 use App\Livewire\Settings\Business as BusinessSettings;
 use App\Models\PlaceDeal;
 use App\Support\Business;
-use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Route;
 
 // Business accounts and self-serve promotions, paid through Stripe (test mode only).
-
-Route::post('stripe/webhook', StripeWebhookController::class)->withoutMiddleware(ValidateCsrfToken::class)->middleware('throttle:120,1')->name('stripe.webhook');
+// The Stripe webhook is in routes/api.php, away from sessions and CSRF.
 
 // A deal card in a stop feed counts the click, then opens the place page. Never a link from the request.
 Route::get('deals/{deal}/open', function (PlaceDeal $deal) {

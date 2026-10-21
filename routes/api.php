@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\DispatchController;
 use App\Http\Controllers\Api\SubscriptionWebhookController;
+use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
 // Public, read-only...
@@ -14,6 +15,8 @@ Route::middleware('throttle:60,1,api-read')->group(function () {
 
 // The magazine's subscription system, signed with a shared secret...
 Route::post('subscriptions', SubscriptionWebhookController::class)->middleware('throttle:120,1');
+// Stripe (test mode), signed with STRIPE_WEBHOOK_SECRET; see routes/web-business.php for the rest.
+Route::post('stripe/webhook', StripeWebhookController::class)->middleware('throttle:120,1')->name('stripe.webhook');
 
 // Posting with a personal token from Settings → Terminal & API...
 Route::post('dispatches', [DispatchController::class, 'store'])->middleware(['auth:sanctum', 'throttle:20,1,api-post']);

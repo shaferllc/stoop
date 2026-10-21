@@ -151,7 +151,8 @@ class Business
     {
         $account = BusinessAccount::where('stripe_subscription_id', $sub['id'] ?? '')->first()
             ?? (($userId = $sub['metadata']['user_id'] ?? null) && User::whereKey($userId)->exists() ? BusinessAccount::firstOrNew(['user_id' => $userId]) : null);
-        if (! $account) {
+        // A late event for an old subscription must not overwrite a newer one.
+        if (! $account || ($account->stripe_subscription_id && $account->stripe_subscription_id !== ($sub['id'] ?? null) && $account->isActive())) {
             return;
         }
         // Newer API versions keep the period end on the subscription item.
