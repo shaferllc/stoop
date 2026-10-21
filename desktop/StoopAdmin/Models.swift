@@ -12,7 +12,7 @@ struct Person: Decodable, Identifiable, Hashable {
     var email: String?
     var verified: Bool?
     var createdAt: String?
-    var dispatches: Int?
+    var posts: Int?
     var penalized: Bool?
 }
 

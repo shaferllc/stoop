@@ -176,7 +176,7 @@ class AdminController extends Controller implements HasMiddleware
             ->withCount('dispatches')->latest()->paginate(50);
 
         return response()->json([
-            'data' => $users->getCollection()->map(fn (User $u) => $this->person($u, admin: true) + ['dispatches' => $u->dispatches_count, 'penalized' => $penalized->contains($u->id)]),
+            'data' => $users->getCollection()->map(fn (User $u) => $this->person($u, admin: true) + ['posts' => $u->dispatches_count, 'penalized' => $penalized->contains($u->id)]),
             'next_page' => $users->hasMorePages() ? $users->currentPage() + 1 : null,
         ]);
     }

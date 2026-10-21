@@ -27,7 +27,7 @@ struct PeopleView: View {
                         TableColumn("Email") { u in
                             HStack { Text(u.email ?? ""); if u.verified == false { Pill("unverified", red: true) } }
                         }
-                        TableColumn("Posts") { Text("\($0.dispatches ?? 0)") }.width(50)
+                        TableColumn("Posts") { Text("\($0.posts ?? 0)") }.width(50)
                         TableColumn("Joined") { Text(ago($0.createdAt)) }.width(90)
                         TableColumn("") { u in if u.penalized == true { Pill("penalized", red: true) } }.width(80)
                     }
