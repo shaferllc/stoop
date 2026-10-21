@@ -141,7 +141,7 @@
             <div class="mx-auto grid max-w-md grid-cols-5 text-[11px]">
                 @php($tab = 'flex flex-col items-center gap-0.5 py-2 text-mute')
                 <a href="{{ route('home') }}" wire:navigate @class([$tab, 'text-ink' => request()->routeIs('home')])><flux:icon.home variant="mini" />Stoop</a>
-                <a href="{{ route('search') }}" wire:navigate @class([$tab, 'text-ink' => request()->routeIs('search')])><flux:icon.magnifying-glass variant="mini" />Search</a>
+                <button type="button" x-data x-on:click="$dispatch('open-menu')" class="{{ $tab }}" aria-haspopup="dialog"><flux:icon.bars-3 variant="mini" />Menu</button>
                 @auth
                     <button type="button" x-data x-on:click="$dispatch('open-composer')" class="{{ $tab }}"><span class="-mt-5 grid size-11 place-items-center rounded-full bg-flag text-white shadow-lg"><flux:icon.plus /></span><span class="sr-only">File a dispatch</span></button>
                     <a href="{{ route('messages') }}" wire:navigate @class([$tab, 'relative', 'text-ink' => request()->routeIs('messages*')])><flux:icon.chat-bubble-left-right variant="mini" />Messages</a>
@@ -153,6 +153,52 @@
                 @endauth
             </div>
         </nav>
+
+        {{-- Phones: every section in a sheet, opened from Menu in the tab bar. --}}
+        <div x-data="{ open: false }" x-on:open-menu.window="open = true" x-on:keydown.escape.window="open = false" x-on:livewire:navigating.window="open = false" x-cloak class="lg:hidden">
+            <div x-show="open" style="display: none" x-transition.opacity class="fixed inset-0 z-40 bg-black/40" x-on:click="open = false"></div>
+            <div x-show="open" style="display: none" x-transition:enter="transition motion-reduce:transition-none" x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0"
+                class="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-paper p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]" role="dialog" aria-label="Menu">
+                <div class="mb-3 flex items-center justify-between">
+                    <span class="font-display text-lg font-bold">Stoop</span>
+                    <button type="button" x-on:click="open = false" class="text-2xl leading-none text-mute" aria-label="Close">×</button>
+                </div>
+                <form action="{{ route('search') }}" method="GET" role="search" class="mb-3">
+                    <input name="q" placeholder="Search dispatches, people, stations" class="w-full rounded-lg border border-rule bg-card px-3 py-2 text-[15px] outline-none focus:border-ink" autocomplete="off">
+                </form>
+                @php($sheetItem = 'flex items-center gap-3 rounded-xl border border-rule bg-card px-3 py-3 text-[15px] font-medium')
+                <div class="grid grid-cols-2 gap-2">
+                    <a href="{{ route('home') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.home variant="mini" />Front Stoop</a>
+                    <a href="{{ route('places') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.map-pin variant="mini" />Places</a>
+                    <a href="{{ route('happenings') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.calendar-days variant="mini" />Happenings</a>
+                    <a href="{{ route('play') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.trophy variant="mini" />Play</a>
+                    <a href="{{ route('lost-found') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.magnifying-glass-circle variant="mini" />Lost &amp; found</a>
+                    <a href="{{ route('bots') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.cpu-chip variant="mini" />Bots</a>
+                    @auth
+                        <a href="{{ route('saved') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.bookmark variant="mini" />Saved</a>
+                        <a href="{{ route('users.show', $me) }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.user variant="mini" />Profile</a>
+                        <a href="{{ route('profile.edit') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.cog-6-tooth variant="mini" />Settings</a>
+                        @if ($me->is_staff)
+                            <a href="{{ route('moderation') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.shield-check variant="mini" />Moderation</a>
+                            <a href="{{ route('admin') }}" wire:navigate class="{{ $sheetItem }}"><flux:icon.wrench-screwdriver variant="mini" />Admin</a>
+                        @endif
+                    @endauth
+                </div>
+                <div class="mt-4 mb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.13em] text-mute">Lines</div>
+                <div class="flex flex-wrap gap-1.5">
+                    @foreach (config('stoop.lines') as $key => $line)
+                        <a href="{{ route('home', ['line' => $key]) }}" wire:navigate class="flex items-center gap-1.5 rounded-full border border-rule bg-card px-3 py-1.5 text-sm"><span class="h-1.5 w-4 rounded-full" style="background: {{ $line['color'] }}"></span>{{ $line['name'] }}</a>
+                    @endforeach
+                </div>
+                <div class="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-mute">
+                    <a href="{{ route('rules') }}" wire:navigate>House rules</a>
+                    <a href="{{ route('tips.create') }}" wire:navigate>Send a tip</a>
+                    @auth
+                        <form method="POST" action="{{ route('logout') }}">@csrf<button type="submit">Log out</button></form>
+                    @endauth
+                </div>
+            </div>
+        </div>
 
         @auth
             <div x-data="{ open: false }" x-on:open-composer.window="open = true; $nextTick(() => $el.querySelector('[data-composer]')?.focus())"
