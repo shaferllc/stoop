@@ -4,7 +4,7 @@
         @forelse ($dispatches as $dispatch)
             <x-dispatch-card :dispatch="$dispatch" :translated="$translations[$dispatch->id] ?? null" :state="$state" />
         @empty
-            <div class="rounded-xl border border-dashed border-rule p-8 text-center text-mute">Nothing saved yet. Tap Save on any dispatch to keep it here.</div>
+            <x-empty title="Nothing saved yet">Tap the bookmark on any dispatch to keep it here for later.</x-empty>
         @endforelse
     </div>
     @include('partials.report-dialog')

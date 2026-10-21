@@ -46,7 +46,7 @@
     @forelse ($dispatches as $dispatch)
         <x-dispatch-card :dispatch="$dispatch" :translated="$translations[$dispatch->id] ?? null" :state="$state" />
     @empty
-        <div class="rounded-xl border border-dashed border-rule p-8 text-center text-mute">Nobody has posted about {{ $place->name }} yet. Been? Be the first.</div>
+        <x-empty title="Nobody’s weighed in yet" art="stoop">Been to {{ $place->name }}? Tell your neighbors what to order.</x-empty>
     @endforelse
 
     @include('partials.report-dialog')

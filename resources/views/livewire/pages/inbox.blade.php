@@ -37,7 +37,7 @@
                 </a>
             </li>
         @empty
-            <li class="p-8 text-center text-mute">{{ $box === 'requests' ? 'No message requests.' : ($box === 'archived' ? 'Nothing archived.' : 'No conversations yet.') }}</li>
+            <li><x-empty :title="$box === 'requests' ? 'No message requests' : ($box === 'archived' ? 'Nothing archived' : 'No conversations yet')" art="stoop" class="border-0">{{ $box === 'inbox' ? 'Start one with someone who follows you.' : '' }}</x-empty></li>
         @endforelse
     </ul>
 </div>

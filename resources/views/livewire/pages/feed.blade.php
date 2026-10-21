@@ -72,9 +72,13 @@
         @forelse ($this->dispatches as $dispatch)
             <x-dispatch-card :dispatch="$dispatch" :translated="$translations[$dispatch->id] ?? null" :state="$state" />
         @empty
-            <div class="rounded-xl border border-dashed border-rule p-8 text-center text-mute">
-                {{ $tab === 'following' ? 'Follow some neighbors and their dispatches will show up here.' : 'Nothing here yet. File the first dispatch.' }}
-            </div>
+            @if ($tab === 'following')
+                <x-empty title="Nobody on this platform yet">Follow some neighbors and their dispatches will pull in here.</x-empty>
+            @elseif ($stop)
+                <x-empty :title="'Quiet at '.config('stoop.stations.'.$stop)">Nobody has posted from this stop yet. Be the first.</x-empty>
+            @else
+                <x-empty title="Nothing here yet">The first dispatch is always the hardest. File one.</x-empty>
+            @endif
             @if ($tab === 'following')
                 <div class="space-y-2">
                     @foreach ($this->suggestedPeople as $person)

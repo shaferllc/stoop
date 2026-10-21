@@ -75,4 +75,9 @@ class FeedTest extends TestCase
 
         $this->get(route('users.card', $user))->assertOk()->assertSee('Maya R.')->assertSee('followers');
     }
+
+    public function test_empty_states_name_the_station(): void
+    {
+        $this->get('/?stop=E05')->assertOk()->assertSee('Quiet at Petworth')->assertDontSee('{{', false);
+    }
 }

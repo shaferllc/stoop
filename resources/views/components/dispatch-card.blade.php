@@ -18,7 +18,7 @@
                 'held' => 'Held for review. Only you and moderators can see this.',
                 'hidden' => 'Hidden after reports. A moderator is reviewing it.',
                 'scheduled' => 'Scheduled for '.$d->publish_at?->format('D M j, g:ia').'. Only you can see this.',
-                default => 'Removed by a moderator'.($d->moderation_reason ? ': '.$d->moderation_reason : '').'. You can appeal from the ··· menu.',
+                default => 'Removed by a moderator'.($d->moderation_reason ? ': '.$d->moderation_reason : '').'. You can appeal from the … menu.',
             } }}
         </div>
     @endif
@@ -50,8 +50,12 @@
             </div>
         </div>
         @unless ($d->parent_id)
-            <a href="{{ route('home', $d->stop ? ['stop' => $d->stop] : ['line' => $d->line]) }}" wire:navigate class="ml-auto flex items-center font-mono text-[11.5px] text-mute hover:text-ink">
-                <span class="mr-2 size-2.5 rounded-full" style="background: {{ $d->lineColor() }}"></span>{{ $d->stop ? $d->stop.' · '.$d->stopName() : $d->lineName() }}
+            <a href="{{ route('home', $d->stop ? ['stop' => $d->stop] : ['line' => $d->line]) }}" wire:navigate class="ml-auto text-[12px] text-mute hover:text-ink">
+                @if ($d->stop)
+                    <x-station :code="$d->stop" :line="$d->line" />
+                @else
+                    <span class="inline-flex items-center gap-1.5"><span class="h-1.5 w-5 rounded-full" style="background: {{ $d->lineColor() }}"></span>{{ $d->lineName() }}</span>
+                @endif
             </a>
         @endunless
     </div>
@@ -141,27 +145,42 @@
         </div>
     @endif
 
-    <div class="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-mute sm:ml-[46px]">
-        <a href="{{ route('dispatches.show', $d) }}#reply" wire:navigate class="{{ $btn }}">Reply {{ $d->replies_count }}</a>
+    @php($act = 'inline-flex items-center gap-1 rounded-md px-1.5 py-1 hover:bg-chip hover:text-ink tabular-nums')
+    <div class="-ml-1.5 mt-2 flex flex-wrap items-center gap-x-1 gap-y-1 text-[13px] text-mute sm:ml-[40px]">
+        <a href="{{ route('dispatches.show', $d) }}#reply" wire:navigate class="{{ $act }}" title="Reply">
+            <flux:icon.chat-bubble-oval-left variant="micro" /><span class="sr-only">Reply</span>{{ $d->replies_count ?: '' }}
+        </a>
         @unless ($d->parent_id)
-            <button type="button" wire:click="quote({{ $d->id }})" class="{{ $btn }}">Quote {{ $d->quotes_count }}</button>
+            <button type="button" wire:click="quote({{ $d->id }})" class="{{ $act }}" title="Quote">
+                <flux:icon.arrow-path-rounded-square variant="micro" /><span class="sr-only">Quote</span>{{ $d->quotes_count ?: '' }}
+            </button>
         @endunless
-        <button type="button" wire:click="toggleMark({{ $d->id }}, 'save')" @class([$btn, 'font-semibold text-flag' => in_array('save', $marks)])>{{ in_array('save', $marks) ? 'Saved' : 'Save' }}</button>
-        @if ($me?->half_smokes_on && $d->user_id !== $me->id)
-            <button type="button" wire:click="giveHalfSmoke({{ $d->id }})" class="{{ $btn }}" title="Give a half-smoke ({{ $me->halfSmokesLeft() }} left today)">Half-smoke {{ $d->half_smokes_count ?: '' }}</button>
-        @elseif ($me?->half_smokes_on && $d->half_smokes_count)
-            <span>{{ $d->half_smokes_count }} {{ str('half-smoke')->plural($d->half_smokes_count) }}</span>
-        @endif
+        <button type="button" wire:click="toggleMark({{ $d->id }}, 'save')" @class([$act, 'text-flag' => in_array('save', $marks)]) title="{{ in_array('save', $marks) ? 'Saved' : 'Save' }}" aria-pressed="{{ in_array('save', $marks) ? 'true' : 'false' }}">
+            @if (in_array('save', $marks))<flux:icon.bookmark variant="micro" class="fill-current" />@else<flux:icon.bookmark variant="micro" />@endif
+            <span class="sr-only">{{ in_array('save', $marks) ? 'Saved' : 'Save' }}</span>
+        </button>
         @if ($d->type === 'been')
-            <button type="button" wire:click="toggleMark({{ $d->id }}, 'been')" @class([$btn, 'font-semibold text-flag' => in_array('been', $marks)])>Been here {{ $d->been_count }}</button>
+            <button type="button" wire:click="toggleMark({{ $d->id }}, 'been')" @class([$act, 'font-semibold text-flag' => in_array('been', $marks)]) aria-pressed="{{ in_array('been', $marks) ? 'true' : 'false' }}">
+                <flux:icon.map-pin variant="micro" />Been here {{ $d->been_count }}
+            </button>
         @endif
         @if ($d->type === 'happening')
-            <button type="button" wire:click="toggleMark({{ $d->id }}, 'going')" @class([$btn, 'font-semibold text-flag' => in_array('going', $marks)])>Going {{ $d->going_count }}</button>
+            <button type="button" wire:click="toggleMark({{ $d->id }}, 'going')" @class([$act, 'font-semibold text-flag' => in_array('going', $marks)]) aria-pressed="{{ in_array('going', $marks) ? 'true' : 'false' }}">
+                <flux:icon.calendar-days variant="micro" />Going {{ $d->going_count }}
+            </button>
+        @endif
+        @if ($me?->half_smokes_on && $d->user_id !== $me->id)
+            <button type="button" wire:click="giveHalfSmoke({{ $d->id }})" x-data x-on:click="$el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.35) rotate(-8deg)' }, { transform: 'scale(1)' }], { duration: 280 })"
+                class="{{ $act }} motion-reduce:[animation:none]" title="Give a half-smoke ({{ $me->halfSmokesLeft() }} left today)">
+                <x-art.half-smoke class="size-4" /><span class="sr-only">Half-smoke</span>{{ $d->half_smokes_count ?: '' }}
+            </button>
+        @elseif ($me?->half_smokes_on && $d->half_smokes_count)
+            <span class="{{ $act }}"><x-art.half-smoke class="size-4" />{{ $d->half_smokes_count }}</span>
         @endif
 
         @auth
             <flux:dropdown position="bottom" align="start">
-                <button type="button" class="{{ $btn }}" aria-label="More actions">···</button>
+                <button type="button" class="{{ $act }}" aria-label="More actions"><flux:icon.ellipsis-horizontal variant="micro" /></button>
                 <flux:menu>
                     @if ($d->user_id === $me->id && ! $d->parent_id && $d->status === 'approved')
                         <flux:menu.item wire:click="togglePin({{ $d->id }})">{{ $me->pinned_dispatch_id === $d->id ? 'Unpin from profile' : 'Pin to profile' }}</flux:menu.item>

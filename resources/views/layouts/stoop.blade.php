@@ -31,9 +31,12 @@
 
         <header class="sticky top-0 z-20 border-b border-rule bg-card">
             <div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
-                <a href="{{ route('home') }}" wire:navigate class="leading-none">
-                    <span class="font-display text-[26px] font-bold tracking-tight">Stoop</span>
-                    <span class="mt-0.5 block text-[9.5px] font-semibold uppercase tracking-[0.16em] text-mute">DC, block by block</span>
+                <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2 leading-none" aria-label="Stoop home">
+                    <x-art.mark class="size-8 text-flag" />
+                    <span>
+                        <span class="font-display text-[26px] font-bold tracking-tight">Stoop</span>
+                        <span class="mt-0.5 block text-[9.5px] font-semibold uppercase tracking-[0.16em] text-mute">DC, block by block</span>
+                    </span>
                 </a>
 
                 <form action="{{ route('search') }}" method="GET" class="hidden flex-1 sm:block sm:max-w-sm" role="search">
@@ -90,14 +93,14 @@
                 <div class="mx-2.5 mt-5 mb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.13em] text-mute">Lines</div>
                 @foreach (config('stoop.lines') as $key => $line)
                     <a href="{{ route('home', ['line' => $key]) }}" wire:navigate class="{{ $navItem }} {{ request('line') === $key ? 'bg-chip text-ink' : '' }}">
-                        <span class="mr-2 size-2.5 rounded-full" style="background: {{ $line['color'] }}"></span>{{ $line['name'] }}
+                        <span class="mr-2 h-1.5 w-4 rounded-full" style="background: {{ $line['color'] }}"></span>{{ $line['name'] }}
                     </a>
                 @endforeach
 
                 @if ($me?->stops)
                     <div class="mx-2.5 mt-5 mb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.13em] text-mute">Your stops</div>
                     @foreach ($me->stops as $code)
-                        <a href="{{ route('home', ['stop' => $code]) }}" wire:navigate class="{{ $navItem }} {{ request('stop') === $code ? 'bg-chip text-ink' : '' }}">{{ $code }} · {{ config("stoop.stations.$code") }}</a>
+                        <a href="{{ route('home', ['stop' => $code]) }}" wire:navigate class="{{ $navItem }} {{ request('stop') === $code ? 'bg-chip text-ink' : '' }}"><x-station :code="$code" /></a>
                     @endforeach
                 @endif
             </nav>
@@ -143,8 +146,8 @@
         @auth
             <div x-data="{ open: false }" x-on:open-composer.window="open = true; $nextTick(() => $el.querySelector('[data-composer]')?.focus())"
                 x-on:dispatch-filed.window="open = false" x-on:keydown.escape.window="open = false" x-cloak>
-                <div x-show="open" x-transition.opacity class="fixed inset-0 z-40 bg-black/40" x-on:click="open = false"></div>
-                <div x-show="open" x-transition:enter="transition motion-reduce:transition-none" x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0"
+                <div x-show="open" style="display: none" x-transition.opacity class="fixed inset-0 z-40 bg-black/40" x-on:click="open = false"></div>
+                <div x-show="open" style="display: none" x-transition:enter="transition motion-reduce:transition-none" x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0"
                     class="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] overflow-y-auto rounded-t-2xl bg-paper p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]" role="dialog" aria-label="File a dispatch">
                     <div class="mb-2 flex items-center justify-between">
                         <span class="font-display text-lg font-bold">File a dispatch</span>

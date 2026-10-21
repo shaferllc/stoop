@@ -47,7 +47,7 @@
                 @endif
             </li>
         @empty
-            <li class="p-8 text-center text-mute">Nothing here yet.</li>
+            <li><x-empty title="All quiet" class="border-0">Replies, mentions and new followers show up here.</x-empty></li>
         @endforelse
     </ul>
 </div>

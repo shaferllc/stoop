@@ -42,9 +42,9 @@
         </div>
         <div class="mt-3 overflow-x-auto [&_svg]:max-w-none dark:[&_rect[fill='#e8ebe8']]:fill-[#262a2c]">{!! $graph !!}</div>
         @if ($badges)
-            <ul class="mt-3 flex flex-wrap gap-1.5">
-                @foreach ($badges as $badge)
-                    <li class="rounded-full border border-rule px-2.5 py-0.5 text-[12.5px]" title="{{ $badge['description'] }}">{{ $badge['name'] }}</li>
+            <ul class="mt-4 flex flex-wrap gap-3">
+                @foreach ($badges as $key => $badge)
+                    <li><x-art.badge :key="$key" :badge="$badge" /></li>
                 @endforeach
             </ul>
         @endif
@@ -80,7 +80,7 @@
         @forelse ($dispatches as $dispatch)
             <x-dispatch-card :dispatch="$dispatch" :translated="$translations[$dispatch->id] ?? null" :state="$state" :pinned="$dispatch->id === $pinnedId" />
         @empty
-            <div class="rounded-xl border border-dashed border-rule p-8 text-center text-mute">Nothing filed yet.</div>
+            <x-empty title="Nothing filed yet" art="stoop">{{ auth()->id() === $user->id ? 'Your first dispatch is waiting.' : $user->name.' hasn’t posted yet.' }}</x-empty>
         @endforelse
     </div>
 
