@@ -22,7 +22,7 @@ Seeded logins (password `password`): `demo@example.com` (regular user) and `food
 
 Optional settings in `.env`:
 
-- `ANTHROPIC_API_KEY`: lets @stoop answer with Claude and turns on translation. Without it, @stoop answers from `resources/knowledge/stoop.md` and the Translate button is hidden.
+- `ANTHROPIC_API_KEY`: lets @stoop answer with Claude and turns on translation, Catch me up summaries, composer suggestions from Claude and ANC summary drafts. Without it, @stoop answers from `resources/knowledge/stoop.md`, the Translate button is hidden, Catch me up lists the top posts and the composer suggests from keywords only.
 - `WMATA_API_KEY`: shows live Metro delays in the sidebar.
 - `STOOP_REQUIRE_SUBSCRIPTION=true`: only subscribers can post.
 - `STOOP_MAGAZINE_FEED`: the magazine’s RSS or Atom feed. New articles post to Stoop automatically.
@@ -32,6 +32,7 @@ Optional settings in `.env`:
 - `OPENAI_API_KEY`: OpenAI’s free moderation endpoint checks every new post (text and photos) first and holds hate, harassment, threats and similar. Thresholds are in `config/stoop.php` (`openai_thresholds`).
 - `STOOP_MODEL_MODERATION=false`: turn off the Claude check on new posts while keeping the bot and translation. The model defaults to `claude-opus-5-5`; `STOOP_MODERATION_MODEL` changes it.
 - `STOOP_AUTO_VERIFY=false`: require the email link again.
+- `STOOP_DC_311=false`: hide the nearby DC 311 requests on stop pages (on by default; DC GIS needs no key).
 
 Embed on magazine article pages:
 
