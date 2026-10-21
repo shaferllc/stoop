@@ -67,11 +67,12 @@ class Rivalries
                 $leader = $scores[$pair[0]] === $scores[$pair[1]] ? null : array_search(max($scores), $scores, true);
 
                 return ['title' => $pair[2], 'stops' => $scores, 'leader' => $leader];
-            });
+            })->all();
         };
 
         // Finished weeks never change, so they're cached for good; this week for 5 minutes.
-        return $finished ? Cache::rememberForever($key, $compute) : Cache::remember($key, now()->addMinutes(5), $compute);
+        // The cache only holds plain arrays (it won't rebuild objects), so wrap after reading.
+        return collect($finished ? Cache::rememberForever($key, $compute) : Cache::remember($key, now()->addMinutes(5), $compute));
     }
 
     /**
@@ -91,14 +92,14 @@ class Rivalries
     {
         $weekStart ??= self::weekStart();
 
-        return Cache::remember('stoop:lines:'.$weekStart->toDateString(), now()->addMinutes(5), function () use ($weekStart) {
+        return collect(Cache::remember('stoop:lines:'.$weekStart->toDateString(), now()->addMinutes(5), function () use ($weekStart) {
             $rows = Stations::points($weekStart->utc(), $weekStart->addWeek()->utc());
 
             return collect(config('metro.lines'))->map(function ($stops) use ($rows) {
                 $mine = $rows->whereIn('stop', $stops);
 
                 return ['points' => (int) $mine->sum('points'), 'people' => $mine->pluck('user_id')->unique()->count()];
-            })->sortByDesc('points');
-        });
+            })->sortByDesc('points')->all();
+        }));
     }
 }

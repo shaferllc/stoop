@@ -6,6 +6,7 @@ use App\Models\Dispatch;
 use App\Support\Newsletter;
 use App\Support\Rivalries;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class RivalriesTest extends TestCase
@@ -35,5 +36,21 @@ class RivalriesTest extends TestCase
         $standings = Rivalries::lineStandings();
         $this->assertSame('green', $standings->keys()->first());
         $this->assertSame(2, $standings['green']['points']);
+    }
+
+    public function test_results_survive_a_real_cache_round_trip(): void
+    {
+        // The test suite's array cache keeps objects; real caches serialize them.
+        config(['cache.default' => 'file']);
+        Cache::flush();
+        $lastWeek = Rivalries::weekStart()->subWeek();
+
+        Rivalries::matchups($lastWeek);
+        Rivalries::lineStandings();
+
+        $this->assertCount(Rivalries::PER_WEEK, Rivalries::matchups($lastWeek));
+        $this->assertCount(6, Rivalries::lineStandings());
+        $this->get('/?stop=E05')->assertOk();
+        Cache::flush();
     }
 }
