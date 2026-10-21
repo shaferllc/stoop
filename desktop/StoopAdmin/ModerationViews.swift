@@ -80,6 +80,8 @@ struct QueueView: View {
     @Environment(AppModel.self) private var model
     @State private var selection: Int?
     @State private var removing: Dispatch?
+    @State private var ai = QueueAI()
+    @State private var accepting = false
 
     var body: some View {
         Loaded(path: "queue") { (items: [Dispatch]) in
@@ -87,19 +89,23 @@ struct QueueView: View {
                 ContentUnavailableView("The queue is empty", systemImage: "checkmark.circle", description: Text("Held, hidden, reported and flagged dispatches show up here."))
             } else {
                 List(items, selection: $selection) { d in
-                    DispatchCard(dispatch: d) {
-                        Button("Approve") { approve(d) }.buttonStyle(.borderedProminent)
-                        Button("Remove…", role: .destructive) { removing = d }
+                    VStack(alignment: .leading, spacing: 0) {
+                        DispatchCard(dispatch: d, blur: ai.items[d.id]?.blur ?? !ai.loaded) {
+                            Button("Approve") { approve(d) }.buttonStyle(.borderedProminent)
+                            Button("Remove…", role: .destructive) { accepting = false; removing = d }
+                        }
+                        QueueAssistView(id: d.id, ai: ai) { accept(d) }.padding(.bottom, 8)
                     }
                     .tag(d.id)
                 }
                 // Plain letters only, so ⌘R still just refreshes.
-                .onKeyPress(characters: CharacterSet(charactersIn: "aro"), phases: .down) { press in
+                .onKeyPress(characters: CharacterSet(charactersIn: "aros"), phases: .down) { press in
                     guard press.modifiers.isEmpty else { return .ignored }
                     return act(items) { d in
                         switch press.characters {
                         case "a": approve(d)
-                        case "r": removing = d
+                        case "r": accepting = false; removing = d
+                        case "s": accept(d)
                         default: model.openOnSite(d.url)
                         }
                     }
@@ -107,13 +113,25 @@ struct QueueView: View {
                 .onAppear { selection = selection ?? items.first?.id }
             }
         }
+        .task(id: model.reloadToken) { await ai.load(model.api) }
         .navigationTitle("Queue")
-        .navigationSubtitle("↑↓ move · A approve · R remove · O open on the site")
-        .sheet(item: $removing) { RemoveSheet(dispatch: $0) }
+        .navigationSubtitle("↑↓ move · A approve · R remove · S accept suggestion · O open on the site")
+        .sheet(item: $removing) { RemoveSheet(dispatch: $0, suggested: accepting ? ai.suggestions[$0.id] : nil) }
     }
 
     func approve(_ d: Dispatch) {
         model.act("Approved.") { try await $0.post("dispatches/\(d.id)/approve") }
+    }
+
+    /// Claude's suggestion: approve, or open the remove sheet filled in for a moderator to confirm.
+    func accept(_ d: Dispatch) {
+        guard let s = ai.suggestions[d.id] else { return }
+        if s.action == "approve" {
+            approve(d)
+        } else {
+            accepting = true
+            removing = d
+        }
     }
 
     func act(_ items: [Dispatch], _ fn: (Dispatch) -> Void) -> KeyPress.Result {
@@ -127,6 +145,7 @@ struct RemoveSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
     let dispatch: Dispatch
+    var suggested: Suggestion?
     @State private var reason = ""
     @State private var note = ""
     @State private var penalty = "none"
@@ -159,17 +178,24 @@ struct RemoveSheet: View {
         }
         .padding(24)
         .frame(width: 480)
-        .onAppear { reason = model.me?.options.ruleReasons.first ?? "" }
+        .onAppear {
+            reason = suggested?.rule ?? model.me?.options.ruleReasons.first ?? ""
+            penalty = suggested?.penalty ?? "none"
+        }
     }
 }
 
 struct DispatchCard<Actions: View>: View {
     @Environment(AppModel.self) private var model
     let dispatch: Dispatch
+    /// Possibly hateful or graphic: blurred until clicked, to spare moderators.
+    var blur = false
     @ViewBuilder var actions: () -> Actions
+    @State private var revealed = false
 
     var body: some View {
         let d = dispatch
+        let hidden = blur && !revealed
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 NavigationLink(value: d.user) { Text("@\(d.user.username)").fontWeight(.semibold) }.buttonStyle(.link)
@@ -186,15 +212,23 @@ struct DispatchCard<Actions: View>: View {
             }
             .font(.callout)
 
-            Text(d.body.isEmpty ? "(no text)" : d.body).font(.body).textSelection(.enabled)
+            Group {
+                Text(d.body.isEmpty ? "(no text)" : d.body).font(.body).textSelection(.enabled)
 
-            if !d.images.isEmpty {
-                HStack {
-                    ForEach(d.images, id: \.self) { image in
-                        AsyncImage(url: URL(string: image.url)) { $0.resizable().scaledToFit() } placeholder: { Color.secondary.opacity(0.1) }
-                            .frame(height: 90).clipShape(RoundedRectangle(cornerRadius: 8))
-                            .accessibilityLabel(image.alt ?? "Photo")
+                if !d.images.isEmpty {
+                    HStack {
+                        ForEach(d.images, id: \.self) { image in
+                            AsyncImage(url: URL(string: image.url)) { $0.resizable().scaledToFit() } placeholder: { Color.secondary.opacity(0.1) }
+                                .frame(height: 90).clipShape(RoundedRectangle(cornerRadius: 8))
+                                .accessibilityLabel(image.alt ?? "Photo")
+                        }
                     }
+                }
+            }
+            .blur(radius: hidden ? 9 : 0)
+            .overlay {
+                if hidden {
+                    Button("Possibly hateful or graphic. Click to show.") { revealed = true }.buttonStyle(.bordered)
                 }
             }
             if let reason = d.moderationReason { Text("Reason: \(reason)").font(.callout).foregroundStyle(.secondary) }
@@ -264,6 +298,7 @@ struct AppealsView: View {
                             if let p = a.penalty { Pill("\(p.label): \(p.reason)", red: true) }
                         }
                         Text(a.body).font(.title3).textSelection(.enabled)
+                        AppealAssistView(id: a.id)
                         if let d = a.dispatch {
                             GroupBox { DispatchCard(dispatch: d).padding(.horizontal, 6) }
                         }

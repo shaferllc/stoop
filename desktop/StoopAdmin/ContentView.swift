@@ -39,6 +39,7 @@ struct ContentView: View {
                         case .people: PeopleView()
                         case .maintenance: MaintenanceView()
                         case .audit: AuditView()
+                        case .insights: InsightsView()
                         }
                         }
                         .navigationDestination(for: Person.self) { PersonView(id: $0.id) }

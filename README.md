@@ -30,6 +30,7 @@ Optional settings in `.env`:
 - `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET`: Cloudflare’s bot check on sign-up.
 - `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`: push notifications (already generated for local use).
 - `OPENAI_API_KEY`: OpenAI’s free moderation endpoint checks every new post (text and photos) first and holds hate, harassment, threats and similar. Thresholds are in `config/stoop.php` (`openai_thresholds`).
+- `ANTHROPIC_API_KEY` also turns on moderator help (the moderation page, Admin → Insights, person pages and the Stoop Admin app): a suggested call on each queue item, notes on appeals, a brief on a person's record, and a second look for coded hate at posts OpenAI scored as borderline (it can only hold them). Without the key, moderators still get past decisions on similar posts, plain-fact person summaries, threshold insights, watch phrases and blurring.
 - `STOOP_MODEL_MODERATION=false`: turn off the Claude check on new posts while keeping the bot and translation. The model defaults to `claude-opus-5-5`; `STOOP_MODERATION_MODEL` changes it.
 - `STOOP_AUTO_VERIFY=false`: require the email link again.
 
