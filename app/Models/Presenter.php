@@ -6,6 +6,7 @@ use App\Support\Ads;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 /**
  * A "Presented by" sponsor on a house bot's scheduled posts or on a game. At most one runs
@@ -55,8 +56,9 @@ class Presenter extends Model
     }
 
     /**
-     * Ends a bot's new scheduled post with "Presented by …" when the bot has a sponsor and the
-     * line fits. A post it won't fit stays as it is rather than losing its own words or links.
+     * Ends a bot's new scheduled post with "Presented by …" when the bot has a sponsor. A post
+     * that's too long loses whole lines from the end (list items, never half a link); a
+     * one-line post the line won't fit stays as it is.
      */
     public static function stamp(Dispatch $dispatch, string $bot): void
     {
@@ -64,12 +66,17 @@ class Presenter extends Model
             return;
         }
 
-        $body = rtrim((string) $dispatch->body)."\n".$presenter->line();
-        if (mb_strlen($body) > config('stoop.max_length')) {
+        $line = $presenter->line();
+        $room = config('stoop.max_length') - mb_strlen($line) - 1;
+        $body = rtrim((string) $dispatch->body);
+        while (mb_strlen($body) > $room && str_contains($body, "\n")) {
+            $body = rtrim(Str::beforeLast($body, "\n"));
+        }
+        if (mb_strlen($body) > $room) {
             return;
         }
 
-        $dispatch->forceFill(['body' => $body, 'details' => [...$dispatch->details ?? [], 'presenter' => $presenter->id]])->save();
+        $dispatch->forceFill(['body' => $body."\n".$line, 'details' => [...$dispatch->details ?? [], 'presenter' => $presenter->id]])->save();
     }
 
     public function line(): string

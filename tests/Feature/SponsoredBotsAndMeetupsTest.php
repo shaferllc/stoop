@@ -103,6 +103,14 @@ class SponsoredBotsAndMeetupsTest extends TestCase
         $short = (new Quizmaster)->post(['line' => 'blue', 'body' => str_repeat('é', 300)])->fresh();
         $this->assertStringContainsString('Presented by', $short->body);
         $this->assertLessThanOrEqual($max, mb_strlen($short->body));
+
+        // A full list post (like @weekend or @recap) drops whole items from the end to make room.
+        $items = collect(range(1, 12))->map(fn ($i) => "• Item $i https://stoop.test/events/item-$i");
+        $list = 'This weekend:'."\n".$items->takeWhile(fn ($v, $i) => mb_strlen($items->take($i + 1)->join("\n")) < $max - 20)->join("\n");
+        $full = (new Quizmaster)->post(['line' => 'blue', 'body' => $list])->fresh();
+        $this->assertStringContainsString('Presented by Bolt Coffee', $full->body);
+        $this->assertLessThanOrEqual($max, mb_strlen($full->body));
+        $this->assertMatchesRegularExpression('~item-\d+\nPresented by~', $full->body, 'No link is cut in half');
     }
 
     public function test_one_sponsor_per_bot_or_game_at_a_time(): void
