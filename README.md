@@ -40,6 +40,15 @@ Embed on magazine article pages:
 <script src="https://stoop.test/embed.js" async></script>
 ```
 
+## Newsroom tools
+
+Staff find these under Admin → Tips, Radar, Call-outs, Archive and Issues; Radar and Tips are also in the Stoop Admin Mac app.
+
+- Readers send private tips from the footer or a dispatch’s … menu; editors reply in Stoop messages only if the tipster allowed it.
+- Radar compares the last 7 days with the 4 weeks before. With `ANTHROPIC_API_KEY`, each trend can get a Claude story idea.
+- Archive stories are imported as CSV (`title,url,date,section,stations,neighborhoods,description`) and tagged to stations by name and the alias list. Station pages show three of them.
+- When a feed article changes, or an editor posts a correction, @magazine replies in its thread and everyone who joined in is notified once.
+
 ## Tests
 
 ```

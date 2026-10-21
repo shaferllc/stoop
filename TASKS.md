@@ -113,6 +113,18 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [ ] Point `STOOP_MAGAZINE_FEED` and the subscription system at the real ones
 - [ ] Push notifications and the installable app need HTTPS; try them once the site is served over HTTPS
 
+## Newsroom
+- [x] Tips to the newsroom (footer link, and “Tip the newsroom about this” on every dispatch): text, link, dispatch, private photos, “OK to contact me”; 5 an hour; profanity-checked, OpenAI scores shown to editors; never public
+- [x] Editors’ tip inbox (Admin → Tips and the Mac app): statuses, assignment, replies through Stoop messages only with consent
+- [x] Story radar (Admin → Radar and the Mac app): topics and stations this week vs the 4-week average with volume thresholds, rising words, Ask DC clusters, optional Claude story idea per trend
+- [x] Callouts tied to stories: article URL or working title, “The newsroom may quote this reply in a story” on replies, quotes view and CSV export of consented replies only
+- [x] Article updates: changed feed content or an editor’s “Corrected/Updated” note posts an @magazine reply in the thread and notifies repliers, savers and reactors once
+- [x] “From the archive” on station pages: CSV import, station and neighborhood tagger with a staff alias list; new feed articles are tagged and posted to their station
+- [x] Issue drops: build from imported articles or pasted URLs, publish once as an @magazine thread plus an issue page
+- [ ] Add `quote_ok` to the iOS app’s reply composer (the app API already accepts it)
+- [ ] Neighborhood names per station in `config/metro.php` (`neighborhoods`); the tagger reads them when present, and the alias list covers the common ones until then
+- [ ] Radar keywords read up to 5,000 recent posts; switch to the FTS vocabulary table if volume grows
+
 ## Making money
 - [x] Claimed places: owners request, staff approve, owners post as the business
 - [x] Sponsored stops and lines, labeled, with view and click counts
