@@ -21,15 +21,21 @@ class Strikes
     /** Hours of timeout by strike number; strike 1 is a warning. */
     public const LADDER = [2 => 24, 3 => 168, 4 => 720];
 
+    /**
+     * Hate speech skips the warning: the first strike is a 7-day timeout, the second 30 days
+     * and flags the account for a ban.
+     */
+    public const SEVERE_LADDER = [1 => 168, 2 => 720];
+
     public static function recent(User $user): int
     {
         return $user->penalties()->whereNull('lifted_at')->where('created_at', '>=', now()->subDays(self::WINDOW_DAYS))->count();
     }
 
-    public static function issue(User $user, string $reason, ?Dispatch $dispatch = null): Penalty
+    public static function issue(User $user, string $reason, ?Dispatch $dispatch = null, bool $severe = false): Penalty
     {
         $strike = self::recent($user) + 1;
-        $hours = self::LADDER[min($strike, 4)] ?? null;
+        $hours = $severe ? self::SEVERE_LADDER[min($strike, 2)] : (self::LADDER[min($strike, 4)] ?? null);
 
         $penalty = Penalty::create([
             'user_id' => $user->id,
@@ -41,14 +47,15 @@ class Strikes
             'ends_at' => $hours ? now()->addHours($hours) : null,
         ]);
 
-        Audit::log('strike.automatic', $user, ['strike' => $strike, 'type' => $penalty->type, 'hours' => $hours, 'reason' => $reason]);
+        Audit::log('strike.automatic', $user, ['strike' => $strike, 'type' => $penalty->type, 'hours' => $hours, 'reason' => $reason, 'severe' => $severe]);
 
-        if ($strike >= 4) {
-            Audit::log('ban.recommended', $user, ['strikes' => $strike]);
+        if ($strike >= 4 || ($severe && $strike >= 2)) {
+            Audit::log('ban.recommended', $user, ['strikes' => $strike, 'hate_speech' => $severe]);
         }
 
         $user->notify(new ModerationNotice(match (true) {
             ! $hours => 'Your dispatch was removed automatically: '.$reason.'. This is a warning. You can appeal if we got it wrong.',
+            $severe => 'Your dispatch was removed automatically: '.$reason.'. Stoop has zero tolerance for hate speech, so you’re in a timeout for '.Penalty::TIMEOUTS[$hours].($strike >= 2 ? ' and your account is under review for a ban' : '').'. You can appeal once.',
             default => 'Your dispatch was removed automatically: '.$reason.'. That’s strike '.$strike.' in '.self::WINDOW_DAYS.' days, so you’re in a timeout for '.Penalty::TIMEOUTS[$hours].'. You can appeal once.',
         }, $dispatch));
 
@@ -62,8 +69,11 @@ class Strikes
      */
     public static function banCandidates(): Collection
     {
-        $hashes = Penalty::whereNull('lifted_at')->where('created_at', '>=', now()->subDays(self::WINDOW_DAYS))
-            ->groupBy('subject_hash')->havingRaw('count(*) >= 4')->pluck('subject_hash');
+        $recent = Penalty::whereNull('lifted_at')->where('created_at', '>=', now()->subDays(self::WINDOW_DAYS));
+        $hashes = (clone $recent)->groupBy('subject_hash')->havingRaw('count(*) >= 4')->pluck('subject_hash')
+            ->merge((clone $recent)->whereIn('reason', array_map(fn ($c) => config('stoop.openai_reasons.'.$c), config('stoop.hate_categories')))
+                ->groupBy('subject_hash')->havingRaw('count(*) >= 2')->pluck('subject_hash'))
+            ->unique();
         $banned = Penalty::active()->where('type', 'ban')->whereIn('subject_hash', $hashes)->pluck('subject_hash');
 
         return User::whereIn('id', Penalty::whereIn('subject_hash', $hashes->diff($banned))->whereNotNull('user_id')->pluck('user_id'))->get();

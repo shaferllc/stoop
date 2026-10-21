@@ -69,6 +69,24 @@ class StoopTest extends TestCase
         $this->assertSame('reply', $dispatch->user->notifications()->first()->data['kind']);
     }
 
+    public function test_no_swearing_anywhere(): void
+    {
+        $user = User::factory()->create();
+
+        foreach (['This damn line', 'f*ck the Red Line', 'what the hell, WMATA', 'sh1t'] as $text) {
+            Livewire::actingAs($user)->test(Composer::class)->set('body', $text)->call('file')->assertHasErrors('body');
+        }
+        Livewire::actingAs($user)->test(Composer::class)->set('type', 'poll')->set('body', 'Best bagel?')
+            ->set('options', ['The damn good one', 'The other one', '', ''])->call('file')->assertHasErrors('body');
+        $this->assertDatabaseCount('dispatches', 0);
+
+        Livewire::actingAs($user)->test(Composer::class)->set('body', 'Hello DC, the assistant at the cocktail class was great')->call('file')->assertHasNoErrors();
+
+        auth()->logout();
+        $this->post(route('register.store'), ['name' => 'Bad Name', 'username' => 'shit_head', 'email' => 'x@example.com', 'password' => 'password-123-Long!', 'password_confirmation' => 'password-123-Long!'])
+            ->assertSessionHasErrors('username');
+    }
+
     public function test_profanity_aimed_at_someone_gets_the_nudge(): void
     {
         foreach (['fuck you', 'Fuck off', 'screw you', 'go to hell'] as $text) {

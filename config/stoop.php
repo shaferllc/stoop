@@ -96,37 +96,42 @@ return [
     'held_patterns' => [],
 
     // OpenAI moderation scores (0 to 1) at or above which a post is held for moderators.
-    // Lower holds more. Hate and threats are strict; self-harm goes to a person who can respond with care.
+    // Stoop is strict: anything that even leans toward hate or harassment waits for a person.
     'openai_thresholds' => [
-        'hate' => 0.4,
-        'hate/threatening' => 0.2,
-        'harassment' => 0.6,
-        'harassment/threatening' => 0.3,
-        'violence' => 0.7,
-        'violence/graphic' => 0.6,
-        'sexual' => 0.7,
+        'hate' => 0.15,
+        'hate/threatening' => 0.1,
+        'harassment' => 0.35,
+        'harassment/threatening' => 0.15,
+        'violence' => 0.5,
+        'violence/graphic' => 0.5,
+        'sexual' => 0.5,
         'sexual/minors' => 0.05,
         'self-harm' => 0.5,
         'self-harm/intent' => 0.3,
         'self-harm/instructions' => 0.3,
-        'illicit/violent' => 0.5,
+        'illicit/violent' => 0.4,
     ],
 
     // Scores at or above which the automatic check removes a post outright and gives the
-    // author a strike (see app/Support/Strikes.php). Everything between the hold and
-    // remove thresholds waits for a person.
+    // author a strike (see app/Support/Strikes.php). Hate speech is removed at a much lower
+    // score than anything else, and its strikes are harsher.
     'openai_auto_remove' => [
-        'hate' => 0.85,
-        'hate/threatening' => 0.6,
-        'harassment/threatening' => 0.7,
-        'sexual/minors' => 0.3,
-        'illicit/violent' => 0.85,
+        'hate' => 0.45,
+        'hate/threatening' => 0.25,
+        'harassment' => 0.8,
+        'harassment/threatening' => 0.5,
+        'sexual/minors' => 0.1,
+        'illicit/violent' => 0.7,
     ],
+
+    // Categories that count as hate speech: their strikes use the severe ladder.
+    'hate_categories' => ['hate', 'hate/threatening'],
 
     // Plain-language reasons for automatic removals.
     'openai_reasons' => [
         'hate' => 'Attacking people for who they are',
         'hate/threatening' => 'Threatening people for who they are',
+        'harassment' => 'Harassment',
         'harassment/threatening' => 'Threats or harassment',
         'sexual/minors' => 'Sexual content involving minors',
         'illicit/violent' => 'Promoting violence',

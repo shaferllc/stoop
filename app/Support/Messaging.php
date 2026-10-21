@@ -158,6 +158,10 @@ class Messaging
             'photos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
         ])->validate();
 
+        if (Profanity::contains($body)) {
+            throw ValidationException::withMessages(['body' => 'Stoop keeps it clean, in messages too: no swearing.']);
+        }
+
         if (! RateLimiter::attempt('message:'.$from->id, 30, fn () => true)) {
             throw ValidationException::withMessages(['body' => 'Slow down a little. Try again in a minute.']);
         }

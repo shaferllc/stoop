@@ -7,6 +7,7 @@ use App\Models\Message;
 use App\Models\MessageReport;
 use App\Models\User;
 use App\Support\Messaging;
+use App\Support\Profanity;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -121,7 +122,7 @@ class ConversationView extends Component
     {
         $conversation = $this->conversation();
         abort_unless($conversation->is_group && $conversation->isAdmin(Auth::user()) && ! Auth::user()->postingBlock(), 403);
-        $this->validate(['newName' => ['nullable', 'string', 'max:60']]);
+        $this->validate(['newName' => ['nullable', 'string', 'max:60', fn ($a, $v, $fail) => Profanity::contains((string) $v) ? $fail('Pick a name without swearing.') : null]]);
         $conversation->update(['name' => $this->newName ?: null]);
         Flux::toast('Renamed.');
     }

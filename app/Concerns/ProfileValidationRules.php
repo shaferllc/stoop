@@ -3,6 +3,7 @@
 namespace App\Concerns;
 
 use App\Models\User;
+use App\Support\Profanity;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +19,7 @@ trait ProfileValidationRules
         return [
             'name' => $this->nameRules(),
             'username' => [
-                'required', 'string', 'min:2', 'max:30', 'regex:/^[A-Za-z0-9_]+$/',
+                'required', 'string', 'min:2', 'max:30', 'regex:/^[A-Za-z0-9_]+$/', $this->clean(),
                 $userId === null ? Rule::unique(User::class) : Rule::unique(User::class)->ignore($userId),
             ],
             'email' => $this->emailRules($userId),
@@ -32,7 +33,19 @@ trait ProfileValidationRules
      */
     protected function nameRules(): array
     {
-        return ['required', 'string', 'max:255'];
+        return ['required', 'string', 'max:255', $this->clean()];
+    }
+
+    /**
+     * Names and usernames are public, so they follow the no-swearing rule too.
+     */
+    protected function clean(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail) {
+            if (Profanity::contains(str_replace('_', ' ', (string) $value))) {
+                $fail('Pick a name without swearing.');
+            }
+        };
     }
 
     /**

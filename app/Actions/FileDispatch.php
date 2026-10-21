@@ -16,6 +16,7 @@ use App\Support\Mentions;
 use App\Support\ModerationModel;
 use App\Support\OpenAiModeration;
 use App\Support\Photos;
+use App\Support\Profanity;
 use App\Support\Settings;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -87,6 +88,11 @@ class FileDispatch
             'snowInches' => [Rule::requiredIf($input['type'] === 'snow' && $topLevel), 'nullable', 'numeric', 'between:0,60'],
             'plowed' => [Rule::requiredIf($input['type'] === 'snow' && $topLevel), 'nullable', Rule::in(['yes', 'partly', 'no'])],
         ], [], ['snowInches' => 'snow total', 'plowed' => 'plowing', 'happeningAt' => 'when', 'options.*' => 'option', 'publishAt' => 'scheduled time', 'photos.*' => 'photo', 'safetyWhen' => 'when it happened'])->validate();
+
+        $typed = [$input['body'], $input['happeningAt'], $input['safetyWhen'], $input['safetyBlock'], $input['safetyPerson'], ...$input['options'], ...$input['alts']];
+        if (collect($typed)->contains(fn ($text) => Profanity::contains((string) $text))) {
+            $fail('body', 'Stoop keeps it clean: no swearing. Edit it and post again.');
+        }
 
         $options = array_values(array_unique(array_filter(array_map('trim', $input['options']))));
         if ($input['type'] === 'poll' && $topLevel && count($options) < 2) {

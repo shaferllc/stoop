@@ -45,7 +45,7 @@ class ModerateDispatch implements ShouldQueue
             if ($result['remove']) {
                 $reason = config('stoop.openai_reasons.'.$result['remove'], 'Breaking the house rules');
                 $dispatch->forceFill(['status' => 'removed', 'screening' => $screening + ['auto_removed' => $result['remove']], 'moderation_reason' => $reason])->save();
-                Strikes::issue($dispatch->user, $reason, $dispatch);
+                Strikes::issue($dispatch->user, $reason, $dispatch, severe: in_array($result['remove'], config('stoop.hate_categories'), true));
 
                 return;
             }
