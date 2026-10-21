@@ -18,6 +18,7 @@ use App\Support\OpenAiModeration;
 use App\Support\Photos;
 use App\Support\Profanity;
 use App\Support\Settings;
+use App\Support\WatchPhrases;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
@@ -202,6 +203,11 @@ class FileDispatch
 
             return $dispatch;
         });
+
+        // Coded or local hate from staff's watch list: hold it and show moderators what it means.
+        if ($watch = WatchPhrases::matches(implode("\n", array_map('strval', $typed)))) {
+            $dispatch->forceFill(['status' => 'held', 'screening' => ['watch' => $watch]])->save();
+        }
 
         if ($parent) {
             self::checkPileOn($parent);

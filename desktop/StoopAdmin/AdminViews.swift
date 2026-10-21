@@ -83,6 +83,7 @@ struct PersonView: View {
                         }
                         Button("View Profile on Site") { model.openOnSite(p.url) }.buttonStyle(.link)
                     }
+                    PersonBriefView(id: p.id)
 
                     GroupBox("Issue a penalty") {
                         HStack {

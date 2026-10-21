@@ -97,7 +97,16 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] New accounts: no message requests for 3 days, 20 posts a day for the first week
 - [x] Privacy policy and terms (drafts, marked for legal review)
 - [ ] Legal review of the privacy policy and terms
-- [ ] Tune the OpenAI thresholds after a few weeks of real posts (count how many held posts moderators approve)
+- [x] Threshold insights (Admin → Insights and the Mac app): per OpenAI category, held posts moderators approved vs removed in 30 days, with suggested changes from simple rules. Read-only
+- [ ] Tune the OpenAI thresholds after a few weeks of real posts, using Admin → Insights
+- [x] Watch phrases for coded and local hate (Admin → Insights and the Mac app): active phrases hold new posts with the meaning shown to moderators; seeded with labeled examples, the broad ones off
+- [x] Claude takes a second look at posts OpenAI scored borderline for hate or harassment (half the hold threshold up to it) and can only hold them
+- [x] Moderator help on every queue item: Claude’s one-line read, likely rule, suggested action and penalty (never a ban) and confidence, cached; “Accept suggestion” / S fills in the remove form or approves
+- [x] Past decisions on similar posts (approved/removed counts and 3 examples) from the search index
+- [x] Person brief on the admin person page (Claude, cached an hour; plain facts without a key) and appeal notes (what supports or contradicts the appeal)
+- [x] Posts with high hate, harassment, sexual or violence scores, or a watch phrase, are blurred in the queue until clicked
+- [ ] Show the borderline OpenAI scores on posts that weren't held (only flagged scores are stored today)
+- [ ] Find similar past decisions by meaning (embeddings); it's keyword overlap for now
 - [ ] Run the OpenAI check on reported private messages, to sort the moderation queue by severity
 - [ ] Moderator training, rotation and an outside advisory group (people, not code)
 

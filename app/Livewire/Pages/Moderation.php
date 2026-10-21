@@ -51,13 +51,16 @@ class Moderation extends Component
         Flux::toast('Approved.');
     }
 
-    public function startAction(int $id): void
+    /**
+     * Opens the remove form, optionally pre-filled with Claude's suggested rule and penalty.
+     */
+    public function startAction(int $id, ?string $reason = null, string $penalty = 'none'): void
     {
         $this->moderator();
         $this->acting = $id;
-        $this->reason = config('stoop.rule_reasons.0');
+        $this->reason = in_array($reason, config('stoop.rule_reasons'), true) ? $reason : config('stoop.rule_reasons.0');
         $this->note = '';
-        $this->penalty = 'none';
+        $this->penalty = $penalty;
     }
 
     public function remove(): void

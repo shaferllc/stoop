@@ -10,6 +10,7 @@
         'admin.quiz' => 'Quiz',
         'admin.moments' => 'Moments',
         'moderation' => 'Moderation',
+        'admin.moderation-insights' => 'Mod insights',
         'admin.audit' => 'Audit log',
     ])
     @foreach ($adminTabs as $route => $label)
