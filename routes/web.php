@@ -4,7 +4,9 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\TransparencyController;
 use App\Livewire\Admin;
+use App\Livewire\Pages\AmaShow;
 use App\Livewire\Pages\AppealCreate;
+use App\Livewire\Pages\BallotShow;
 use App\Livewire\Pages\ContestShow;
 use App\Livewire\Pages\ConversationView;
 use App\Livewire\Pages\EventShow;
@@ -21,6 +23,7 @@ use App\Livewire\Pages\Search;
 use App\Livewire\Pages\ShowDispatch;
 use App\Livewire\Pages\UserProfile;
 use App\Mail\WeeklyDigest;
+use App\Models\Ballot;
 use App\Models\CityEvent;
 use App\Models\Contest;
 use App\Models\Dispatch;
@@ -52,6 +55,8 @@ Route::livewire('places', PlacesIndex::class)->name('places');
 Route::livewire('passports', PassportsPage::class)->name('passports');
 Route::livewire('daily', Quiz::class)->name('quiz');
 Route::livewire('places/{place}', PlaceShow::class)->name('places.show');
+Route::livewire('ask/{thread}', AmaShow::class)->name('ama.show');
+Route::livewire('best-of/{ballot}', BallotShow::class)->name('ballots.show');
 
 // Sponsored placements count a click, then send people on to the sponsor.
 Route::get('s/{sponsorship}', function (Sponsorship $sponsorship) {
@@ -149,6 +154,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('audit', Admin\AuditLog::class)->name('.audit');
         Route::livewire('quiz', Admin\QuizQuestions::class)->name('.quiz');
         Route::livewire('moments', Admin\Moments::class)->name('.moments');
+        Route::livewire('editorial', Admin\Editorial::class)->name('.editorial');
+        Route::livewire('anc', Admin\AncSummaries::class)->name('.anc');
+        Route::get('ballots/{ballot}/results.csv', function (Ballot $ballot) {
+            abort_unless(auth()->user()->is_staff, 403);
+
+            return response($ballot->csv(), 200, ['Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => 'attachment; filename="'.str($ballot->title)->slug().'-results.csv"']);
+        })->middleware('throttle:20,1')->name('.ballots.csv');
     });
     Route::get('settings/export', ExportController::class)->middleware('throttle:5,1')->name('export');
     // Push notification sign-ups from a browser or the installed app...

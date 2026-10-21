@@ -114,7 +114,14 @@ class Magazine
                 'line' => self::SECTIONS[strtolower($category)] ?? self::lineFor($title),
             ], confirmed: true), null, false);
 
+            // Shown as an article card in the feed (see the dispatch card).
+            $image = self::imageFor($item, $url);
+            $dispatch?->forceFill(['details' => [...($dispatch->details ?? []), 'article' => array_filter([
+                'title' => Str::limit($title, 300, ''), 'section' => $category ? Str::limit($category, 80, '') : null, 'image' => $image,
+            ])]])->save();
+
             DB::table('articles')->insert([
+                'image_url' => $image,
                 'guid_hash' => hash('sha256', $guid),
                 'url' => Str::limit($link, 500, ''),
                 'title' => Str::limit($title, 300, ''),
@@ -129,6 +136,29 @@ class Magazine
         }
 
         return $posted;
+    }
+
+    /**
+     * The article's lead image from an RSS enclosure or Media RSS tag. Only https images on
+     * the magazine's own domain, so a feed can't make readers' browsers call anyone else.
+     */
+    protected static function imageFor(SimpleXMLElement $item, string $feed): ?string
+    {
+        $media = $item->children('http://search.yahoo.com/mrss/');
+        $candidates = [
+            str_starts_with((string) ($item->enclosure['type'] ?? ''), 'image/') ? (string) $item->enclosure['url'] : '',
+            (string) ($media->content?->attributes()['url'] ?? ''),
+            (string) ($media->thumbnail?->attributes()['url'] ?? ''),
+        ];
+        $domain = fn (?string $host) => implode('.', array_slice(explode('.', (string) $host), -2));
+
+        foreach ($candidates as $url) {
+            if (str_starts_with($url, 'https://') && mb_strlen($url) <= 500 && $domain(parse_url($url, PHP_URL_HOST)) === $domain(parse_url($feed, PHP_URL_HOST))) {
+                return $url;
+            }
+        }
+
+        return null;
     }
 
     public static function lineFor(string $text): string

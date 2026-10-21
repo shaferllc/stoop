@@ -127,7 +127,26 @@
         </div>
     @endif
 
-    @if ($d->linkPreview)
+    @if ($article = $d->details['article'] ?? null)
+        {{-- A magazine article posted from the feed. --}}
+        @php($articleUrl = $d->linkPreview?->url ?? \App\Support\Mentions::firstUrl($d->body))
+        <div class="mt-2 overflow-hidden rounded-lg border border-rule sm:ml-[46px]">
+            <a href="{{ $articleUrl }}" target="_blank" rel="noopener" class="block hover:bg-chip/40">
+                @isset($article['image'])
+                    <img src="{{ $article['image'] }}" alt="" loading="lazy" referrerpolicy="no-referrer" class="aspect-[2/1] w-full bg-chip object-cover">
+                @endisset
+                <div class="px-3 py-2">
+                    <div class="text-[11px] font-semibold uppercase tracking-wide text-flag">{{ config('stoop.magazine_name') }}@isset($article['section']) · {{ $article['section'] }}@endisset</div>
+                    <div class="font-display text-[18px] font-bold leading-snug">{{ $article['title'] }}</div>
+                </div>
+            </a>
+            <a href="{{ route('dispatches.show', $d) }}#reply" wire:navigate class="flex items-center gap-1 border-t border-rule px-3 py-1.5 text-[13px] font-semibold hover:bg-chip"><flux:icon.chat-bubble-left-right variant="micro" />Discuss · {{ $d->replies_count }}</a>
+        </div>
+    @elseif ($ama = $d->details['ama'] ?? null)
+        <a href="{{ route('ama.show', $ama) }}" wire:navigate class="mt-2 flex items-center gap-2 rounded-lg border border-rule px-3 py-2 text-[13.5px] font-semibold hover:border-ink sm:ml-[46px]">
+            <flux:icon.microphone variant="micro" />Ask the editor · {{ $d->replies_count }} {{ str('question')->plural($d->replies_count) }}<span class="ml-auto font-normal text-mute">Open the thread →</span>
+        </a>
+    @elseif ($d->linkPreview)
         <a href="{{ $d->linkPreview->url }}" target="_blank" rel="nofollow ugc noopener" class="mt-2 block rounded-lg border border-rule px-3 py-2 hover:border-ink sm:ml-[46px]">
             <div class="text-[11px] uppercase tracking-wide text-mute">{{ $d->linkPreview->host() }}</div>
             <div class="font-display text-[16px] font-bold leading-snug">{{ $d->linkPreview->title }}</div>
