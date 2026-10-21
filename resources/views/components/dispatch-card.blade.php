@@ -11,11 +11,16 @@
 @endphp
 
 <article wire:key="dispatch-{{ $d->id }}" id="d{{ $d->id }}" tabindex="-1" data-dispatch data-href="{{ route('dispatches.show', $d) }}" @class(['rounded-xl border bg-card px-4 py-3.5', 'border-ink' => $focus, 'border-rule' => ! $focus])>
+    @if ($d->status === 'pending')
+        {{-- The automatic check finishes a moment after posting; refresh until it does. --}}
+        <span wire:poll.2s.visible class="hidden"></span>
+    @endif
+
     @if ($d->status !== 'approved')
         <div class="mb-2 rounded-md bg-chip px-2.5 py-1 text-xs text-mute">
             {{ match ($d->status) {
                 'pending' => 'Checking against the house rules. It goes up in a moment.',
-                'held' => 'Held for review. Only you and moderators can see this.',
+                'held' => 'Held for review: this may break the house rules. Only you and moderators can see it, and a moderator will decide.',
                 'hidden' => 'Hidden after reports. A moderator is reviewing it.',
                 'scheduled' => 'Scheduled for '.$d->publish_at?->format('D M j, g:ia').'. Only you can see this.',
                 default => 'Removed by a moderator'.($d->moderation_reason ? ': '.$d->moderation_reason : '').'. You can appeal from the … menu.',
