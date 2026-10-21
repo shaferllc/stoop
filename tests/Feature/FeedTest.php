@@ -28,6 +28,10 @@ class FeedTest extends TestCase
 
         $feed->call('$refresh')->assertDontSee('Just arrived')->assertSee('Show 1 new dispatch');
         $feed->call('showNew')->assertSee('Just arrived');
+
+        // A post dated in the future can't be shown, so it isn't counted.
+        Dispatch::factory()->create(['body' => 'From tomorrow', 'created_at' => now()->addDay()]);
+        $feed->call('$refresh')->assertDontSee('new dispatch');
     }
 
     public function test_the_last_feed_opened_is_remembered(): void

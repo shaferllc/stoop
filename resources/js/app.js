@@ -209,3 +209,47 @@ window.addEventListener('confetti', () => {
     };
     draw();
 });
+
+// Tooltips for anything with data-tip. One floating label, positioned above the element
+// and kept on screen, so it isn't clipped by scrolling containers like the strip maps.
+(() => {
+    let tip;
+    let target;
+
+    const show = (el) => {
+        tip ??= Object.assign(document.createElement('div'), { role: 'tooltip', id: 'stoop-tip' });
+        tip.className = 'pointer-events-none fixed z-[70] max-w-64 rounded-md bg-ink px-2.5 py-1.5 text-[12.5px] leading-snug text-paper shadow-lg';
+        tip.textContent = el.dataset.tip;
+        document.body.append(tip);
+
+        const box = el.getBoundingClientRect();
+        const width = tip.offsetWidth;
+        const left = Math.min(Math.max(8, box.left + box.width / 2 - width / 2), innerWidth - width - 8);
+        const above = box.top - tip.offsetHeight - 8;
+        tip.style.left = `${left}px`;
+        tip.style.top = `${above > 8 ? above : box.bottom + 8}px`;
+
+        target = el;
+        el.setAttribute('aria-describedby', 'stoop-tip');
+    };
+
+    const hide = () => {
+        tip?.remove();
+        target?.removeAttribute('aria-describedby');
+        target = null;
+    };
+
+    document.addEventListener('mouseover', (e) => {
+        const el = e.target.closest?.('[data-tip]');
+        if (el && el !== target) show(el);
+        if (!el && target) hide();
+    });
+    document.addEventListener('focusin', (e) => {
+        const el = e.target.closest?.('[data-tip]');
+        el ? show(el) : hide();
+    });
+    document.addEventListener('focusout', hide);
+    document.addEventListener('scroll', hide, true);
+    document.addEventListener('keydown', (e) => e.key === 'Escape' && hide());
+    document.addEventListener('livewire:navigated', hide);
+})();

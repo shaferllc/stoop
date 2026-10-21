@@ -413,7 +413,8 @@ class DemoCitySeeder extends Seeder
                 'type' => 'poll', 'line' => 'orange', 'status' => 'approved', 'closes_at' => $winner ? $start : $start,
                 'body' => "Game day: $team ".($home ? 'vs.' : 'at')." $opponent, ".$start->format('g:ia').'. Who wins? Right picks are worth 10 XP.',
             ]);
-            $post->forceFill(['created_at' => $start->copy()->subDay()])->saveQuietly();
+            // Posted the day before the game, but never in the future.
+            $post->forceFill(['created_at' => $start->copy()->subDay()->min(now()->subHours(2))])->saveQuietly();
             [$a, $b] = $post->options()->createMany([['label' => $team], ['label' => $opponent]]);
             foreach (collect($people)->random(mt_rand(15, 35)) as $voter) {
                 DB::table('poll_votes')->insertOrIgnore(['dispatch_id' => $post->id, 'poll_option_id' => mt_rand(1, 100) <= 65 ? $a->id : $b->id, 'user_id' => $voter->id, 'created_at' => $post->created_at, 'updated_at' => $post->created_at]);

@@ -10,6 +10,12 @@
         if (next) $wire.setTab(next);
     ">
     @php($tabs = ['following' => 'Following', 'rush' => 'Rush Hour', 'latest' => 'Latest', 'near' => 'Near me'])
+    @php($tips = [
+        'following' => 'Posts from people you follow, newest first.',
+        'rush' => 'What neighbors are talking about right now. Posts with the most replies and taps rise; older posts sink every few hours.',
+        'latest' => 'Everything on Stoop, newest first.',
+        'near' => 'Posts tagged with your home stations. Set them in Settings.',
+    ])
 
     @if ($stop)
         <div class="mb-3 rounded-xl border border-rule bg-card p-4">
@@ -37,7 +43,7 @@
 
     <div class="mb-3 flex gap-0.5 overflow-x-auto border-b border-rule" role="tablist">
         @foreach ($tabs as $key => $label)
-            <button type="button" role="tab" aria-selected="{{ $tab === $key ? 'true' : 'false' }}" wire:click="setTab('{{ $key }}')" @class([
+            <button type="button" role="tab" aria-selected="{{ $tab === $key ? 'true' : 'false' }}" wire:click="setTab('{{ $key }}')" data-tip="{{ $tips[$key] }}" @class([
                 'whitespace-nowrap border-b-2 px-3.5 py-2 text-sm font-medium',
                 'border-flag text-ink' => $tab === $key,
                 'border-transparent text-mute hover:text-ink' => $tab !== $key,

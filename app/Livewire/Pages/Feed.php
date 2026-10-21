@@ -103,7 +103,9 @@ class Feed extends Component
             return 0;
         }
 
-        return $this->baseQuery()->where('dispatches.created_at', '>', $this->since)->count();
+        // Only posts the button can actually reveal: newer than the feed, but not dated in the future.
+        return $this->baseQuery()->where('dispatches.created_at', '>', $this->since)
+            ->where('dispatches.created_at', '<=', now())->count();
     }
 
     /**
