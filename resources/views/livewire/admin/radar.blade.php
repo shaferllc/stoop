@@ -19,7 +19,7 @@
                             <a href="{{ $t['url'] }}" class="font-semibold hover:underline">{{ $t['label'] }}</a>
                             @if ($group === 'clusters')
                                 <span class="text-mute">{{ $t['current'] }} questions</span>
-                                @foreach ($t['posts'] as $i => $id)
+                                @foreach ($t['post_ids'] as $i => $id)
                                     <a href="{{ route('dispatches.show', $id) }}" class="text-mute underline">#{{ $i + 1 }}</a>
                                 @endforeach
                             @else

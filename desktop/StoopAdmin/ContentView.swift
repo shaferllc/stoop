@@ -39,6 +39,8 @@ struct ContentView: View {
                         case .people: PeopleView()
                         case .maintenance: MaintenanceView()
                         case .audit: AuditView()
+                        case .radar: RadarView()
+                        case .tips: TipsView()
                         }
                         }
                         .navigationDestination(for: Person.self) { PersonView(id: $0.id) }

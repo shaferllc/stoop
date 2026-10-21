@@ -188,7 +188,7 @@ class Radar
                 'key' => 'cluster:'.$name,
                 'label' => $name,
                 'current' => count($ids),
-                'posts' => array_slice($ids, 0, 10),
+                'post_ids' => array_slice($ids, 0, 10),
                 'url' => route('search', ['q' => $name]),
             ])->values()->all();
     }
@@ -295,8 +295,8 @@ class Radar
      */
     public static function sampleIds(array $trend): array
     {
-        if (isset($trend['posts']) && is_array($trend['posts'])) {
-            return $trend['posts'];
+        if (isset($trend['post_ids'])) {
+            return $trend['post_ids'];
         }
 
         [$kind, $value] = explode(':', $trend['key'], 2);
