@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 class Translate extends Bot
 {
     // Other ways people name the languages, beyond Translator::LANGUAGES.
-    protected const ALIASES = ['español' => 'es', 'espanol' => 'es', 'mandarin' => 'zh', 'cantonese' => 'zh', 'tiếng việt' => 'vi', 'አማርኛ' => 'am', '中文' => 'zh', '한국어' => 'ko', 'français' => 'fr', 'português' => 'pt', 'العربية' => 'ar'];
+    protected const ALIASES = ['español' => 'es', 'espanol' => 'es', 'mandarin' => 'zh', 'cantonese' => 'zh', 'አማርኛ' => 'am', '中文' => 'zh', '한국어' => 'ko', 'français' => 'fr', 'português' => 'pt', 'العربية' => 'ar'];
 
     public function username(): string
     {
@@ -55,21 +55,33 @@ class Translate extends Bot
             return 'Sorry, I couldn’t translate that one right now.';
         }
 
-        return Str::limit(Translator::LANGUAGES[$language].': '.$translated, config('stoop.max_length'));
+        $label = Translator::LANGUAGES[$language].': ';
+
+        return $label.Str::limit($translated, config('stoop.max_length') - mb_strlen($label) - 1, '…');
     }
 
     /**
-     * The language asked for after "@translate", like "to Spanish", "into ko" or "español".
+     * The language asked for after "@translate", like "this to Spanish", "into ko" or "español".
+     * A bare code only counts right after the mention or after to/into/in ("I am" isn't Amharic).
      */
     public function language(string $body): ?string
     {
-        if (! preg_match('/@translate\b\s*(?:(?:to|into|in)\s+)?([^\s.,!?]+(?:\s+việt)?)/iu', $body, $m)) {
+        if (! preg_match('/@translate\b(.*)/isu', $body, $m)) {
             return null;
         }
 
-        $asked = mb_strtolower($m[1]);
-        $names = array_change_key_case(array_flip(Translator::LANGUAGES));
+        $words = preg_split('/[^\p{L}\p{M}]+/u', str_replace('tiếng việt', 'tiếngviệt', mb_strtolower($m[1])), -1, PREG_SPLIT_NO_EMPTY);
+        $names = [...array_change_key_case(array_flip(Translator::LANGUAGES)), ...self::ALIASES, 'tiếngviệt' => 'vi'];
 
-        return $names[$asked] ?? self::ALIASES[$asked] ?? (isset(Translator::LANGUAGES[$asked]) ? $asked : null);
+        foreach ($words as $i => $word) {
+            if (isset($names[$word])) {
+                return $names[$word];
+            }
+            if (isset(Translator::LANGUAGES[$word]) && ($i === 0 || in_array($words[$i - 1], ['to', 'into', 'in'], true))) {
+                return $word;
+            }
+        }
+
+        return null;
     }
 }

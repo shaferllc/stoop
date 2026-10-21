@@ -24,6 +24,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\URL;
 use Psr\Http\Client\ClientInterface;
 use Tests\TestCase;
 
@@ -253,9 +254,39 @@ class BotsHouseTest extends TestCase
         $this->assertCount(1, $this->claudeCalls, 'Answered once.');
 
         $bot = app(Translate::class);
-        foreach (['@translate to Amharic' => 'am', '@translate Vietnamese' => 'vi', '@translate to tiếng việt' => 'vi', '@translate in Chinese' => 'zh', '@translate ko' => 'ko', '@translate please' => null] as $body => $code) {
+        foreach (['@translate to Amharic' => 'am', '@translate Vietnamese' => 'vi', '@translate to tiếng việt' => 'vi', '@translate in Chinese' => 'zh', '@translate ko' => 'ko', '@translate please' => null, '@translate this to Spanish please' => 'es', '@translate what I am asking into Korean' => 'ko', '@translate what I am saying' => null] as $body => $code) {
             $this->assertSame($code, $bot->language($body), $body);
         }
+    }
+
+    public function test_long_translations_and_link_lists_fit_in_a_dispatch(): void
+    {
+        $parent = Dispatch::factory()->create(['body' => str_repeat('Long post about the bike lanes. ', 15)]);
+        $ask = Dispatch::factory()->create(['parent_id' => $parent->id, 'body' => '@translate to Vietnamese', 'stop' => null]);
+        $this->fakeClaude(str_repeat('Bài viết dài về làn đường xe đạp. ', 20));
+        (new RunBots($ask))->handle();
+        $this->assertLessThanOrEqual(config('stoop.max_length'), mb_strlen($ask->replies()->sole()->body));
+
+        URL::forceRootUrl('https://a-long-production-hostname-for-stoop.example');
+        foreach (range(1, 3) as $i) {
+            $this->answered("Question $i about late night halfsmoke carryouts near Shaw Howard with a long story attached to it", 'Bens.');
+        }
+        $question = Dispatch::factory()->create(['type' => 'ask', 'stop' => null, 'body' => 'Late night halfsmoke carryouts in Shaw?', 'created_at' => now()->subHours(3)]);
+        $this->fakeClaude(str_repeat('A long framing sentence. ', 20));
+
+        $this->assertSame(1, app(Ask::class)->run());
+        $this->assertLessThanOrEqual(config('stoop.max_length'), mb_strlen($question->replies()->sole()->body));
+    }
+
+    public function test_ask_stays_quiet_when_claude_calls_a_question_sensitive(): void
+    {
+        $this->answered('Which dentist near Navy Yard takes new patients?', 'The one on M St.');
+        $question = Dispatch::factory()->create(['type' => 'ask', 'stop' => null, 'body' => 'Any dentist near Navy Yard taking new patients?', 'created_at' => now()->subHours(3)]);
+        $this->fakeClaude("SKIP.\n");
+
+        $this->assertSame(0, app(Ask::class)->run());
+        $this->assertSame(0, $question->replies()->count());
+        $this->assertCount(1, $this->claudeCalls);
     }
 
     public function test_translate_ignores_removed_parents_and_top_level_mentions(): void

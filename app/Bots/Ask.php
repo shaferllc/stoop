@@ -70,7 +70,7 @@ class Ask extends Bot
             // Excerpts lose their mentions and links so quoting them doesn't ping anyone or add a link card.
             $excerpt = fn (Dispatch $d) => Str::limit(trim(preg_replace(['/\s+/', Mentions::URL_PATTERN, Mentions::PATTERN], [' ', '', '$1'], $d->body)), 70);
             $links = $similar->map(fn (Dispatch $d) => '• '.$excerpt($d).' '.route('dispatches.show', $d))->join("\n");
-            $body = Str::limit($framing, config('stoop.max_length') - mb_strlen($links) - 2)."\n\n".$links;
+            $body = Str::limit($framing, config('stoop.max_length') - mb_strlen($links) - 3, '…')."\n\n".$links;
 
             try {
                 $this->post(['parentId' => $question->id, 'body' => $body]);
@@ -153,7 +153,7 @@ class Ask extends Bot
             return $plain;
         }
 
-        if ($text === 'SKIP') {
+        if (preg_match('/^\W*skip\b/i', $text)) {
             return null;
         }
 

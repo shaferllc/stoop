@@ -77,6 +77,6 @@ class Recap extends Bot
         $room = intdiv(config('stoop.max_length') - mb_strlen($head) - 2, max(1, $best->count())) - 60;
         $lines = $best->map(fn (Dispatch $d, $i) => ($i + 1).'. '.Str::limit(trim(preg_replace(['/\s+/', Mentions::URL_PATTERN, Mentions::PATTERN], [' ', '', '$1'], $d->body)), max(20, $room)).' '.route('dispatches.show', $d));
 
-        return Str::limit($head."\n\n".$lines->join("\n"), config('stoop.max_length'));
+        return Str::limit($head."\n\n".$lines->join("\n"), config('stoop.max_length') - 1, '…');
     }
 }
