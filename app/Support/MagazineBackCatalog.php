@@ -134,12 +134,13 @@ class MagazineBackCatalog
         foreach ($posts as $post) {
             $url = strtok((string) ($post['link'] ?? ''), '?#');
             $title = self::text($post['title']['rendered'] ?? '');
+            $sections = array_map(fn ($id) => strtolower($categories[$id] ?? ''), (array) ($post['categories'] ?? []));
             $section = $categories[$post['categories'][0] ?? 0] ?? null;
-            if (! $url || $title === '' || in_array(strtolower((string) $section), Magazine::SKIP_SECTIONS, true)) {
+            if (! $url || $title === '' || array_intersect($sections, Magazine::SKIP_SECTIONS)) {
                 continue;
             }
 
-            $excerpt = Str::limit(trim(str_replace(['[…]', '[...]'], '', self::text($post['excerpt']['rendered'] ?? ''))), 300, '…') ?: null;
+            $excerpt = Str::limit(trim(str_replace(['[…]', '[...]'], '', self::text($post['excerpt']['rendered'] ?? ''))), 299, '…') ?: null;
             $tagNames = array_values(array_filter(array_map(fn ($id) => $tags[$id]['name'] ?? null, (array) ($post['tags'] ?? []))));
             $image = self::ownImage($images[$post['featured_media'] ?? 0]['source_url'] ?? null);
             $found = Archive::tag($title.' '.$excerpt.' '.implode(' · ', $tagNames), $names);
@@ -204,7 +205,7 @@ class MagazineBackCatalog
             return null;
         }
 
-        $bio = Str::limit(self::text($user['description'] ?? ''), 300, '…');
+        $bio = Str::limit(self::text($user['description'] ?? ''), 299, '…');
         $photo = self::ownImage(collect($user['avatar_urls'] ?? [])->last());
         $fill = array_filter([
             'bio' => ! $author->bio && $bio !== '' ? $bio : null,
@@ -359,7 +360,8 @@ class MagazineBackCatalog
             if ($response && $response->status() !== 429 && $response->status() < 500) {
                 return $response;
             }
-            Sleep::sleep(min(60, (int) ($response?->header('Retry-After') ?: 2 ** ($attempt + 1))));
+            $after = $response?->header('Retry-After');
+            Sleep::sleep(min(60, is_numeric($after) ? max(1, (int) $after) : 2 ** ($attempt + 1)));
         }
 
         return null;
@@ -371,33 +373,16 @@ class MagazineBackCatalog
      */
     public static function allowed(string $path): bool
     {
-        $rules = Cache::remember('stoop:robots:'.self::site(), now()->addDay(), function () {
+        $rules = Cache::get($key = 'stoop:robots:'.self::site());
+        if ($rules === null) {
+            // A missing robots.txt (4xx) allows everything; an unreachable one (5xx) allows nothing, and isn't cached.
             $response = self::request(self::site().'/robots.txt');
-            if (! $response || $response->status() >= 400) {
-                return [];
+            if (! $response) {
+                return false;
             }
-            $groups = [];
-            $agents = [];
-            $inRules = false;
-            foreach (preg_split('/\r?\n/', $response->body()) as $line) {
-                if (! preg_match('/^\s*([a-z-]+)\s*:\s*(.*?)\s*(?:#.*)?$/i', $line, $m)) {
-                    continue;
-                }
-                $field = strtolower($m[1]);
-                if ($field === 'user-agent') {
-                    $agents = $inRules ? [] : $agents;
-                    $agents[] = strtolower($m[2]);
-                    $inRules = false;
-                } elseif (in_array($field, ['allow', 'disallow'], true)) {
-                    $inRules = true;
-                    foreach ($agents as $agent) {
-                        $groups[$agent][] = [$field === 'allow', $m[2]];
-                    }
-                }
-            }
-
-            return $groups['stoopbot'] ?? $groups['*'] ?? [];
-        });
+            $rules = $response->status() >= 400 ? [] : self::robotRules($response->body());
+            Cache::put($key, $rules, now()->addDay());
+        }
 
         $best = [true, -1];
         foreach ($rules as [$allow, $prefix]) {
@@ -407,6 +392,36 @@ class MagazineBackCatalog
         }
 
         return $best[0];
+    }
+
+    /**
+     * Allow and Disallow rules for StoopBot, or for "*" when robots.txt has no StoopBot group.
+     *
+     * @return list<array{0: bool, 1: string}>
+     */
+    protected static function robotRules(string $body): array
+    {
+        $groups = [];
+        $agents = [];
+        $inRules = false;
+        foreach (preg_split('/\r?\n/', $body) as $line) {
+            if (! preg_match('/^\s*([a-z-]+)\s*:\s*(.*?)\s*(?:#.*)?$/i', $line, $m)) {
+                continue;
+            }
+            $field = strtolower($m[1]);
+            if ($field === 'user-agent') {
+                $agents = $inRules ? [] : $agents;
+                $agents[] = strtolower($m[2]);
+                $inRules = false;
+            } elseif (in_array($field, ['allow', 'disallow'], true)) {
+                $inRules = true;
+                foreach ($agents as $agent) {
+                    $groups[$agent][] = [$field === 'allow', $m[2]];
+                }
+            }
+        }
+
+        return $groups['stoopbot'] ?? $groups['*'] ?? [];
     }
 
     /**

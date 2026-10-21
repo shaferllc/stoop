@@ -23,6 +23,8 @@ class MagazineBackCatalogTest extends TestCase
 
     protected string $robots = "User-agent: *\nDisallow: /wp-admin/\nAllow: /wp-admin/admin-ajax.php\n";
 
+    protected int $robotsStatus = 200;
+
     /** @var array<int, array<string, mixed>> */
     protected array $posts = [];
 
@@ -36,12 +38,13 @@ class MagazineBackCatalogTest extends TestCase
         Http::preventStrayRequests();
         Sleep::fake();
 
-        $long = str_repeat('A very long excerpt about the city. ', 40);
+        $long = str_repeat('abcdefghij', 100);
         $this->posts = [
             $this->wpPost(101, '2024-03-01T09:00:00', 'Where to Eat in Shaw', "<p>{$long} [&hellip;]</p>", [4], [11], 7, 501),
             $this->wpPost(102, '2024-03-02T09:00:00', 'A New Condo Rises', '<p>Big windows.</p>', [1789], [], 8, 502),
             $this->wpPost(103, '2024-03-03T09:00:00', 'Paid Post', '<p>Buy now.</p>', [99], [], 7, 0),
             $this->wpPost(104, '2024-03-04T09:00:00', 'Navy Yard&#8217;s Best Bar', '<p>Cheers.</p>', [4], [], 7, 0),
+            $this->wpPost(105, '2024-03-04T09:00:00', 'Also Paid', '<p>Food, sponsored.</p>', [4, 99], [], 7, 0),
         ];
         $this->providers = [
             ['id' => 1, 'link' => 'https://magazine.example/100-very-best-restaurants-2026/albi/', 'title' => ['rendered' => 'Albi'], 'class_list' => ['provider', 'category-food', 'provider_type-100-very-best-restaurants-2026', 'locations-navy-yard']],
@@ -66,7 +69,7 @@ class MagazineBackCatalogTest extends TestCase
         $include = array_map('intval', explode(',', $q['include'] ?? ''));
 
         return match ($path) {
-            '/robots.txt' => Http::response($this->robots),
+            '/robots.txt' => Http::response($this->robots, $this->robotsStatus),
             '/wp-json/wp/v2/posts' => Http::response(array_values(array_slice(array_filter($this->posts, fn ($p) => $p['date'] > $q['after']), 0, (int) $q['per_page']))),
             '/wp-json/wp/v2/categories' => Http::response(isset($q['slug']) ? [['id' => 4]] : [['id' => 4, 'name' => 'Food'], ['id' => 1789, 'name' => 'Real Estate'], ['id' => 99, 'name' => 'Sponsored']]),
             '/wp-json/wp/v2/tags' => Http::response(array_values(array_filter([['id' => 11, 'name' => 'Shaw']], fn ($t) => in_array($t['id'], $include, true)))),
@@ -75,7 +78,7 @@ class MagazineBackCatalogTest extends TestCase
                 ['id' => 502, 'source_url' => 'https://elsewhere.example/condo.jpg'],
             ], fn ($m) => in_array($m['id'], $include, true)))),
             '/wp-json/wp/v2/users' => Http::response(array_values(array_filter([
-                ['id' => 7, 'name' => 'Ann Critic', 'slug' => 'acritic', 'description' => '<p>'.str_repeat('Eats a lot. ', 60).'</p>', 'avatar_urls' => ['96' => 'https://secure.gravatar.com/avatar/x?s=96']],
+                ['id' => 7, 'name' => 'Ann Critic', 'slug' => 'acritic', 'description' => '<p>'.str_repeat('abcdefghij', 60).'</p>', 'avatar_urls' => ['96' => 'https://secure.gravatar.com/avatar/x?s=96']],
                 ['id' => 8, 'name' => 'Rhea Estate', 'slug' => 'restate', 'description' => 'Writes about houses.', 'avatar_urls' => ['96' => 'https://magazine.example/wp-content/uploads/rhea.jpg']],
             ], fn ($u) => in_array($u['id'], $include, true)))),
             '/wp-json/wp/v2/provider' => Http::response(($q['page'] ?? 1) == 1 ? $this->providers : []),
@@ -95,7 +98,7 @@ class MagazineBackCatalogTest extends TestCase
 
         $result = MagazineBackCatalog::run(since: '2024-01-01');
 
-        $this->assertSame(3, $result['imported'], 'The sponsored post is skipped.');
+        $this->assertSame(3, $result['imported'], 'Sponsored posts are skipped, whichever category says so.');
         $this->assertTrue($result['done']);
         $this->assertSame(0, Dispatch::count(), 'Older articles never post to the feed.');
 
@@ -181,6 +184,16 @@ class MagazineBackCatalogTest extends TestCase
         $result = MagazineBackCatalog::run(since: '2024-01-01');
         $this->assertNotNull($result['error']);
         $this->assertSame(0, DB::table('archive_stories')->count());
+    }
+
+    public function test_an_unreachable_robots_txt_means_no_crawling(): void
+    {
+        $this->robotsStatus = 503;
+
+        $result = MagazineBackCatalog::run(since: '2024-01-01');
+
+        $this->assertNotNull($result['error']);
+        Http::assertNotSent(fn (Request $r) => str_contains($r->url(), '/wp-json/'));
     }
 
     public function test_backfills_images_and_writers_for_posted_articles(): void
