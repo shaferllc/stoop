@@ -7,6 +7,8 @@
         'admin.sponsorships' => 'Sponsorships',
         'admin.content' => 'Content',
         'admin.magazine' => 'Magazine',
+        'admin.editorial' => 'Editorial',
+        'admin.anc' => 'ANC',
         'admin.history' => 'History',
         'admin.quiz' => 'Quiz',
         'admin.moments' => 'Moments',

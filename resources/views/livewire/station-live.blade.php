@@ -69,10 +69,38 @@
         @endif
     </section>
 
-    @if ($inDc)
+    @if ($inDc && $ward)
+        {{-- DC 311 requests nearby, from DC's open data. --}}
+        <section class="rounded-xl border border-rule bg-card md:col-span-2" aria-labelledby="dc311-{{ $code }}">
+            <div class="flex items-center justify-between border-b border-rule px-3.5 py-2">
+                <h2 id="dc311-{{ $code }}" class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.13em] text-mute"><flux:icon.wrench-screwdriver variant="micro" />Nearby service requests</h2>
+                <span class="text-[11px] text-mute">DC 311 · last 90 days</span>
+            </div>
+            @if ($requests === null)
+                <p class="px-3.5 py-4 text-mute">DC 311 data isn’t available right now.</p>
+            @elseif ($requests === [])
+                <p class="px-3.5 py-4 text-mute">No 311 requests within a few blocks lately.</p>
+            @else
+                <ul class="divide-y divide-rule">
+                    @foreach ($requests as $r)
+                        <li class="flex items-baseline justify-between gap-2 px-3.5 py-2">
+                            <span class="min-w-0"><b class="font-medium">{{ $r['type'] }}</b> <span class="text-mute">· {{ $r['address'] }}</span></span>
+                            <span class="shrink-0 text-[12px] text-mute">{{ $r['status'] }}@if ($r['opened_at']) · {{ \Illuminate\Support\Carbon::parse($r['opened_at'])->shortAbsoluteDiffForHumans() }}@endif</span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
+
         <p class="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-mute md:col-span-2">
+            <span class="inline-flex items-center gap-1 font-semibold text-ink"><flux:icon.map variant="micro" />Ward {{ $ward }} · ANC {{ $anc }}</span>
+            <a href="{{ \App\Support\Neighborhoods::ancUrl($anc) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 hover:text-ink"><flux:icon.building-library variant="micro" />ANC {{ $anc }} meetings</a>
             <a href="https://311.dc.gov/" target="_blank" rel="noopener" class="inline-flex items-center gap-1 hover:text-ink"><flux:icon.wrench-screwdriver variant="micro" />Report a problem to DC 311</a>
-            <a href="https://anc.dc.gov/" target="_blank" rel="noopener" class="inline-flex items-center gap-1 hover:text-ink"><flux:icon.building-library variant="micro" />Find your ANC and its meetings</a>
+            <a href="{{ config('neighborhoods.pepco_outage_map') }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 hover:text-ink"><flux:icon.bolt variant="micro" />Pepco outage map</a>
+        </p>
+    @elseif (\App\Support\Neighborhoods::pepco($code))
+        <p class="text-[13px] text-mute md:col-span-2">
+            <a href="{{ config('neighborhoods.pepco_outage_map') }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 hover:text-ink"><flux:icon.bolt variant="micro" />Pepco outage map</a>
         </p>
     @endif
 </div>

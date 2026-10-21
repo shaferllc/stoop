@@ -125,6 +125,8 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Installable app (manifest, icons, offline page)
 - [x] Data export (JSON) and account deletion that erases everything except penalties
 - [x] Operations page for staff: activity, queue sizes, failed jobs
+- [x] Catch me up on stop pages and line feeds: Claude sums up the last 24 hours of approved posts in 3–5 bullets (cached 30 minutes, rebuilt if a post in it is removed); the top 5 posts without a key
+- [x] Composer suggestions: topic, Ask DC and station chips from keywords as you type; Claude refines on Suggest or a pause (with a key); never applied for you
 - [ ] Search by meaning (embeddings); search is keyword-based with stemming for now
 - [ ] Move link-card fetching to a queued job if posting feels slow
 - [ ] Turn on Claude refusal fallbacks for the bot and translation once the PHP SDK documents them (a declined request falls back to the keyword answer or no translation today)
@@ -145,6 +147,10 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [ ] Run `php artisan stoop:backfill-authors` once in production
 - [ ] Check the real feed's byline format (`dc:creator`) and article pages' `<meta name="author">` against the parser
 - [ ] Point `STOOP_MAGAZINE_FEED` and the subscription system at the real ones
+- [x] Article cards: magazine posts show the title, section, the feed's image (only from the magazine's own domain) and a Discuss count
+- [x] Ask the editor (Admin → Editorial): an editor's thread with a start and end time; readers ask and upvote questions, the editor's answers sit under each one
+- [x] Best of Washington reader vote (Admin → Editorial): categories of nominated places, one vote per category, results after it closes, results CSV for the magazine
+- [ ] A public list of ballots (each ballot is reachable from its link only; announce it with a callout)
 - [ ] Push notifications and the installable app need HTTPS; try them once the site is served over HTTPS
 
 ## Making money
@@ -199,7 +205,11 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Seasonal scavenger hunts (Admin → Hunts): clues tied to stations or places, optional code words, passport stamps per step, leaderboard, Treasure Hunter badge
 - [x] Monthly Line Cup: lines score their riders’ helpfulness points at their stations; the winning line’s regulars get the Line Cup crown badge
 - [ ] Bingo only counts weeks where at least one square was marked by hand (all-automatic weeks show a bingo but don’t award it)
-- [ ] Ward and neighborhood data for stations, for a ward-explorer badge and ANC-specific meeting links
+- [x] Ward and ANC for every DC station (`config/neighborhoods.php`), shown on stop pages with the ANC's own meetings page on oanc.dc.gov; Ward Explorer badge for posting in all 8 wards
+- [ ] Verify the ward/ANC table before launch (looked up from DC GIS Ward 2022 and ANC 2023 boundaries by station location) and after any redistricting
+- [x] Nearby DC 311 requests on DC stop pages (DC GIS open data, last 90 days, no key; `STOOP_DC_311=false` turns it off) and a Pepco outage map link (no scraping)
+- [x] ANC meeting summaries (Admin → ANC): staff paste notes, Claude drafts, staff edit and publish from @stoop at every station in the ward
+- [ ] Decide whether ANC summaries should post once per ward instead of once per station (Ward 2 gets 12 identical posts in Latest)
 - [ ] Grow the quiz bank from the magazine’s archive
 - [ ] Real prizes and fulfillment for contests and passport stamps
 

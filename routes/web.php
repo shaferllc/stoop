@@ -5,8 +5,10 @@ use App\Http\Controllers\FeedController;
 use App\Http\Controllers\InsightsController;
 use App\Http\Controllers\TransparencyController;
 use App\Livewire\Admin;
+use App\Livewire\Pages\AmaShow;
 use App\Livewire\Pages\AppealCreate;
 use App\Livewire\Pages\AuthorShow;
+use App\Livewire\Pages\BallotShow;
 use App\Livewire\Pages\ContestShow;
 use App\Livewire\Pages\ConversationView;
 use App\Livewire\Pages\EventShow;
@@ -23,6 +25,7 @@ use App\Livewire\Pages\Search;
 use App\Livewire\Pages\ShowDispatch;
 use App\Livewire\Pages\UserProfile;
 use App\Mail\WeeklyDigest;
+use App\Models\Ballot;
 use App\Models\CityEvent;
 use App\Models\Contest;
 use App\Models\Dispatch;
@@ -31,6 +34,7 @@ use App\Models\MessageImage;
 use App\Models\QuoteRequest;
 use App\Models\Sponsorship;
 use App\Models\User;
+use App\Support\Audit;
 use App\Support\Newsletter;
 use App\Support\QuoteRequests;
 use App\Support\RidershipGraph;
@@ -57,6 +61,8 @@ Route::livewire('passports', PassportsPage::class)->name('passports');
 Route::livewire('daily', Quiz::class)->name('quiz');
 Route::livewire('places/{place}', PlaceShow::class)->name('places.show');
 Route::livewire('authors/{author:slug}', AuthorShow::class)->name('authors.show');
+Route::livewire('ask/{thread}', AmaShow::class)->name('ama.show');
+Route::livewire('best-of/{ballot}', BallotShow::class)->name('ballots.show');
 
 // Sponsored placements count a click, then send people on to the sponsor.
 Route::get('s/{sponsorship}', function (Sponsorship $sponsorship) {
@@ -165,6 +171,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('insights', Admin\Insights::class)->name('.insights');
         Route::get('insights.csv', [InsightsController::class, 'csv'])->middleware('throttle:20,1')->name('.insights.csv');
         Route::get('insights/print', [InsightsController::class, 'print'])->middleware('throttle:20,1')->name('.insights.print');
+        Route::livewire('editorial', Admin\Editorial::class)->name('.editorial');
+        Route::livewire('anc', Admin\AncSummaries::class)->name('.anc');
+        Route::get('ballots/{ballot}/results.csv', function (Ballot $ballot) {
+            abort_unless(auth()->user()->hasRole('editor'), 403);
+            Audit::log('ballot.exported', $ballot);
+
+            return response($ballot->csv(), 200, ['Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => 'attachment; filename="'.str($ballot->title)->slug().'-results.csv"']);
+        })->middleware('throttle:20,1')->name('.ballots.csv');
     });
     // A dispatch author answers an editor's request to quote it (from Notifications).
     Route::post('quote-requests/{quoteRequest}/{answer}', function (QuoteRequest $quoteRequest, string $answer) {

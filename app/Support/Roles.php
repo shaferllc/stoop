@@ -19,7 +19,7 @@ class Roles
     /** Web admin pages by route name. Missing means any staff role. */
     public const PAGES = [
         'admin.users' => 'moderator', 'moderation' => 'moderator', 'admin.spam' => 'moderator', 'admin.moderation-insights' => 'moderator',
-        'admin.content' => 'editor', 'admin.quiz' => 'editor', 'admin.moments' => 'editor', 'admin.bots' => 'editor', 'admin.magazine' => 'editor', 'admin.history' => 'editor', 'admin.hunts' => 'editor', 'admin.readers-picks' => 'editor',
+        'admin.content' => 'editor', 'admin.quiz' => 'editor', 'admin.moments' => 'editor', 'admin.bots' => 'editor', 'admin.magazine' => 'editor', 'admin.history' => 'editor', 'admin.editorial' => 'editor', 'admin.anc' => 'editor', 'admin.hunts' => 'editor', 'admin.readers-picks' => 'editor',
         'admin.places' => 'sales', 'admin.sponsorships' => 'sales', 'admin.real-estate' => 'sales', 'admin.insights' => 'sales', 'admin.insights.csv' => 'sales', 'admin.insights.print' => 'sales',
         'admin.roles' => 'admin',
     ];

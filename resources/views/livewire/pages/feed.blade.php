@@ -81,6 +81,10 @@
         </div>
     @endif
 
+    @if ($line || $stop)
+        <livewire:catch-up :stop="$stop" :line="$line" :key="'catch-up-'.$stop.'-'.$line" />
+    @endif
+
     @if ($tab === 'near' && ! auth()->user()?->stops)
         <div class="mt-3 rounded-xl border border-dashed border-rule p-6 text-center text-mute">
             Pick up to three stations in <a href="{{ route('profile.edit') }}" wire:navigate class="underline">Settings</a> to see what’s happening near you.

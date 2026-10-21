@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Support\Metro;
+use App\Support\Neighborhoods;
 use App\Support\Stations;
 use Illuminate\View\View;
 use Livewire\Attributes\Lazy;
@@ -30,6 +31,9 @@ class StationLive extends Component
             'trains' => Metro::nextTrains($this->code),
             'bikes' => Metro::bikeshare($this->code),
             'inDc' => Stations::jurisdiction($this->code) === 'DC',
+            'ward' => Neighborhoods::ward($this->code),
+            'anc' => Neighborhoods::anc($this->code),
+            'requests' => Neighborhoods::serviceRequests($this->code),
         ]);
     }
 }

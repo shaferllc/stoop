@@ -22,7 +22,7 @@ Seeded logins (password `password`): `demo@example.com` (regular user) and `food
 
 Optional settings in `.env`:
 
-- `ANTHROPIC_API_KEY`: lets @stoop answer with Claude, turns on translation and the reader insights summary. Without it, @stoop answers from `resources/knowledge/stoop.md` and the Translate button is hidden.
+- `ANTHROPIC_API_KEY`: lets @stoop answer with Claude, turns on translation, the reader insights summary, Catch me up summaries, composer suggestions from Claude and ANC summary drafts. Without it, @stoop answers from `resources/knowledge/stoop.md` and the Translate button is hidden.
 - `WMATA_API_KEY`: shows live Metro delays in the sidebar, and lets @metro post major disruptions and answer “@metro next <station>”.
 - `STOOP_REQUIRE_SUBSCRIPTION=true`: only subscribers can post.
 - `STOOP_MAGAZINE_FEED`: the magazine’s RSS or Atom feed. New articles post to Stoop automatically.
@@ -33,6 +33,7 @@ Optional settings in `.env`:
 - `ANTHROPIC_API_KEY` also turns on moderator help (the moderation page, Admin → Insights, person pages and the Stoop Admin app): a suggested call on each queue item, notes on appeals, a brief on a person's record, and a second look for coded hate at posts OpenAI scored as borderline (it can only hold them). Without the key, moderators still get past decisions on similar posts, plain-fact person summaries, threshold insights, watch phrases and blurring.
 - `STOOP_MODEL_MODERATION=false`: turn off the Claude check on new posts while keeping the bot and translation. The model defaults to `claude-opus-5-5`; `STOOP_MODERATION_MODEL` changes it.
 - `STOOP_AUTO_VERIFY=false`: require the email link again.
+- `STOOP_DC_311=false`: hide the nearby DC 311 requests on stop pages (on by default; DC GIS needs no key).
 
 Staff pages for this area: Admin → Real estate (sales import status, open houses, the sponsored label) and Admin → Insights (the k-anonymous reader report for advertisers, with CSV and printable views).
 
