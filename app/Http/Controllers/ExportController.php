@@ -41,6 +41,7 @@ class ExportController extends Controller
             'hunt_stamps' => DB::table('hunt_completions')->join('hunt_steps', 'hunt_steps.id', '=', 'hunt_completions.hunt_step_id')->join('hunts', 'hunts.id', '=', 'hunt_steps.hunt_id')
                 ->where('hunt_completions.user_id', $user->id)->get(['hunts.name as hunt', 'hunt_steps.position', 'hunt_completions.dispatch_id', 'hunt_completions.created_at']),
             'place_deals' => DB::table('place_deals')->where('user_id', $user->id)->get(['place_id', 'title', 'details', 'starts_at', 'ends_at', 'created_at']),
+            'favorite_teams' => DB::table('team_fans')->where('user_id', $user->id)->pluck('team_key'),
             'api_tokens' => $user->tokens()->get(['name', 'last_used_at', 'created_at']),
         ];
 

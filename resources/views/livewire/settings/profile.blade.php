@@ -55,6 +55,8 @@
             </div>
         </form>
 
+        <livewire:settings.favorite-teams />
+
         <div class="my-8" x-data="{ state: 'checking' }" x-init="state = window.stoopPush ? await window.stoopPush.status() : 'unsupported'">
             <flux:heading>{{ __('Push notifications') }}</flux:heading>
             <flux:text class="mt-1">{{ __('Get replies, mentions and messages on this device, even when Stoop is closed. On iPhone, add Stoop to your Home Screen first.') }}</flux:text>

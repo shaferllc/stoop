@@ -7,12 +7,12 @@
                 <li class="flex flex-wrap items-center gap-2 px-4 py-2.5">
                     <b>{{ $g->team }}</b> {{ $g->home ? 'vs.' : 'at' }} {{ $g->opponent }}
                     <span class="text-mute">· {{ $g->starts_at->timezone(config('stoop.timezone'))->format('D M j, g:ia') }}</span>
-            @if ($g->winner)<span class="rounded bg-chip px-1.5 text-[12px]">{{ $g->winner === 'team' ? $g->team.' won' : $g->opponent.' won' }}</span>@endif
+            @if ($g->winner)<span class="rounded bg-chip px-1.5 text-[12px]">{{ match ($g->winner) { 'team' => $g->team.' won', 'opponent' => $g->opponent.' won', default => 'Draw' } }}</span>@endif
                     @if ($g->dispatch_id)<a href="{{ route('dispatches.show', $g->dispatch_id) }}" wire:navigate class="ml-auto underline">{{ $g->starts_at->isFuture() ? 'Make your pick' : 'Thread' }}</a>@endif
                 </li>
             @endforeach
         </ul>
-        <p class="mt-1 text-[12.5px] text-mute">Right picks are worth 10 XP each. Five right picks earn the Called It badge.</p>
+        <p class="mt-1 text-[12.5px] text-mute">Right picks are worth 10 XP each. Five right picks earn the Called It badge. <a href="{{ route('sports') }}" wire:navigate class="underline">Scores, schedules and pick’em leaders</a></p>
     </section>
 @endif
 

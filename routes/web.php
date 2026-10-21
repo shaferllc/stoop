@@ -236,6 +236,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/community.php';
+require __DIR__.'/sports.php';
 require __DIR__.'/web-newsroom.php';
 require __DIR__.'/web-ads.php';
 require __DIR__.'/web-challenges.php';

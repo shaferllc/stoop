@@ -91,7 +91,10 @@ class Moments extends Component
             ]);
             [$team, $opponent] = $dispatch->options()->createMany([['label' => $data['team']], ['label' => $data['opponent']]]);
 
-            return Game::create([...$data, 'starts_at' => $startsAt, 'dispatch_id' => $dispatch->id, 'team_option_id' => $team->id, 'opponent_option_id' => $opponent->id]);
+            $game = Game::create([...$data, 'starts_at' => $startsAt, 'dispatch_id' => $dispatch->id, 'team_option_id' => $team->id, 'opponent_option_id' => $opponent->id]);
+            $dispatch->forceFill(['details' => ['game' => $game->id]])->save(); // Marks it as a game thread (Rally, the score box).
+
+            return $game;
         });
 
         Audit::log('game.created', $game);
@@ -102,7 +105,7 @@ class Moments extends Component
     public function settleGame(int $id, string $winner): void
     {
         abort_unless(in_array($winner, ['team', 'opponent'], true), 422);
-        $game = Game::findOrFail($id);
+        $game = Game::whereNull('external_id')->findOrFail($id);
         $game->update(['winner' => $winner]);
         Dispatch::whereKey($game->dispatch_id)->update(['closes_at' => now()]);
         Audit::log('game.settled', $game, ['winner' => $winner]);
@@ -161,7 +164,8 @@ class Moments extends Component
         return view('livewire.admin.moments', [
             'snowDay' => Settings::snowDay(),
             'contests' => Contest::withCount('entries')->latest()->take(10)->get(),
-            'games' => Game::latest('starts_at')->take(15)->get(),
+            // Games imported from ESPN settle themselves; this list is the hand-made ones.
+            'games' => Game::whereNull('external_id')->latest('starts_at')->take(15)->get(),
             'events' => CityEvent::withCount(['attendees', 'dispatches'])->latest('starts_at')->take(15)->get(),
             'lists' => DB::table('places')->whereNotNull('list_name')->distinct()->pluck('list_name'),
         ]);

@@ -77,8 +77,9 @@ Route::get('play', function () {
             ['title' => 'Passports', 'url' => route('passports'), 'when' => 'Any time', 'live' => false, 'about' => 'Stamps for the places on the magazine’s lists you’ve been to.', 'status' => null],
             ['title' => 'Rivalries & Line Cup', 'url' => route('rivalries'), 'when' => 'Weekly and monthly', 'live' => true, 'about' => 'Neighborhood matchups every week, and the six lines battle for the monthly cup.',
                 'status' => ($leader = $cup->keys()->first()) && $cup->first()['points'] > 0 ? ucfirst($leader).' line leads the cup' : null],
+            ['title' => 'Sports', 'url' => route('sports'), 'when' => 'Game days', 'live' => Game::where('status', 'live')->exists(), 'about' => 'DC games with live scores, pick’em and watch parties.', 'status' => null],
         ],
-        'games' => Game::where('starts_at', '>=', now()->subDays(3))->orderBy('starts_at')->take(12)->get(),
+        'games' => Game::whereNotNull('dispatch_id')->where('starts_at', '>=', now()->subDays(3))->orderBy('starts_at')->take(12)->get(),
         'contests' => Contest::where(fn ($q) => $q->where('closes_at', '>=', now())->orWhere('updated_at', '>=', now()->subMonth()))->latest('closes_at')->get(),
     ]);
 })->name('play');

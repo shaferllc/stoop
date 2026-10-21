@@ -207,6 +207,7 @@
 
             @if ($type === 'happening' && ! $parentId)
                 <input wire:model="happeningAt" maxlength="60" placeholder="When? For example: Tonight · 8pm" aria-label="When" class="mt-2 w-full rounded-md border border-rule bg-paper px-2.5 py-1.5 text-sm">
+                @include('partials.composer-watch-party')
             @endif
 
             @include('partials.composer-extras')

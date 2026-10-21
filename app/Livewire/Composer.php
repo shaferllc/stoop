@@ -13,6 +13,7 @@ use App\Support\Achievements;
 use App\Support\Bots;
 use App\Support\ComposeHints;
 use App\Support\Settings;
+use App\Support\Sports;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -93,6 +94,9 @@ class Composer extends Component
 
     /** A Happening's start time for the calendar (DC time), and a Lost & found post's details. */
     public string $happeningStarts = '';
+
+    /** A Happening can be a watch party for an upcoming DC game. */
+    public ?int $watchGameId = null;
 
     public ?string $lostKind = null;
 
@@ -236,8 +240,11 @@ class Composer extends Component
 
             return;
         }
+        if ($this->watchGameId && ! $this->parentId) {
+            Sports::linkWatchParty($dispatch, $this->watchGameId);
+        }
 
-        $this->reset('body', 'hints', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'placeId', 'placeQuery', 'asBusiness', 'sponsor', 'showPlace', 'eventId', 'rating', 'snowInches', 'plowed', 'openHouse', 'happeningStarts', 'lostKind', 'lostStatus', 'quoteOk');
+        $this->reset('body', 'hints', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'placeId', 'placeQuery', 'asBusiness', 'sponsor', 'showPlace', 'eventId', 'rating', 'snowInches', 'plowed', 'openHouse', 'happeningStarts', 'lostKind', 'lostStatus', 'quoteOk', 'watchGameId');
         $this->parentId = $this->threadId ?? $this->parentId;
         $this->type = 'dispatch';
         $this->dispatch('dispatch-filed', id: $dispatch->id);
