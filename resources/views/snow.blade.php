@@ -8,7 +8,7 @@
                 <tbody class="divide-y divide-rule">
                     @forelse ($reports as $r)
                         <tr>
-                            <td class="px-4 py-2"><a href="{{ route('dispatches.show', $r) }}"><x-station :code="$r->stop" :line="\App\Support\Stations::linesAt($r->stop)[0] ?? null" /></a></td>
+                            <td class="px-4 py-2"><a href="{{ route('dispatches.show', $r) }}"><x-station :code="$r->stop" /></a></td>
                             <td class="px-4 py-2 font-semibold tabular-nums">{{ rtrim(rtrim(number_format($r->details['snow_inches'], 1), '0'), '.') }}″</td>
                             <td class="px-4 py-2">{{ ['yes' => 'Yes', 'partly' => 'Partly', 'no' => 'Not yet'][$r->details['plowed']] ?? '' }}</td>
                             <td class="px-4 py-2 text-mute">{{ $r->created_at->diffForHumans() }} by {{ '@'.$r->user->username }}</td>

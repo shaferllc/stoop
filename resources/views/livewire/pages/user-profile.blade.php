@@ -60,7 +60,7 @@
         @if ($mayorships)
             <p class="mt-1 text-sm">Mayor of
                 @foreach ($mayorships as $code)
-                    <a href="{{ route('stops.show', $code) }}" wire:navigate class="mr-1.5 inline-block"><x-station :code="$code" :line="\App\Support\Stations::linesAt($code)[0] ?? null" /></a>
+                    <a href="{{ route('stops.show', $code) }}" wire:navigate class="mr-1.5 inline-block"><x-station :code="$code" /></a>
                 @endforeach
             </p>
         @endif

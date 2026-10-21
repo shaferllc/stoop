@@ -15,7 +15,7 @@
                         @foreach ($m['stops'] as $code => $points)
                             @php($line = \App\Support\Stations::linesAt($code)[0] ?? 'red')
                             <div class="mt-2 flex items-center gap-3 text-sm">
-                                <a href="{{ route('stops.show', $code) }}" class="w-40 shrink-0"><x-station :code="$code" :line="$line" /></a>
+                                <a href="{{ route('stops.show', $code) }}" class="w-40 shrink-0"><x-station :code="$code" /></a>
                                 <div class="h-3 flex-1 overflow-hidden rounded-full bg-chip"><div class="h-full rounded-full" style="width: {{ round($points / $total * 100) }}%; background: {{ config("stoop.lines.$line.color") }}"></div></div>
                                 <span class="w-10 text-right font-semibold tabular-nums">{{ $points }}</span>
                                 @if ($m['leader'] === $code)<span title="Leading">👑</span>@endif

@@ -35,7 +35,7 @@
             <ol class="mt-2 space-y-1.5 text-sm">
                 @foreach ($byStop as $row)
                     <li class="flex items-center gap-3">
-                        <a href="{{ route('stops.show', $row['stop']) }}" class="w-44 shrink-0"><x-station :code="$row['stop']" :line="\App\Support\Stations::linesAt($row['stop'])[0] ?? null" /></a>
+                        <a href="{{ route('stops.show', $row['stop']) }}" class="w-44 shrink-0"><x-station :code="$row['stop']" /></a>
                         @if ($row['rating'])<span class="text-flag">{{ str_repeat('★', (int) round($row['rating'])) }}</span><span class="text-mute">{{ $row['rating'] }}</span>@endif
                         <span class="ml-auto text-mute">{{ $row['count'] }} {{ str('post')->plural($row['count']) }}</span>
                     </li>

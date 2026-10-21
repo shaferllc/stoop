@@ -56,4 +56,16 @@ class MetroGameTest extends TestCase
         $this->get('/?stop=E04')->assertSee('Mayor:')->assertSee('@'.$maya->username);
         $this->get(route('users.show', $maya))->assertSee('Mayor of')->assertSee('The system');
     }
+
+    public function test_station_roundels_use_the_stations_metro_lines_not_the_posts_topic(): void
+    {
+        Dispatch::factory()->create(['stop' => 'A09', 'line' => 'blue', 'body' => 'Bethesda post about culture']);
+        Dispatch::factory()->create(['stop' => 'A01', 'line' => 'red', 'body' => 'Metro Center post']);
+
+        $html = $this->get('/?tab=latest')->getContent();
+
+        $this->assertMatchesRegularExpression('/background: #bf0d3e">A09/', $html, 'Bethesda is a Red Line station.');
+        $this->assertMatchesRegularExpression('/conic-gradient\([^)]*#bf0d3e[^)]*#ed8b00[^)]*\)">A01/', $html, 'Metro Center shows all its lines.');
+        $this->assertStringContainsString('Topic: Culture', $html);
+    }
 }

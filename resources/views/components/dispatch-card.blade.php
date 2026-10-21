@@ -56,12 +56,15 @@
                 <a href="{{ route('users.show', $d->user) }}" wire:navigate>{{ '@'.$d->user->username }}</a>
                 · <a href="{{ route('dispatches.show', $d) }}" wire:navigate class="hover:underline" title="{{ $d->created_at->toDayDateTimeString() }}">{{ $d->created_at->shortAbsoluteDiffForHumans() }}</a>
                 @if ($d->type !== 'dispatch' && ! $d->parent_id) · {{ config("stoop.types.{$d->type}") }} @endif
+                @if (! $d->parent_id && $d->stop)
+                    · <a href="{{ route('home', ['line' => $d->line]) }}" wire:navigate class="inline-flex items-center gap-1 hover:text-ink" data-tip="Topic: {{ $d->lineName() }}. Every post has a topic named for a Metro line color."><span class="h-1.5 w-3 rounded-full" style="background: {{ $d->lineColor() }}"></span>{{ $d->lineName() }}</a>
+                @endif
             </div>
         </div>
         @unless ($d->parent_id)
             <a href="{{ route('home', $d->stop ? ['stop' => $d->stop] : ['line' => $d->line]) }}" wire:navigate class="ml-auto text-[12px] text-mute hover:text-ink">
                 @if ($d->stop)
-                    <x-station :code="$d->stop" :line="$d->line" />
+                    <x-station :code="$d->stop" />
                 @else
                     <span class="inline-flex items-center gap-1.5"><span class="h-1.5 w-5 rounded-full" style="background: {{ $d->lineColor() }}"></span>{{ $d->lineName() }}</span>
                 @endif
