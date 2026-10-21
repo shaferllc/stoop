@@ -463,14 +463,20 @@ class ShowcaseSeeder extends Seeder
         $dc = $this->now->copy()->timezone($tz)->toImmutable()->startOfDay();
         $day = fn (int $weekday, int $weeks = 0) => $dc->next($weekday)->addWeeks($weeks);
 
-        // Verified owners of five places. Only places nobody has claimed yet.
-        $owners = ['jasper_cole', 'hollis_park', 'pilar_vega', 'vince_albright', 'dom_ibarra'];
+        // Verified owners of five places, matched to the events and deals below by stop and kind
+        // (any unclaimed place when there's no match). Only places nobody has claimed yet.
+        $owners = [['jasper_cole', 'F05', 'Bar'], ['hollis_park', 'B35', 'Bar'], ['pilar_vega', 'E04', 'Bar'], ['vince_albright', 'F04', 'Restaurant'], ['dom_ibarra', 'E05', 'Restaurant']];
         $owned = [];
-        foreach ($places->whereNull('owner_id')->unique('stop')->take(count($owners))->values() as $i => $place) {
-            $owner = $this->cast[$owners[$i]];
+        foreach ($owners as $i => [$username, $stop, $category]) {
+            $free = $places->whereNull('owner_id');
+            $place = $free->where('stop', $stop)->sortBy(fn ($p) => $p->category === $category ? 0 : 1)->first() ?? $free->first();
+            if (! $place) {
+                continue;
+            }
+            $owner = $this->cast[$username];
             $place->forceFill(['owner_id' => $owner->id])->save();
             DB::table('place_claims')->insert(['place_id' => $place->id, 'user_id' => $owner->id, 'role' => 'Owner', 'evidence' => 'Business license and a call to the listed phone number (sample)', 'status' => 'approved', 'decided_by' => $this->cast['calvin_brooks']->id, 'created_at' => $this->now->copy()->subDays(20 + $i), 'updated_at' => $this->now->copy()->subDays(19 + $i)]);
-            $owned[] = $place;
+            $owned[$i] = $place;
         }
         // One claim waiting for sales to check.
         if ($pending = $places->whereNull('owner_id')->whereNotIn('id', collect($owned)->pluck('id'))->first()) {
