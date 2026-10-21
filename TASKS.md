@@ -76,7 +76,12 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Appeals, decided by a different moderator
 - [x] Reported messages queue with context
 - [x] Public monthly transparency report
-- [ ] Replace the keyword lists with a moderation model; hold anything it isn’t sure about
+- [x] Claude checks every new dispatch before it goes public (when `ANTHROPIC_API_KEY` is set); a failed check never approves
+- [x] Link cards check IPv4 and IPv6 and pin the checked address, so DNS rebinding can’t reach internal hosts
+- [x] Cloudflare Turnstile on sign-up (when keys are set)
+- [x] New accounts: no message requests for 3 days, 20 posts a day for the first week
+- [x] Privacy policy and terms (drafts, marked for legal review)
+- [ ] Legal review of the privacy policy and terms
 - [ ] Moderator training, rotation and an outside advisory group (people, not code)
 
 ## Platform
@@ -91,16 +96,43 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Operations page for staff: activity, queue sizes, failed jobs
 - [ ] Search by meaning (embeddings); search is keyword-based with stemming for now
 - [ ] Move link-card fetching to a queued job if posting feels slow
-- [ ] Before a public launch, harden link-card fetching: check IPv6 addresses too and pin the resolved IP for the request, so DNS rebinding can’t reach internal addresses
 - [ ] Turn on Claude refusal fallbacks for the bot and translation once the PHP SDK documents them (a declined request falls back to the keyword answer or no translation today)
 - [ ] Run the scheduler in production (`php artisan schedule:run` every minute) so scheduled dispatches publish and deleted ones are erased
 
+## Places and the magazine
+- [x] Place pages with Been here counts, photos and the magazine’s blurb, rank and review link
+- [x] Tag a place in any dispatch; Been here posts require one
+- [x] Admin CSV import of the magazine’s lists (re-importing a list updates it)
+- [x] Article auto-posting from the site’s RSS/Atom feed (`STOOP_MAGAZINE_FEED`), on the matching line, never twice
+- [x] Discussion embed for article pages (`<div data-stoop-discussion></div>` + `/embed.js`), with “Join the conversation” prefilling the composer
+- [x] Subscription webhook from the magazine’s system (`POST /api/subscriptions`, HMAC-signed); applies to people who sign up later too
+- [x] Weekly email: best dispatches, poll results, Talk of the Town, where people went; opt-in, one-click unsubscribe, admin preview and test send
+- [ ] Point `STOOP_MAGAZINE_FEED` and the subscription system at the real ones
+
 ## Making money
-- [ ] Claimed places for restaurants and shops
-- [ ] Sponsored stops, clearly labeled
-- [ ] Sponsored callouts, approved by editors
+- [x] Claimed places: owners request, staff approve, owners post as the business
+- [x] Sponsored stops and lines, labeled, with view and click counts
+- [x] Sponsored callouts (staff only), labeled
 - [ ] Ticketed Happening posts
 - [ ] Aggregated reader-insights report (no individual data)
+- [ ] Self-serve sponsorship booking and billing
+
+## Admin
+- [x] Overview with what needs attention, activity numbers and failed jobs
+- [x] People: search, verify, staff access, subscription date, notes, penalties, history, delete
+- [x] Places, list imports and claims
+- [x] Sponsorships with stats
+- [x] Content: article feed status, weekly email, callouts, scheduled posts
+- [x] Audit log of every staff action
+- [x] Keyboard-driven moderation queue (j/k, a, r, o)
+- [ ] Roles finer than “staff” (moderator vs. editor vs. sales)
+
+## Real-time, mobile and design
+- [x] Reverb: new posts, messages and notifications arrive without waiting; pages still check every so often if Reverb is down
+- [x] Push notifications for replies, mentions, follows and messages (VAPID keys in `.env`)
+- [x] Phone layout: bottom tab bar, composer as a sheet
+- [x] Stoop-steps logo and app icons, icon buttons, WMATA-style station markers, Metro-line threads, empty states, half-smoke and badge artwork
+- [ ] A real designer’s pass on the logo, illustrations and type
 
 ## Open questions
 - Can guests read Stoop, or does the magazine paywall cover it?
