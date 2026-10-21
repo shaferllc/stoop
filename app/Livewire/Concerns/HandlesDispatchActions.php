@@ -159,7 +159,7 @@ trait HandlesDispatchActions
         }
 
         $dispatch = Dispatch::findOrFail($id);
-        abort_unless($dispatch->user_id === $user->id || $user->is_staff, 403);
+        abort_unless($dispatch->user_id === $user->id || $user->hasRole('moderator'), 403);
 
         $dispatch->delete();
         $this->undoId = $dispatch->id;
@@ -172,7 +172,7 @@ trait HandlesDispatchActions
         }
 
         $dispatch = Dispatch::onlyTrashed()->findOrFail($id);
-        abort_unless($dispatch->user_id === $user->id || $user->is_staff, 403);
+        abort_unless($dispatch->user_id === $user->id || $user->hasRole('moderator'), 403);
 
         if ($dispatch->deleted_at->gt(now()->subSeconds(35))) {
             $dispatch->restore();

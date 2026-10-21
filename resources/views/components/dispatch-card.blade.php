@@ -227,7 +227,7 @@
                     @if ($d->status === 'removed' && $d->user_id === $me->id)
                         <flux:menu.item :href="route('appeals.create', ['dispatch' => $d->id])" wire:navigate>Appeal this decision</flux:menu.item>
                     @endif
-                    @if ($d->user_id === $me->id || $me->is_staff)
+                    @if ($d->user_id === $me->id || $me->hasRole('moderator'))
                         <flux:menu.item wire:click="deleteDispatch({{ $d->id }})">Delete</flux:menu.item>
                     @endif
                     @if ($d->user_id !== $me->id)

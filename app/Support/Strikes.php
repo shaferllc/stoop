@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\Dispatch;
 use App\Models\Penalty;
 use App\Models\User;
+use App\Notifications\ModerationMail;
 use App\Notifications\ModerationNotice;
 use Illuminate\Support\Collection;
 
@@ -53,11 +54,14 @@ class Strikes
             Audit::log('ban.recommended', $user, ['strikes' => $strike, 'hate_speech' => $severe]);
         }
 
-        $user->notify(new ModerationNotice(match (true) {
+        $user->notify(new ModerationNotice($message = match (true) {
             ! $hours => 'Your dispatch was removed automatically: '.$reason.'. This is a warning. You can appeal if we got it wrong.',
             $severe => 'Your dispatch was removed automatically: '.$reason.'. Stoop has zero tolerance for hate speech, so you’re in a timeout for '.Penalty::TIMEOUTS[$hours].($strike >= 2 ? ' and your account is under review for a ban' : '').'. You can appeal once.',
             default => 'Your dispatch was removed automatically: '.$reason.'. That’s strike '.$strike.' in '.self::WINDOW_DAYS.' days, so you’re in a timeout for '.Penalty::TIMEOUTS[$hours].'. You can appeal once.',
         }, $dispatch));
+        if ($hours) {
+            $user->notify(new ModerationMail('You’re in a timeout on Stoop', [$message], route('appeals.create'), 'Appeal'));
+        }
 
         return $penalty;
     }

@@ -25,7 +25,7 @@ class ModerationMail extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return $notifiable->moderation_emails && ! $notifiable->is_bot ? ['mail'] : [];
+        return $notifiable->moderation_emails && ! $notifiable->isHouseAccount() ? ['mail'] : [];
     }
 
     public function toMail(object $notifiable): MailMessage

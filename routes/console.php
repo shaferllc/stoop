@@ -17,6 +17,7 @@ use App\Support\Magazine;
 use App\Support\ModerationModel;
 use App\Support\Newsletter;
 use App\Support\OpenAiModeration;
+use App\Support\SignupRisk;
 use App\Support\SpamRings;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -34,7 +35,7 @@ Artisan::command('stoop:publish-scheduled', function () {
     Dispatch::where('status', 'scheduled')->where('publish_at', '<=', now())->each(function (Dispatch $dispatch) {
         $pending = (ModerationModel::enabled() || OpenAiModeration::enabled()) && ! $dispatch->user->isHouseAccount();
         $dispatch->forceFill([
-            'status' => Civility::shouldHold($dispatch->body) ? 'held' : ($pending ? 'pending' : 'approved'),
+            'status' => Civility::shouldHold($dispatch->body) || SignupRisk::holds($dispatch->user) ? 'held' : ($pending ? 'pending' : 'approved'),
             'created_at' => $dispatch->publish_at,
         ])->save();
         $pending ? Later::run(new ModerateDispatch($dispatch)) : AnnounceDispatch::run($dispatch);
@@ -104,7 +105,7 @@ Artisan::command('stoop:admin-digest', function () {
         return;
     }
     $lines = ['These have been waiting more than 24 hours:', ...array_map(fn ($label, $n) => "- $n $label", array_keys($waiting), $waiting)];
-    $admins = User::where('is_staff', true)->get()->filter->hasRole('admin');
+    $admins = User::where('is_staff', true)->get()->filter(fn (User $u) => $u->hasRole('admin') && ! $u->isHouseAccount());
     Notification::send($admins, new ModerationMail('Stoop: '.array_sum($waiting).' items waiting over a day', $lines, route('moderation'), 'Open moderation'));
     $this->info('Sent to '.$admins->count().' admins.');
 })->purpose('Email admins when moderation items have waited more than a day');

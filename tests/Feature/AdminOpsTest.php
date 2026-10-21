@@ -21,8 +21,10 @@ use App\Models\User;
 use App\Notifications\ModerationMail;
 use App\Support\AccountCheck;
 use App\Support\Bots as HouseBots;
+use App\Support\Magazine;
 use App\Support\SignupRisk;
 use App\Support\SpamRings;
+use App\Support\Strikes;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -109,10 +111,12 @@ class AdminOpsTest extends TestCase
     {
         $spammer = $this->newbie();
         $quiet = $this->newbie();
-        foreach (User::factory()->count(10)->create() as $person) {
-            $conversation = DB::table('conversations')->insertGetId(['created_at' => now(), 'updated_at' => now()]);
-            DB::table('conversation_participants')->insert([['conversation_id' => $conversation, 'user_id' => $spammer->id], ['conversation_id' => $conversation, 'user_id' => $person->id]]);
-            DB::table('messages')->insert(['conversation_id' => $conversation, 'user_id' => $spammer->id, 'body' => 'x', 'created_at' => now(), 'updated_at' => now()]);
+        foreach ([$spammer, $quiet] as $sender) {
+            foreach (User::factory()->count($sender->is($spammer) ? 10 : 9)->create() as $person) {
+                $conversation = DB::table('conversations')->insertGetId(['created_at' => now(), 'updated_at' => now()]);
+                DB::table('conversation_participants')->insert([['conversation_id' => $conversation, 'user_id' => $sender->id], ['conversation_id' => $conversation, 'user_id' => $person->id]]);
+                DB::table('messages')->insert(['conversation_id' => $conversation, 'user_id' => $sender->id, 'body' => 'x', 'created_at' => now(), 'updated_at' => now()]);
+            }
         }
 
         SpamRings::messageBlasts();
@@ -187,6 +191,13 @@ class AdminOpsTest extends TestCase
         // After a few approved posts they post normally.
         Dispatch::factory()->count(SignupRisk::HELD_POSTS)->create(['user_id' => $user->id]);
         $this->assertSame('approved', FileDispatch::handle($user->fresh(), ['body' => 'Now I am trusted'])->status);
+
+        // Scheduling doesn't get around the hold.
+        $risky = $this->newbie(['risk_score' => 90]);
+        $scheduled = FileDispatch::handle($risky, ['body' => 'Later spam', 'publishAt' => now()->addMinutes(5)->toDateTimeString()]);
+        $this->travel(10)->minutes();
+        $this->artisan('stoop:publish-scheduled');
+        $this->assertSame('held', $scheduled->fresh()->status);
 
         $calm = User::where('username', 'earlyone')->first();
         $this->assertSame(0, $calm->risk_score);
@@ -436,6 +447,11 @@ class AdminOpsTest extends TestCase
         Moderate::decide($appeal->load(['penalty', 'dispatch', 'user']), $this->staff('moderator'), true);
         Notification::assertSentTo($person, ModerationMail::class, fn ($n) => $n->subject === 'Your Stoop appeal was decided');
 
+        // Automatic timeouts from the screening pipeline are emailed too.
+        $striker = User::factory()->create();
+        Strikes::issue($striker, 'Harassment', null, severe: true);
+        Notification::assertSentTo($striker, ModerationMail::class, fn ($n) => str_contains($n->lines[0], 'timeout for 7 days'));
+
         $mail = (new ModerationMail('Subject', ['Line one']))->toMail($person);
         $this->assertSame('Subject', $mail->subject);
         $this->assertStringContainsString('Settings → Safety', implode(' ', $mail->outroLines));
@@ -447,6 +463,7 @@ class AdminOpsTest extends TestCase
         $admin = $this->staff('admin');
         $legacy = $this->staff();
         $editor = $this->staff('editor');
+        Magazine::account();
 
         $this->artisan('stoop:admin-digest')->assertSuccessful();
         Notification::assertNothingSent();
@@ -457,5 +474,6 @@ class AdminOpsTest extends TestCase
 
         Notification::assertSentTo([$admin, $legacy], ModerationMail::class, fn ($n) => in_array('- 1 posts in the moderation queue', $n->lines, true));
         Notification::assertNotSentTo($editor, ModerationMail::class);
+        Notification::assertNotSentTo(Magazine::account(), ModerationMail::class);
     }
 }
