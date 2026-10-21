@@ -20,6 +20,7 @@
                 <div class="mb-2 flex flex-wrap gap-1.5" role="group" aria-label="Post type">
                     @foreach (config('stoop.types') as $key => $label)
                         @continue($key === 'callout' && ! auth()->user()->is_staff)
+                        @continue($key === 'snow' && ! $snowDay)
                         <button type="button" wire:click="$set('type', '{{ $key }}')" @class([
                             'rounded-full border px-2.5 py-0.5 text-[12.5px] font-medium',
                             'border-ink bg-card text-ink' => $type === $key,
@@ -42,6 +43,7 @@
                         'been' => 'Where did you go, and what should people order?',
                         'callout' => 'What do you want readers to tell the newsroom?',
                         'safety' => 'What happened?',
+                        'snow' => 'How’s it looking out there?',
                         default => 'What’s happening on your block?',
                     } }}"
                     class="w-full resize-none bg-transparent outline-none"></textarea>
@@ -115,6 +117,31 @@
                 </div>
             @endif
 
+            @if ($type === 'snow' && ! $parentId)
+                <div class="mt-2 grid gap-2 rounded-lg border border-rule bg-paper p-2.5 text-sm sm:grid-cols-2">
+                    <label>Snow so far (inches)<input type="number" step="0.5" min="0" max="60" wire:model="snowInches" class="mt-0.5 block w-full rounded-md border border-rule bg-card px-2 py-1"></label>
+                    <label>Is your street plowed?<select wire:model="plowed" class="mt-0.5 block w-full rounded-md border border-rule bg-card px-2 py-1"><option value="">Pick one</option><option value="yes">Yes</option><option value="partly">Partly</option><option value="no">Not yet</option></select></label>
+                    <p class="text-[12.5px] text-mute sm:col-span-2">Pick your stop below so the snow map knows where you are.</p>
+                </div>
+            @endif
+
+            @if ($events->isNotEmpty() && ! $parentId)
+                <div class="mt-2 flex flex-wrap items-center gap-1.5 text-[13px]">
+                    <span class="text-mute">Happening now:</span>
+                    @foreach ($events as $e)
+                        <button type="button" wire:click="$set('eventId', {{ $eventId === $e->id ? 'null' : $e->id }})" @class(['rounded-full border px-2.5 py-0.5', 'border-ink' => $eventId === $e->id, 'border-transparent bg-chip text-mute' => $eventId !== $e->id])>{{ $e->name }}</button>
+                    @endforeach
+                    @php($chosen = $events->firstWhere('id', $eventId))
+                    @if ($chosen?->rating_label)
+                        <span class="ml-1 flex items-center gap-1">{{ $chosen->rating_label }}:
+                            @foreach (range(1, 5) as $n)
+                                <button type="button" wire:click="$set('rating', {{ $n }})" aria-label="{{ $n }} of 5" @class(['text-lg leading-none', 'text-flag' => $rating >= $n, 'text-rule' => ! $rating || $rating < $n])>★</button>
+                            @endforeach
+                        </span>
+                    @endif
+                </div>
+            @endif
+
             @if ($type === 'callout' && auth()->user()->is_staff)
                 <input wire:model="sponsor" maxlength="120" placeholder="Sponsored by (leave empty if not sponsored)" aria-label="Sponsor" class="mt-2 w-full rounded-md border border-rule bg-paper px-2.5 py-1.5 text-sm">
             @endif
@@ -140,7 +167,7 @@
                 </div>
             @endif
 
-            @foreach (['body', 'options', 'happeningAt', 'type', 'line', 'stop', 'publishAt', 'photos', 'photos.*', 'alts.*', 'safetyWhen', 'safetyPerson', 'placeId', 'sponsor'] as $field)
+            @foreach (['body', 'options', 'happeningAt', 'type', 'line', 'stop', 'publishAt', 'photos', 'photos.*', 'alts.*', 'safetyWhen', 'safetyPerson', 'placeId', 'sponsor', 'eventId', 'rating', 'snowInches', 'plowed'] as $field)
                 @error($field) <p class="mt-1 text-sm text-flag">{{ $message }}</p> @enderror
             @endforeach
 

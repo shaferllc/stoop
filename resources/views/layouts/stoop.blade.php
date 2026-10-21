@@ -27,7 +27,8 @@
         @fluxAppearance
     </head>
     @php($me = auth()->user())
-    <body class="min-h-screen bg-paper pb-[calc(4rem+env(safe-area-inset-bottom))] font-sans text-[15px] text-ink antialiased lg:pb-0" data-profile="{{ $me ? route('users.show', $me, false) : '' }}">
+    @php($snowDay = \App\Support\Settings::snowDay())
+    <body @class(['min-h-screen bg-paper pb-[calc(4rem+env(safe-area-inset-bottom))] font-sans text-[15px] text-ink antialiased lg:pb-0', 'snow-day' => $snowDay]) data-profile="{{ $me ? route('users.show', $me, false) : '' }}">
 
         <header class="sticky top-0 z-20 border-b border-rule bg-card">
             <div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
@@ -68,12 +69,17 @@
             </div>
         </header>
 
+        @if ($snowDay)
+            <a href="{{ route('snow') }}" class="block bg-[#009cde] px-4 py-2 text-center text-sm font-semibold text-white">❄ Snow Day in the DMV. Report your snow and whether your street’s plowed. See the snow map.</a>
+        @endif
+
         <div class="mx-auto grid max-w-6xl gap-6 px-4 py-5 lg:grid-cols-[180px_minmax(0,1fr)_260px]">
             <nav class="hidden text-sm lg:block" aria-label="Stoop">
                 @php($navItem = 'flex items-center rounded-md px-2.5 py-1.5 text-mute hover:bg-chip hover:text-ink')
                 <a href="{{ route('home') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('home') && ! request('line') && ! request('stop') ? 'bg-chip text-ink' : '' }}">Front Stoop</a>
                 <a href="{{ route('places') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('places*') ? 'bg-chip text-ink' : '' }}">Places</a>
                 <a href="{{ route('quiz') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('quiz') ? 'bg-chip text-ink' : '' }}">The Daily</a>
+                <a href="{{ route('around-town') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('around-town', 'events.*', 'contests.*', 'snow') ? 'bg-chip text-ink' : '' }}">Around town</a>
                 <a href="{{ route('rivalries') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('rivalries') ? 'bg-chip text-ink' : '' }}">Rivalries</a>
                 <a href="{{ route('passports') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('passports') ? 'bg-chip text-ink' : '' }}">Passports</a>
                 @auth

@@ -17,7 +17,7 @@ use Illuminate\Support\HtmlString;
 /**
  * A post on Stoop. Dispatches are never edited, only created and deleted.
  */
-#[Fillable(['user_id', 'parent_id', 'quote_id', 'type', 'line', 'stop', 'body', 'happening_at', 'status', 'publish_at', 'closes_at', 'link_preview_id', 'safety', 'place_id', 'sponsor', 'as_business'])]
+#[Fillable(['user_id', 'parent_id', 'quote_id', 'type', 'line', 'stop', 'body', 'happening_at', 'status', 'publish_at', 'closes_at', 'link_preview_id', 'safety', 'place_id', 'sponsor', 'as_business', 'event_id', 'details'])]
 class Dispatch extends Model
 {
     /** @use HasFactory<DispatchFactory> */
@@ -33,6 +33,7 @@ class Dispatch extends Model
             'hidden_by_author' => 'boolean',
             'safety' => 'array',
             'screening' => 'array',
+            'details' => 'array',
             'as_business' => 'boolean',
         ];
     }
@@ -87,6 +88,11 @@ class Dispatch extends Model
         return $this->belongsTo(Place::class);
     }
 
+    public function event(): BelongsTo
+    {
+        return $this->belongsTo(CityEvent::class, 'event_id');
+    }
+
     public function linkPreview(): BelongsTo
     {
         return $this->belongsTo(LinkPreview::class);
@@ -128,7 +134,7 @@ class Dispatch extends Model
      */
     public function scopeForCards(Builder $query): void
     {
-        $query->with(['user', 'quoted.user', 'images', 'linkPreview', 'place', 'options' => fn ($q) => $q->withCount('voters')])
+        $query->with(['user', 'quoted.user', 'images', 'linkPreview', 'place', 'event', 'options' => fn ($q) => $q->withCount('voters')])
             ->withCount([
                 'replies' => fn ($q) => $q->where('status', 'approved'),
                 'quotes' => fn ($q) => $q->where('status', 'approved'),

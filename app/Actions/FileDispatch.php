@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Exceptions\NudgeRequired;
 use App\Jobs\ModerateDispatch;
 use App\Jobs\RunBots;
+use App\Models\CityEvent;
 use App\Models\Dispatch;
 use App\Models\Place;
 use App\Models\User;
@@ -15,6 +16,7 @@ use App\Support\Mentions;
 use App\Support\ModerationModel;
 use App\Support\OpenAiModeration;
 use App\Support\Photos;
+use App\Support\Settings;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
@@ -40,7 +42,7 @@ class FileDispatch
         $input = [
             'type' => 'dispatch', 'body' => '', 'line' => 'red', 'stop' => null, 'happeningAt' => '',
             'options' => [], 'pollHours' => 24, 'publishAt' => '', 'photos' => [], 'alts' => [],
-            'safetyWhen' => '', 'safetyBlock' => '', 'safetyPerson' => '', 'parentId' => null, 'quoteId' => null, 'placeId' => null, 'asBusiness' => false, 'sponsor' => '',
+            'safetyWhen' => '', 'safetyBlock' => '', 'safetyPerson' => '', 'parentId' => null, 'quoteId' => null, 'placeId' => null, 'asBusiness' => false, 'sponsor' => '', 'eventId' => null, 'rating' => null, 'snowInches' => null, 'plowed' => null,
             ...array_filter($input, fn ($v) => $v !== null),
         ];
         $input['body'] = trim((string) $input['body']);
@@ -57,6 +59,9 @@ class FileDispatch
         $types = array_keys(config('stoop.types'));
         if (! $user->is_staff) {
             $types = array_diff($types, ['callout']);
+        }
+        if (! Settings::snowDay()) {
+            $types = array_diff($types, ['snow']);
         }
 
         Validator::make($input, [
@@ -77,7 +82,11 @@ class FileDispatch
             'safetyPerson' => ['nullable', 'string', 'max:280'],
             'placeId' => ['nullable', 'integer', 'exists:places,id'],
             'sponsor' => ['nullable', 'string', 'max:120'],
-        ], [], ['happeningAt' => 'when', 'options.*' => 'option', 'publishAt' => 'scheduled time', 'photos.*' => 'photo', 'safetyWhen' => 'when it happened'])->validate();
+            'eventId' => ['nullable', 'integer'],
+            'rating' => ['nullable', 'integer', 'between:1,5'],
+            'snowInches' => [Rule::requiredIf($input['type'] === 'snow' && $topLevel), 'nullable', 'numeric', 'between:0,60'],
+            'plowed' => [Rule::requiredIf($input['type'] === 'snow' && $topLevel), 'nullable', Rule::in(['yes', 'partly', 'no'])],
+        ], [], ['snowInches' => 'snow total', 'plowed' => 'plowing', 'happeningAt' => 'when', 'options.*' => 'option', 'publishAt' => 'scheduled time', 'photos.*' => 'photo', 'safetyWhen' => 'when it happened'])->validate();
 
         $options = array_values(array_unique(array_filter(array_map('trim', $input['options']))));
         if ($input['type'] === 'poll' && $topLevel && count($options) < 2) {
@@ -112,6 +121,14 @@ class FileDispatch
             $fail('sponsor', 'Only staff can label a callout as sponsored.');
         }
 
+        $event = $topLevel && $input['eventId'] ? CityEvent::where('kind', 'event')->happening()->find($input['eventId']) : null;
+        if ($input['eventId'] && ! $event) {
+            $fail('eventId', 'That event isn’t happening right now.');
+        }
+        if ($input['type'] === 'snow' && $topLevel && ! $input['stop']) {
+            $fail('stop', 'Pick the nearest stop so neighbors know where the snow is.');
+        }
+
         $scheduled = $topLevel && $input['publishAt'] !== '';
         if ($scheduled && $user->dispatches()->where('status', 'scheduled')->count() >= 10) {
             $fail('publishAt', 'You already have 10 scheduled dispatches.');
@@ -136,7 +153,13 @@ class FileDispatch
         $preview = $url ? LinkPreviews::for($url) : null;
         $type = $parent ? 'dispatch' : $input['type'];
 
-        $dispatch = DB::transaction(function () use ($user, $input, $parent, $quoted, $options, $publishAt, $preview, $type, $place) {
+        $details = array_filter([
+            'rating' => $event?->rating_label && $input['rating'] ? (int) $input['rating'] : null,
+            'snow_inches' => $type === 'snow' ? (float) $input['snowInches'] : null,
+            'plowed' => $type === 'snow' ? $input['plowed'] : null,
+        ], fn ($v) => $v !== null);
+
+        $dispatch = DB::transaction(function () use ($user, $input, $parent, $quoted, $options, $publishAt, $preview, $type, $place, $event, $details) {
             $dispatch = $user->dispatches()->create([
                 'parent_id' => $parent?->id,
                 'quote_id' => $quoted?->id,
@@ -152,6 +175,8 @@ class FileDispatch
                 'stop' => $parent ? null : ($input['stop'] ?: $place?->stop),
                 'as_business' => (bool) $input['asBusiness'],
                 'sponsor' => $input['sponsor'] ?: null,
+                'event_id' => $event?->id,
+                'details' => $details ?: null,
                 'safety' => $type === 'safety'
                     ? array_filter(['when' => $input['safetyWhen'], 'block' => $input['safetyBlock'], 'person' => $input['safetyPerson']])
                     : null,

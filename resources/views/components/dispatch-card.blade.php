@@ -94,6 +94,18 @@
         </a>
     @endif
 
+    @if ($d->event || ($d->details['snow_inches'] ?? null) !== null)
+        <div class="mt-2 flex flex-wrap items-center gap-2 text-[13px] sm:ml-[46px]">
+            @if ($d->event)
+                <a href="{{ route('events.show', $d->event) }}" wire:navigate class="rounded-full bg-chip px-2.5 py-0.5 hover:text-ink">{{ $d->event->name }}</a>
+                @if ($d->details['rating'] ?? null)<span class="text-flag" aria-label="{{ $d->details['rating'] }} of 5">{{ str_repeat('★', $d->details['rating']) }}<span class="text-rule">{{ str_repeat('★', 5 - $d->details['rating']) }}</span></span> <span class="text-mute">{{ $d->event->rating_label }}</span>@endif
+            @endif
+            @if (($d->details['snow_inches'] ?? null) !== null)
+                <span class="rounded-full bg-[#009cde]/10 px-2.5 py-0.5 text-[#007bb0] dark:text-[#5cc5f0]">❄ {{ rtrim(rtrim(number_format($d->details['snow_inches'], 1), '0'), '.') }}″ · {{ ['yes' => 'Plowed', 'partly' => 'Partly plowed', 'no' => 'Not plowed'][$d->details['plowed']] ?? '' }}</span>
+            @endif
+        </div>
+    @endif
+
     @if ($d->safety)
         <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 rounded-lg border border-rule px-3 py-2 text-[13px] sm:ml-[46px]">
             @foreach (['when' => 'When', 'block' => 'Where', 'person' => 'Description'] as $field => $label)

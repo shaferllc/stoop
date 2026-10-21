@@ -22,6 +22,7 @@ return [
         'happening' => 'Happening',
         'been' => 'Been here',
         'safety' => 'Crime & safety',
+        'snow' => 'Snow report',
         'callout' => 'Callout',
     ],
 

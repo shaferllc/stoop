@@ -37,6 +37,10 @@ class Achievements
         'passport' => ['name' => 'Stamped', 'description' => 'Earned a passport stamp for one of the magazine’s lists'],
         'quiz-week' => ['name' => 'Regular Reader', 'description' => 'Played The Daily 7 days in a row'],
         'quiz-perfect' => ['name' => 'Native Knowledge', 'description' => 'Got a perfect score on The Daily'],
+        'called-it' => ['name' => 'Called It', 'description' => 'Picked the winner in 5 game-day threads'],
+        'snow-reporter' => ['name' => 'Snow Reporter', 'description' => 'Filed a snow report on a Snow Day'],
+        'stoop-sits' => ['name' => 'Stoop Sitter', 'description' => 'Checked in at a Stoop Sits meetup'],
+        'out-and-about' => ['name' => 'Out and About', 'description' => 'Posted from 3 city events'],
         'mayor' => ['name' => 'Mayor', 'description' => 'The most helpful person at a stop this month'],
     ];
 
@@ -70,6 +74,10 @@ class Achievements
             'know-it-all' => $s['best_answers'] >= 5,
             'quiz-week' => $s['quiz_longest'] >= 7,
             'quiz-perfect' => $s['quiz_perfect'] > 0,
+            'called-it' => $s['right_picks'] >= 5,
+            'snow-reporter' => $s['snow_reports'] > 0,
+            'stoop-sits' => $s['meetups'] > 0,
+            'out-and-about' => $s['events'] >= 3,
             'passport' => $s['stamps'] >= 1,
         ];
 
@@ -83,14 +91,16 @@ class Achievements
     /**
      * 10 per dispatch, 15 per day of the longest streak, 5 per Been here/Going/Save received,
      * 5 per reply to someone else, 2 per mark given to someone else, 25 per Best Answer
-     * 100 per passport stamp, and 2 per right answer on The Daily.
+     * 100 per passport stamp, 2 per right answer on The Daily, 10 per right game-day pick,
+     * and 20 per meetup check-in.
      */
     public static function xp(User $user): int
     {
         $s = self::stats($user);
 
         return $s['dispatches'] * 10 + $s['longest_streak'] * 15 + $s['marks_received'] * 5
-            + $s['replies_to_others'] * 5 + $s['marks_given'] * 2 + $s['best_answers'] * 25 + $s['stamps'] * 100 + $s['quiz_correct'] * 2;
+            + $s['replies_to_others'] * 5 + $s['marks_given'] * 2 + $s['best_answers'] * 25 + $s['stamps'] * 100 + $s['quiz_correct'] * 2
+            + $s['right_picks'] * 10 + $s['meetups'] * 20;
     }
 
     public static function rank(int $xp): string
@@ -162,6 +172,14 @@ class Achievements
                 'stamps' => Passports::for($user)->whereNotNull('stamped_at')->count(),
                 'quiz_correct' => DailyQuiz::correctAnswers($user),
                 'quiz_longest' => DailyQuiz::streaks($user)['longest'],
+                'right_picks' => DB::table('poll_votes')->join('games', 'games.dispatch_id', '=', 'poll_votes.dispatch_id')
+                    ->where('poll_votes.user_id', $user->id)
+                    ->where(fn ($q) => $q->where(fn ($q) => $q->where('games.winner', 'team')->whereColumn('poll_votes.poll_option_id', 'games.team_option_id'))
+                        ->orWhere(fn ($q) => $q->where('games.winner', 'opponent')->whereColumn('poll_votes.poll_option_id', 'games.opponent_option_id')))
+                    ->count(),
+                'snow_reports' => (clone $approved)->where('type', 'snow')->count(),
+                'meetups' => DB::table('event_checkins')->where('user_id', $user->id)->count(),
+                'events' => (clone $approved)->whereNotNull('event_id')->distinct()->count('event_id'),
                 'quiz_perfect' => DB::table('quiz_attempts')->where('user_id', $user->id)->where('score', DailyQuiz::PER_DAY)->count(),
                 'marks_received' => DB::table('marks')->whereIn('dispatch_id', $mine)->where('user_id', '!=', $user->id)->count(),
                 'marks_given' => DB::table('marks')->where('user_id', $user->id)

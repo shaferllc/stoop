@@ -4,10 +4,12 @@ namespace App\Livewire;
 
 use App\Actions\FileDispatch;
 use App\Exceptions\NudgeRequired;
+use App\Models\CityEvent;
 use App\Models\Dispatch;
 use App\Models\Place;
 use App\Models\User;
 use App\Support\Achievements;
+use App\Support\Settings;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -66,6 +68,14 @@ class Composer extends Component
     public bool $asBusiness = false;
 
     public string $sponsor = '';
+
+    public ?int $eventId = null;
+
+    public ?int $rating = null;
+
+    public ?string $snowInches = null;
+
+    public ?string $plowed = null;
 
     public function selectPlace(?int $id): void
     {
@@ -155,7 +165,7 @@ class Composer extends Component
 
         try {
             $dispatch = FileDispatch::handle($user, [
-                ...$this->only(['type', 'body', 'line', 'stop', 'happeningAt', 'options', 'pollHours', 'publishAt', 'photos', 'alts', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'quoteId', 'placeId', 'asBusiness', 'sponsor']),
+                ...$this->only(['type', 'body', 'line', 'stop', 'happeningAt', 'options', 'pollHours', 'publishAt', 'photos', 'alts', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'quoteId', 'placeId', 'asBusiness', 'sponsor', 'eventId', 'rating', 'snowInches', 'plowed']),
                 'parentId' => $this->parentId,
             ], confirmed: $this->warned);
         } catch (NudgeRequired) {
@@ -164,7 +174,7 @@ class Composer extends Component
             return;
         }
 
-        $this->reset('body', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'placeId', 'placeQuery', 'asBusiness', 'sponsor', 'showPlace');
+        $this->reset('body', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'placeId', 'placeQuery', 'asBusiness', 'sponsor', 'showPlace', 'eventId', 'rating', 'snowInches', 'plowed');
         $this->type = 'dispatch';
         $this->dispatch('dispatch-filed', id: $dispatch->id);
 
@@ -187,6 +197,8 @@ class Composer extends Component
         return view('livewire.composer', [
             'quoted' => $this->quoteId ? Dispatch::with('user')->find($this->quoteId) : null,
             'place' => $this->placeId ? Place::find($this->placeId) : null,
+            'events' => $this->parentId ? collect() : CityEvent::where('kind', 'event')->happening()->orderBy('ends_at')->get(),
+            'snowDay' => Settings::snowDay(),
             'placeResults' => mb_strlen($q) >= 2
                 ? Place::where('name', 'like', '%'.$q.'%')->orderByRaw('list_rank is null, list_rank')->take(6)->get()
                 : collect(),

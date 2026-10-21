@@ -5,7 +5,9 @@ use App\Http\Controllers\FeedController;
 use App\Http\Controllers\TransparencyController;
 use App\Livewire\Admin;
 use App\Livewire\Pages\AppealCreate;
+use App\Livewire\Pages\ContestShow;
 use App\Livewire\Pages\ConversationView;
+use App\Livewire\Pages\EventShow;
 use App\Livewire\Pages\Feed;
 use App\Livewire\Pages\Inbox;
 use App\Livewire\Pages\Moderation;
@@ -19,13 +21,17 @@ use App\Livewire\Pages\Search;
 use App\Livewire\Pages\ShowDispatch;
 use App\Livewire\Pages\UserProfile;
 use App\Mail\WeeklyDigest;
+use App\Models\CityEvent;
+use App\Models\Contest;
 use App\Models\Dispatch;
+use App\Models\Game;
 use App\Models\MessageImage;
 use App\Models\Sponsorship;
 use App\Models\User;
 use App\Support\Newsletter;
 use App\Support\RidershipGraph;
 use App\Support\Rivalries;
+use App\Support\Settings;
 use App\Support\ShareImage;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Http\Request;
@@ -100,6 +106,20 @@ Route::get('@{user:username}/ridership.svg', fn (User $user) => response(Cache::
 Route::get('@{user:username}/og.png', fn (User $user) => response(Cache::remember("og:u:{$user->id}", now()->addDay(), fn () => ShareImage::forUser($user)))
     ->header('Content-Type', 'image/png')->header('Cache-Control', 'public, max-age=86400'))->name('users.og');
 
+Route::get('around-town', fn () => view('around-town', [
+    'snowDay' => Settings::snowDay(),
+    'events' => CityEvent::where('ends_at', '>=', now())->where('starts_at', '<=', now()->addMonth())->orderBy('starts_at')->get(),
+    'games' => Game::where('starts_at', '>=', now()->subDays(3))->orderBy('starts_at')->take(12)->get(),
+    'contests' => Contest::where(fn ($q) => $q->where('closes_at', '>=', now())->orWhere('updated_at', '>=', now()->subMonth()))->latest('closes_at')->get(),
+]))->name('around-town');
+Route::livewire('events/{event:slug}', EventShow::class)->name('events.show');
+Route::livewire('contests/{contest:slug}', ContestShow::class)->name('contests.show');
+Route::get('snow', fn () => view('snow', [
+    'snowDay' => Settings::snowDay(),
+    'reports' => Dispatch::with('user')->visibleTo(null)->where('type', 'snow')->whereNotNull('stop')
+        ->where('created_at', '>=', now()->subDays(2))->latest()->get()->unique('stop')->sortByDesc(fn ($d) => $d->details['snow_inches'] ?? 0),
+]))->name('snow');
+
 Route::get('rivalries', fn () => view('rivalries', [
     'current' => Rivalries::matchups(Rivalries::weekStart()),
     'last' => Rivalries::matchups(Rivalries::weekStart()->subWeek()),
@@ -128,6 +148,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         })->name('.newsletter.preview');
         Route::livewire('audit', Admin\AuditLog::class)->name('.audit');
         Route::livewire('quiz', Admin\QuizQuestions::class)->name('.quiz');
+        Route::livewire('moments', Admin\Moments::class)->name('.moments');
     });
     Route::get('settings/export', ExportController::class)->middleware('throttle:5,1')->name('export');
     // Push notification sign-ups from a browser or the installed app...
