@@ -153,8 +153,8 @@
                     </select>
                     <select wire:model="stop" aria-label="Stop" class="rounded-md border border-rule bg-paper px-1.5 py-1 text-[13px]">
                         <option value="">No stop</option>
-                        @foreach (config('stoop.stations') as $code => $station)
-                            <option value="{{ $code }}">{{ $code }} · {{ $station }}</option>
+                        @foreach (collect(config('stoop.stations'))->sort() as $code => $station)
+                            <option value="{{ $code }}">{{ $station }} ({{ $code }})</option>
                         @endforeach
                     </select>
                 @endunless

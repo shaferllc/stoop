@@ -7,6 +7,7 @@ use App\Models\Dispatch;
 use App\Models\User;
 use App\Support\Achievements;
 use App\Support\RidershipGraph;
+use App\Support\Stations;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -97,6 +98,8 @@ class UserProfile extends Component
             'badges' => Achievements::unlocked($user),
             'streaks' => Achievements::streaks($user),
             'graph' => RidershipGraph::svg($user, 'light'),
+            'visited' => Stations::visited($user),
+            'mayorships' => Stations::mayorships($user),
             'dispatches' => $dispatches,
             'isFollowing' => $viewer?->following()->whereKey($user->id)->exists() ?? false,
             'followsYou' => $viewer ? $user->following()->whereKey($viewer->id)->exists() : false,

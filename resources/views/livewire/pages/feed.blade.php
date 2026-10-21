@@ -13,8 +13,21 @@
 
     @if ($stop)
         <div class="mb-3 rounded-xl border border-rule bg-card p-4">
-            <div class="font-mono text-[12px] text-mute">{{ $stop }}</div>
+            @php($mayor = \App\Support\Stations::mayorOf($stop))
+            <div class="flex items-center gap-1.5">
+                <span class="font-mono text-[12px] text-mute">{{ $stop }}</span>
+                @foreach (\App\Support\Stations::linesAt($stop) as $l)
+                    <span class="h-1.5 w-5 rounded-full" style="background: {{ config("stoop.lines.$l.color") }}" title="{{ ucfirst($l) }} line"></span>
+                @endforeach
+            </div>
             <h1 class="font-display text-2xl font-bold">{{ config("stoop.stations.$stop") }}</h1>
+            <p class="text-sm text-mute">
+                @if ($mayor)
+                    Mayor: <a href="{{ route('users.show', $mayor) }}" wire:navigate class="font-semibold text-ink">{{ '@'.$mayor->username }}</a>, the most helpful neighbor here this month.
+                @else
+                    No mayor yet. Post and answer questions here to claim it.
+                @endif
+            </p>
             <a href="{{ route('feeds.stop', $stop) }}" class="text-[12.5px] text-mute underline">Follow this stop in a feed reader</a>
         </div>
     @endif

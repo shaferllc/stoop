@@ -51,6 +51,22 @@
         <p class="mt-2 text-[12px] text-mute">Embed this graph anywhere: <code class="font-mono">{{ route('users.ridership', $user) }}</code></p>
     </section>
 
+    <section class="mt-3 rounded-xl border border-rule bg-card p-5">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 class="font-display text-xl font-bold">The system</h2>
+            <span class="text-sm text-mute"><b class="tabular-nums text-ink">{{ count($visited) }}</b> of {{ count(config('metro.stations')) }} stations</span>
+        </div>
+        @if ($mayorships)
+            <p class="mt-1 text-sm">Mayor of
+                @foreach ($mayorships as $code)
+                    <a href="{{ route('stops.show', $code) }}" wire:navigate class="mr-1.5 inline-block"><x-station :code="$code" :line="\App\Support\Stations::linesAt($code)[0] ?? null" /></a>
+                @endforeach
+            </p>
+        @endif
+        <x-strip-map :visited="$visited" class="mt-3" />
+        <p class="mt-2 text-[12px] text-mute">Post from a station to fill it in. Finish a line for its badge.</p>
+    </section>
+
     @if (auth()->id() === $user->id)
         <details class="mt-3 rounded-xl border border-rule bg-card p-4 text-sm" @if ($errors->hasAny(['liveUrl', 'liveLabel', 'liveHours'])) open @endif>
             <summary class="cursor-pointer font-semibold">{{ $user->isLive() ? 'You’re on the scene' : 'Go on the scene' }}</summary>

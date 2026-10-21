@@ -25,6 +25,16 @@ class Achievements
         'big-night' => ['name' => 'Big Night Out', 'description' => 'Posted a Happening 10 people went to'],
         'talk-of-the-town' => ['name' => 'Talk of the Town', 'description' => 'Got 25 replies on one dispatch'],
         'half-smoke-hall' => ['name' => 'Half-Smoke Hall of Fame', 'description' => 'Received 25 half-smokes'],
+        'line-red' => ['name' => 'Rode the Red Line', 'description' => 'Posted from every Red Line station'],
+        'line-orange' => ['name' => 'Rode the Orange Line', 'description' => 'Posted from every Orange Line station'],
+        'line-blue' => ['name' => 'Rode the Blue Line', 'description' => 'Posted from every Blue Line station'],
+        'line-green' => ['name' => 'Rode the Green Line', 'description' => 'Posted from every Green Line station'],
+        'line-yellow' => ['name' => 'Rode the Yellow Line', 'description' => 'Posted from every Yellow Line station'],
+        'line-silver' => ['name' => 'Rode the Silver Line', 'description' => 'Posted from every Silver Line station'],
+        'whole-system' => ['name' => 'The Whole System', 'description' => 'Posted from all 98 Metro stations'],
+        'crossed-the-river' => ['name' => 'Crossed the River', 'description' => 'Posted from a station east of the Anacostia'],
+        'tri-state' => ['name' => 'DMV', 'description' => 'Posted from stations in DC, Maryland and Virginia'],
+        'mayor' => ['name' => 'Mayor', 'description' => 'The most helpful person at a stop this month'],
     ];
 
     // Like /dev/null's Unix ranks, named for how far into the city you are.
@@ -50,7 +60,15 @@ class Achievements
             'big-night' => $s['best_happening'] >= 10,
             'talk-of-the-town' => $s['most_replies'] >= 25,
             'half-smoke-hall' => $s['half_smokes_received'] >= 25,
+            'whole-system' => count($s['visited']) >= count(config('metro.stations')),
+            'crossed-the-river' => collect($s['visited'])->contains(fn ($code) => Stations::eastOfTheRiver($code)),
+            'tri-state' => count(array_unique(array_map(fn ($code) => Stations::jurisdiction($code), $s['visited']))) >= 3,
+            'mayor' => Stations::mayorships($user) !== [],
         ];
+
+        foreach (config('metro.lines') as $line => $stops) {
+            $earned["line-$line"] = array_diff($stops, $s['visited']) === [];
+        }
 
         return array_intersect_key(self::BADGES, array_filter($earned));
     }
@@ -147,6 +165,7 @@ class Achievements
                 'most_replies' => (int) DB::table('dispatches')->whereIn('parent_id', $mine)->where('status', 'approved')
                     ->groupBy('parent_id')->selectRaw('count(*) as c')->orderByDesc('c')->value('c'),
                 'half_smokes_received' => DB::table('half_smokes')->whereIn('dispatch_id', $mine)->count(),
+                'visited' => Stations::visited($user),
                 'marks_received' => DB::table('marks')->whereIn('dispatch_id', $mine)->where('user_id', '!=', $user->id)->count(),
                 'marks_given' => DB::table('marks')->where('user_id', $user->id)
                     ->whereNotIn('dispatch_id', $mine)->count(),
