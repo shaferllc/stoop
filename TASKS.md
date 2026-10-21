@@ -76,12 +76,15 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Appeals, decided by a different moderator
 - [x] Reported messages queue with context
 - [x] Public monthly transparency report
+- [x] OpenAI’s free moderation endpoint checks every new dispatch first (text and photos) and holds hate, harassment and threats, with the scores shown to moderators
 - [x] Claude checks every new dispatch before it goes public (when `ANTHROPIC_API_KEY` is set); a failed check never approves
 - [x] Link cards check IPv4 and IPv6 and pin the checked address, so DNS rebinding can’t reach internal hosts
 - [x] Cloudflare Turnstile on sign-up (when keys are set)
 - [x] New accounts: no message requests for 3 days, 20 posts a day for the first week
 - [x] Privacy policy and terms (drafts, marked for legal review)
 - [ ] Legal review of the privacy policy and terms
+- [ ] Tune the OpenAI thresholds after a few weeks of real posts (count how many held posts moderators approve)
+- [ ] Run the OpenAI check on reported private messages, to sort the moderation queue by severity
 - [ ] Moderator training, rotation and an outside advisory group (people, not code)
 
 ## Platform

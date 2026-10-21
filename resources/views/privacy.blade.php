@@ -22,6 +22,7 @@
 
         <h2>Services we use</h2>
         <ul>
+            <li><b>OpenAI:</b> new posts and their photos are checked by OpenAI’s moderation service for hate, harassment, threats and similar content before they go up. [Confirm OpenAI’s data-retention terms for the moderation endpoint.]</li>
             <li><b>Anthropic (Claude):</b> when it’s turned on, posts are checked against the house rules before they go up, and posts you ask to translate are sent for translation. Anthropic doesn’t use this data to train its models.</li>
             <li><b>Cloudflare Turnstile:</b> the check on the sign-up form.</li>
             <li><b>WMATA:</b> we fetch Metro delays. Nothing about you is sent.</li>

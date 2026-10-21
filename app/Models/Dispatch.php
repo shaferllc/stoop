@@ -32,6 +32,7 @@ class Dispatch extends Model
             'flagged_at' => 'datetime',
             'hidden_by_author' => 'boolean',
             'safety' => 'array',
+            'screening' => 'array',
             'as_business' => 'boolean',
         ];
     }

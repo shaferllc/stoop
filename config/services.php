@@ -57,6 +57,11 @@ return [
         'key' => env('WMATA_API_KEY'),
     ],
 
+    // OpenAI's free moderation endpoint, the first check on every new post.
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+    ],
+
     // Optional. Without a key, @stoop answers from the knowledge base by keyword.
     'anthropic' => [
         'key' => env('ANTHROPIC_API_KEY'),

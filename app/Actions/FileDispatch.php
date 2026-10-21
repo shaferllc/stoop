@@ -13,6 +13,7 @@ use App\Support\Later;
 use App\Support\LinkPreviews;
 use App\Support\Mentions;
 use App\Support\ModerationModel;
+use App\Support\OpenAiModeration;
 use App\Support\Photos;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -195,7 +196,9 @@ class FileDispatch
             return 'held';
         }
 
-        return ModerationModel::enabled() && ! $user->is_staff && ! $user->is_bot ? 'pending' : 'approved';
+        $screened = ModerationModel::enabled() || OpenAiModeration::enabled();
+
+        return $screened && ! $user->is_staff && ! $user->is_bot ? 'pending' : 'approved';
     }
 
     /**

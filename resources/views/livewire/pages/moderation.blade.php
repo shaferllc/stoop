@@ -33,6 +33,15 @@
                         <a href="{{ route('dispatches.show', $d) }}" class="ml-auto text-mute underline">Open thread</a>
                     </div>
                     <p class="mt-2 whitespace-pre-line">{{ $d->body }}</p>
+                    @if ($d->screening['openai'] ?? null)
+                        <p class="mt-2 text-[13px] text-mute">Held by the automatic check:
+                            @foreach ($d->screening['openai'] as $category => $score)
+                                <span class="mr-1 rounded bg-flag/10 px-1.5 font-mono text-[12px] text-flag">{{ $category }} {{ number_format($score, 2) }}</span>
+                            @endforeach
+                        </p>
+                    @elseif (($d->screening['claude'] ?? null) === 'hold')
+                        <p class="mt-2 text-[13px] text-mute">Held by the house-rules check (Claude).</p>
+                    @endif
                     @if ($d->reports->isNotEmpty())
                         <ul class="mt-2 space-y-0.5 text-[13px] text-mute">
                             @foreach ($d->reports as $r)

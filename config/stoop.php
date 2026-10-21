@@ -111,6 +111,23 @@ return [
     // ponytail: regex lists miss a lot, swap in a moderation model when traffic is real
     'held_patterns' => [],
 
+    // OpenAI moderation scores (0 to 1) at or above which a post is held for moderators.
+    // Lower holds more. Hate and threats are strict; self-harm goes to a person who can respond with care.
+    'openai_thresholds' => [
+        'hate' => 0.4,
+        'hate/threatening' => 0.2,
+        'harassment' => 0.6,
+        'harassment/threatening' => 0.3,
+        'violence' => 0.7,
+        'violence/graphic' => 0.6,
+        'sexual' => 0.7,
+        'sexual/minors' => 0.05,
+        'self-harm' => 0.5,
+        'self-harm/intent' => 0.3,
+        'self-harm/instructions' => 0.3,
+        'illicit/violent' => 0.5,
+    ],
+
     // Screen every new dispatch with Claude before it goes public (needs ANTHROPIC_API_KEY).
     'model_moderation' => env('STOOP_MODEL_MODERATION', true),
 
