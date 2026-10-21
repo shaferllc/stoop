@@ -205,7 +205,7 @@ class FileDispatch
         });
 
         // Coded or local hate from staff's watch list: hold it and show moderators what it means.
-        if ($watch = WatchPhrases::matches($dispatch->body)) {
+        if ($watch = WatchPhrases::matches(implode("\n", array_map('strval', $typed)))) {
             $dispatch->forceFill(['status' => 'held', 'screening' => ['watch' => $watch]])->save();
         }
 

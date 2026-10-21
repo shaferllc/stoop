@@ -9,7 +9,7 @@ Route::prefix('ai')->group(function () {
     Route::get('insights', [Ai::class, 'insights']);
 
     // These can call Claude.
-    Route::middleware('throttle:30,1')->group(function () {
+    Route::middleware('throttle:30,1,ai')->group(function () {
         Route::post('dispatches/{dispatch}/suggest', [Ai::class, 'suggest']);
         Route::get('appeals/{appeal}', [Ai::class, 'appeal']);
         Route::get('users/{user}/brief', [Ai::class, 'brief'])->whereNumber('user');

@@ -75,6 +75,8 @@ final class QueueAI {
         struct Reply: Decodable { let suggestion: Suggestion? }
         if let reply: Reply = try? await api.send("POST", "ai/dispatches/\(id)/suggest", body: [:]), let s = reply.suggestion {
             suggestions[id] = s
+        } else {
+            asked.remove(id) // try again on the next load
         }
     }
 }

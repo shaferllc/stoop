@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\FileDispatch;
 use App\Livewire\Admin\Assist;
 use App\Livewire\Admin\Insights;
 use App\Livewire\Composer;
@@ -103,6 +104,10 @@ class ModerationAssistTest extends TestCase
         // Seeded broad examples start off, so they don't hold anything.
         Livewire::actingAs($author)->test(Composer::class)->set('body', 'Those people at the bakery were lovely')->call('file')->assertHasNoErrors();
         $this->assertSame('approved', Dispatch::latest('id')->first()->status);
+
+        // Other typed fields count too, like the person description on a safety post.
+        $safety = FileDispatch::handle($author, ['type' => 'safety', 'body' => 'Car broken into on my block', 'stop' => array_key_first(config('stoop.stations')), 'safetyWhen' => 'Last night', 'safetyPerson' => 'Tall, red hoodie, one of the wrong element'], confirmed: true);
+        $this->assertSame('held', $safety->status);
 
         Livewire::actingAs(User::factory()->create(['is_staff' => true]))->test(Moderation::class)
             ->assertSee('Held: Watch phrase “Section 8 crowd”')->assertSee('Click to show');
