@@ -53,6 +53,11 @@
         </section>
 
         <section class="rounded-xl border border-rule bg-card p-4 text-sm">
+            <h2 class="font-semibold">Brief</h2>
+            <livewire:admin.assist kind="user" :subject-id="$user->id" />
+        </section>
+
+        <section class="rounded-xl border border-rule bg-card p-4 text-sm">
             <h2 class="font-semibold">Moderator notes</h2>
             <form wire:submit="addNote" class="mt-2">
                 <textarea wire:model="note" rows="2" maxlength="2000" placeholder="Only staff see these" aria-label="Note" class="w-full rounded-md border border-rule bg-paper p-2"></textarea>

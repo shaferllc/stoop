@@ -8,7 +8,7 @@
     </div>
 
     @if ($view === 'queue')
-        <p class="mb-3 text-sm text-mute">Held posts, posts hidden after reports, flagged pile-ons, and anything with open reports. Keys: <kbd class="font-mono">j</kbd>/<kbd class="font-mono">k</kbd> to move, <kbd class="font-mono">a</kbd> to approve, <kbd class="font-mono">r</kbd> to remove, <kbd class="font-mono">o</kbd> to open the thread.</p>
+        <p class="mb-3 text-sm text-mute">Held posts, posts hidden after reports, flagged pile-ons, and anything with open reports. Keys: <kbd class="font-mono">j</kbd>/<kbd class="font-mono">k</kbd> to move, <kbd class="font-mono">a</kbd> to approve, <kbd class="font-mono">r</kbd> to remove, <kbd class="font-mono">s</kbd> to accept Claude’s suggestion, <kbd class="font-mono">o</kbd> to open the thread. Posts with high hate, harassment, sexual or violence scores, or a watch phrase, stay blurred until you click.</p>
         <div class="space-y-3" x-data x-on:keydown.window="
             if ($event.metaKey || $event.ctrlKey || $event.altKey || $event.target.closest('input, textarea, select') || $wire.acting) return;
             const items = [...$el.querySelectorAll('[data-mod-item]')];
@@ -21,6 +21,7 @@
             if (!current) return;
             if ($event.key === 'a') { $event.preventDefault(); $wire.approve(Number(current.dataset.modItem)); }
             if ($event.key === 'r') { $event.preventDefault(); $wire.startAction(Number(current.dataset.modItem)); }
+            if ($event.key === 's') { $event.preventDefault(); current.querySelector('[data-accept]')?.click(); }
             if ($event.key === 'o') { $event.preventDefault(); window.open(current.dataset.href, '_blank'); }
         ">
             @forelse ($queue as $d)
@@ -32,7 +33,11 @@
                         <span class="text-mute">{{ $d->created_at->diffForHumans() }} · {{ $d->strikes }} prior {{ str('penalty')->plural($d->strikes) }}</span>
                         <a href="{{ route('dispatches.show', $d) }}" class="ml-auto text-mute underline">Open thread</a>
                     </div>
-                    <p class="mt-2 whitespace-pre-line">{{ $d->body }}</p>
+                    @php $blur = \App\Support\ModerationInsights::blur($d); @endphp
+                    <div x-data="{ shown: @js(! $blur) }" class="relative mt-2">
+                        <p @class(['whitespace-pre-line', 'blur-sm select-none' => $blur]) x-bind:class="{ 'blur-sm select-none': ! shown }">{{ $d->body }}</p>
+                        @if ($blur)<button type="button" x-show="! shown" x-on:click="shown = true" class="absolute inset-0 grid place-items-center text-sm font-semibold">Possibly hateful or graphic. Click to show.</button>@endif
+                    </div>
                     @if ($d->screening['openai'] ?? null)
                         <p class="mt-2 text-[13px] text-mute">Held by the automatic check:
                             @foreach ($d->screening['openai'] as $category => $score)
@@ -42,6 +47,10 @@
                     @elseif (($d->screening['claude'] ?? null) === 'hold')
                         <p class="mt-2 text-[13px] text-mute">Held by the house-rules check (Claude).</p>
                     @endif
+                    @foreach (\App\Support\ModerationInsights::heldBecause($d) as $why)
+                        <p class="mt-2 text-[13px] text-flag">Held: {{ $why }}</p>
+                    @endforeach
+                    <livewire:admin.assist kind="dispatch" :subject-id="$d->id" :key="'assist-'.$d->id" />
                     @if ($d->reports->isNotEmpty())
                         <ul class="mt-2 space-y-0.5 text-[13px] text-mute">
                             @foreach ($d->reports as $r)
@@ -67,6 +76,7 @@
                     @if ($a->dispatch)<p class="mt-2 rounded-lg bg-chip px-3 py-2">{{ $a->dispatch->body }}</p>@endif
                     <p class="mt-1 text-mute">Reason given: {{ $a->penalty?->reason ?? $a->dispatch?->moderation_reason }}</p>
                     <p class="mt-2">“{{ $a->body }}”</p>
+                    <livewire:admin.assist kind="appeal" :subject-id="$a->id" :key="'appeal-assist-'.$a->id" />
                     <div class="mt-3 flex gap-2">
                         <button type="button" wire:click="decide({{ $a->id }}, true)" class="rounded-lg border border-rule px-3 py-1">Grant</button>
                         <button type="button" wire:click="decide({{ $a->id }}, false)" class="rounded-lg border border-rule px-3 py-1">Deny</button>

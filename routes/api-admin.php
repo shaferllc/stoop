@@ -32,4 +32,6 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'throttle:240,1'])->group(fu
     Route::post('failed-jobs/{uuid}/retry', [Admin::class, 'retryJob']);
     Route::delete('failed-jobs/{uuid}', [Admin::class, 'forgetJob']);
     Route::get('audit', [Admin::class, 'audit']);
+
+    require __DIR__.'/api-admin-ai.php';
 });

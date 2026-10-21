@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Actions\AnnounceDispatch;
 use App\Models\Dispatch;
 use App\Support\Later;
+use App\Support\ModerationAssist;
 use App\Support\ModerationModel;
 use App\Support\OpenAiModeration;
 use App\Support\Strikes;
@@ -52,6 +53,14 @@ class ModerateDispatch implements ShouldQueue
 
             if ($result['hold']) {
                 $dispatch->forceFill(['status' => 'held', 'screening' => $screening])->save();
+
+                return;
+            }
+
+            // Borderline on hate or harassment: Claude looks again for coded hate. It can only hold.
+            if (config('stoop.model_moderation') && ModerationAssist::enabled() && ($borderline = ModerationAssist::borderline($result['scores']))
+                && $why = ModerationAssist::codedHate($dispatch->body, $borderline)) {
+                $dispatch->forceFill(['status' => 'held', 'screening' => $screening + ['coded' => ['reason' => $why, 'scores' => $borderline]]])->save();
 
                 return;
             }
