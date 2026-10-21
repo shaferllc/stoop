@@ -127,6 +127,8 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Operations page for staff: activity, queue sizes, failed jobs
 - [x] Catch me up on stop pages and line feeds: Claude sums up the last 24 hours of approved posts in 3–5 bullets (cached 30 minutes, rebuilt if a post in it is removed); the top 5 posts without a key
 - [x] Composer suggestions: topic, Ask DC and station chips from keywords as you type; Claude refines on Suggest or a pause (with a key); never applied for you
+- [x] Showcase seed (`ShowcaseSeeder`): a busy week with every feature in use for demos; additive, runs once, about 4 seconds
+- [ ] DemoCitySeeder reuses short canned replies, so `stoop:detect-spam` files them as duplicate rings when it runs within a day of seeding; vary them or skip sample accounts
 - [ ] Search by meaning (embeddings); search is keyword-based with stemming for now
 - [ ] Move link-card fetching to a queued job if posting feels slow
 - [ ] Turn on Claude refusal fallbacks for the bot and translation once the PHP SDK documents them (a declined request falls back to the keyword answer or no translation today)
