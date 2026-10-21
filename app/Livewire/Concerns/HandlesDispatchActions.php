@@ -2,9 +2,8 @@
 
 namespace App\Livewire\Concerns;
 
+use App\Actions\DispatchActions;
 use App\Models\Dispatch;
-use App\Models\HalfSmoke;
-use App\Models\Report;
 use App\Models\User;
 use App\Notifications\StoopActivity;
 use App\Support\Translator;
@@ -58,17 +57,10 @@ trait HandlesDispatchActions
             return;
         }
 
-        $dispatch = $this->findVisible($id);
-        $query = DB::table('marks')->where(['user_id' => $user->id, 'dispatch_id' => $dispatch->id, 'kind' => $kind]);
-
-        if ($query->exists()) {
-            $query->delete();
-        } else {
-            $user->marked()->attach($dispatch->id, ['kind' => $kind]);
-        }
+        $on = DispatchActions::toggleMark($user, $this->findVisible($id), $kind);
 
         if ($kind === 'save') {
-            Flux::toast($query->exists() ? 'Saved.' : 'Removed from Saved.');
+            Flux::toast($on ? 'Saved.' : 'Removed from Saved.');
         }
     }
 
@@ -78,20 +70,7 @@ trait HandlesDispatchActions
             return;
         }
 
-        $dispatch = $this->findVisible($id);
-        $option = $dispatch->options()->findOrFail($optionId);
-
-        if ($dispatch->isClosed() || $dispatch->user_id === $user->id) {
-            return;
-        }
-
-        DB::table('poll_votes')->insertOrIgnore([
-            'dispatch_id' => $dispatch->id,
-            'poll_option_id' => $option->id,
-            'user_id' => $user->id,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        DispatchActions::vote($user, $this->findVisible($id), $optionId);
     }
 
     /**
@@ -105,17 +84,10 @@ trait HandlesDispatchActions
 
         $dispatch = $this->findVisible($id);
 
-        if (! $user->half_smokes_on || $dispatch->user_id === $user->id) {
-            return;
+        // The button only shows when half-smokes are on and the dispatch isn't yours.
+        if ($user->half_smokes_on && $dispatch->user_id !== $user->id && $reason = DispatchActions::giveHalfSmoke($user, $dispatch)) {
+            Flux::toast($reason);
         }
-
-        if ($user->halfSmokesLeft() === 0) {
-            Flux::toast('You’re out of half-smokes for today. More at midnight.');
-
-            return;
-        }
-
-        HalfSmoke::create(['giver_id' => $user->id, 'dispatch_id' => $dispatch->id]);
     }
 
     public function toggleFollow(int $userId): void
@@ -124,13 +96,9 @@ trait HandlesDispatchActions
             return;
         }
 
-        abort_if($userId === $user->id || in_array($userId, $user->hiddenUserIds(), true), 422);
-
         $target = User::findOrFail($userId);
-        $changes = $user->following()->toggle($target->id);
 
-        if ($changes['attached']) {
-            $target->notify(new StoopActivity('follow', $user));
+        if (DispatchActions::toggleFollow($user, $target)) {
             Flux::toast("Following @{$target->username}.");
         } else {
             Flux::toast("Unfollowed @{$target->username}.");
@@ -145,15 +113,8 @@ trait HandlesDispatchActions
             return;
         }
 
-        abort_if($userId === $user->id, 422);
-
         $target = User::findOrFail($userId);
-        $user->silenced()->attach($target->id, ['type' => $type]);
-
-        if ($type === 'block') {
-            $user->following()->detach($target->id);
-            $user->followers()->detach($target->id);
-        }
+        DispatchActions::silence($user, $target, $type);
 
         Flux::toast($type === 'block' ? "Blocked @{$target->username}." : "Muted @{$target->username}. Their posts won’t show for you.");
     }
@@ -182,17 +143,7 @@ trait HandlesDispatchActions
             'reportNote' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $dispatch = $this->findVisible((int) $this->reporting);
-        abort_if($dispatch->user_id === $user->id, 422);
-
-        Report::firstOrCreate(
-            ['user_id' => $user->id, 'dispatch_id' => $dispatch->id],
-            ['reason' => $this->reportReason, 'note' => $this->reportNote ?: null],
-        );
-
-        if ($dispatch->reports()->whereNull('resolved_at')->count() >= config('stoop.report_threshold')) {
-            $dispatch->update(['status' => 'hidden']);
-        }
+        DispatchActions::report($user, $this->findVisible((int) $this->reporting), $this->reportReason, $this->reportNote);
 
         $this->reporting = null;
         Flux::toast('Reported and hidden for you. A moderator will review it.');
