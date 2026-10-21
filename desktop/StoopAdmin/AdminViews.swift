@@ -5,6 +5,7 @@ struct PeopleView: View {
     @State private var query = ""
     @State private var filter = "all"
     @State private var page: UsersPage?
+    @State private var selected = Set<Int>()
 
     var body: some View {
         Group {
@@ -12,7 +13,7 @@ struct PeopleView: View {
                 if page.data.isEmpty {
                     ContentUnavailableView.search(text: query)
                 } else {
-                    Table(page.data) {
+                    Table(page.data, selection: $selected) {
                         TableColumn("Person") { u in
                             NavigationLink(value: u) {
                                 HStack(spacing: 6) {
@@ -39,6 +40,7 @@ struct PeopleView: View {
         .navigationTitle("People")
         .searchable(text: $query, placement: .toolbar, prompt: "@username, name or email")
         .toolbar {
+            if !selected.isEmpty { BulkMenu(ids: selected) { selected = [] } }
             Picker("Show", selection: $filter) {
                 Text("Everyone").tag("all")
                 Text("4+ strikes: review for a ban").tag("ban_review")
@@ -84,6 +86,7 @@ struct PersonView: View {
                         Button("View Profile on Site") { model.openOnSite(p.url) }.buttonStyle(.link)
                     }
                     PersonBriefView(id: p.id)
+                    AccountCheckBox(id: p.id)
 
                     GroupBox("Issue a penalty") {
                         HStack {

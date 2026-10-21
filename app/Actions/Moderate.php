@@ -7,6 +7,7 @@ use App\Models\Dispatch;
 use App\Models\MessageReport;
 use App\Models\Penalty;
 use App\Models\User;
+use App\Notifications\ModerationMail;
 use App\Notifications\ModerationNotice;
 use App\Support\Audit;
 use Illuminate\Support\Collection;
@@ -108,11 +109,17 @@ class Moderate
         ]);
         Audit::log('penalty.issued', $user, ['type' => $penalty->type, 'hours' => $hours, 'reason' => $reason]);
 
-        $user->notify(new ModerationNotice(match ($penalty->type) {
+        $message = match ($penalty->type) {
             'warning' => 'You received a warning: '.$reason.'.',
             'ban' => 'Your account was banned: '.$reason.'.',
             default => 'You’re in a timeout for '.Penalty::TIMEOUTS[$hours].': '.$reason.'.',
-        }.($penalty->type === 'warning' ? '' : ' You can appeal once.'), $dispatch));
+        }.($penalty->type === 'warning' ? '' : ' You can appeal once.');
+        $user->notify(new ModerationNotice($message, $dispatch));
+
+        // Timeouts and bans are emailed too, in case the person isn't on the site.
+        if ($penalty->type !== 'warning') {
+            $user->notify(new ModerationMail($penalty->type === 'ban' ? 'Your Stoop account was banned' : 'You’re in a timeout on Stoop', [$message], route('appeals.create'), 'Appeal'));
+        }
 
         return $penalty;
     }
@@ -153,8 +160,10 @@ class Moderate
             $appeal->dispatch?->forceFill(['status' => 'approved', 'moderation_reason' => null])->save();
         }
 
-        $appeal->user->notify(new ModerationNotice($grant
+        $message = $grant
             ? 'Your appeal was granted. We’ve reversed the decision.'
-            : 'Your appeal was reviewed by a second moderator and the decision stands.', $appeal->dispatch));
+            : 'Your appeal was reviewed by a second moderator and the decision stands.';
+        $appeal->user->notify(new ModerationNotice($message, $appeal->dispatch));
+        $appeal->user->notify(new ModerationMail('Your Stoop appeal was decided', [$message]));
     }
 }

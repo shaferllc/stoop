@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Admin;
 
+use App\Actions\BulkPeople;
 use App\Models\Penalty;
 use App\Models\User;
 use App\Support\Strikes;
+use Flux\Flux;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -18,15 +20,40 @@ class Users extends Component
 {
     use StaffOnly, WithPagination;
 
+    protected const ROLE = 'moderator';
+
     #[Url(except: '')]
     public string $q = '';
 
     #[Url(except: 'all')]
     public string $filter = 'all';
 
-    public function updated(): void
+    /** @var array<int, string> People ticked for a bulk action. */
+    public array $selected = [];
+
+    public string $bulkHours = '24';
+
+    public string $bulkReason = '';
+
+    public string $bulkNote = '';
+
+    public function updated(string $property): void
     {
-        $this->resetPage();
+        if (in_array($property, ['q', 'filter'], true)) {
+            $this->resetPage();
+        }
+    }
+
+    public function bulk(string $action): void
+    {
+        $data = ['ids' => array_map('intval', $this->selected), 'action' => $action, 'hours' => (int) $this->bulkHours, 'reason' => $this->bulkReason ?: config('stoop.rule_reasons.0'), 'body' => $this->bulkNote];
+        validator($data, BulkPeople::rules())->validate();
+
+        $count = BulkPeople::run($data['ids'], $action, $data, $this->staff());
+        $this->reset('selected', 'bulkNote');
+        Flux::toast(match ($action) {
+            'verify' => "Verified $count.", 'timeout' => "Put $count in a timeout.", default => "Added a note to $count."
+        });
     }
 
     public function render(): View

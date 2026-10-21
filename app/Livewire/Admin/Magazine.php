@@ -23,6 +23,8 @@ class Magazine extends Component
 {
     use StaffOnly;
 
+    public const ROLE = 'editor';
+
     public ?int $editing = null;
 
     public string $name = '';

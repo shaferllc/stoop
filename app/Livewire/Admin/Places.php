@@ -22,6 +22,8 @@ class Places extends Component
 {
     use StaffOnly, WithFileUploads, WithPagination;
 
+    protected const ROLE = 'sales';
+
     public const COLUMNS = ['name', 'category', 'neighborhood', 'stop', 'address', 'website', 'blurb', 'list_name', 'list_rank', 'article_url'];
 
     #[Url(except: 'places')]

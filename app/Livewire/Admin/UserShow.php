@@ -21,6 +21,8 @@ class UserShow extends Component
 {
     use StaffOnly;
 
+    protected const ROLE = 'moderator';
+
     #[Locked]
     public int $userId;
 
@@ -48,7 +50,8 @@ class UserShow extends Component
     {
         $user = $this->subject();
         abort_if($user->id === $this->staff()->id, 422, 'You can’t remove your own staff access.');
-        $user->forceFill(['is_staff' => ! $user->is_staff])->save();
+        abort_unless($this->staff()->hasRole('admin'), 403);
+        $user->forceFill(['is_staff' => ! $user->is_staff, 'roles' => $user->is_staff ? null : ['moderator']])->save();
         Audit::log($user->is_staff ? 'user.made_staff' : 'user.removed_staff', $user);
         Flux::toast($user->is_staff ? 'Now staff.' : 'No longer staff.');
     }

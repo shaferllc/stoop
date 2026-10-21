@@ -27,6 +27,8 @@ struct Me: Decodable {
     }
 
     let user: Person
+    /// Staff roles; admin comes with every other role listed. Missing from older servers.
+    var roles: [String]?
     let site: Site
     let options: Options
 }

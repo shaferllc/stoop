@@ -238,7 +238,7 @@
                     @if ($me->is_staff && $d->type === 'happening' && ! $d->parent_id && $d->status === 'approved')
                         <flux:menu.item wire:click="toggleWeekendPick({{ $d->id }})">{{ $d->weekend_picked_at ? 'Unpick for @weekend' : 'Pick for @weekend' }}</flux:menu.item>
                     @endif
-                    @if ($d->user_id === $me->id || $me->is_staff)
+                    @if ($d->user_id === $me->id || $me->hasRole('moderator'))
                         <flux:menu.item wire:click="deleteDispatch({{ $d->id }})">Delete</flux:menu.item>
                     @endif
                     @if ($d->user_id !== $me->id)

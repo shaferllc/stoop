@@ -24,6 +24,8 @@ class HistoryEntries extends Component
 {
     use StaffOnly;
 
+    public const ROLE = 'editor';
+
     public ?int $editing = null;
 
     public int $month = 1;

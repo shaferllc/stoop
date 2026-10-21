@@ -146,7 +146,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('sponsorships', Admin\Sponsorships::class)->name('.sponsorships');
         Route::livewire('content', Admin\Content::class)->name('.content');
         Route::get('newsletter/preview', function () {
-            abort_unless(auth()->user()->is_staff, 403);
+            abort_unless(auth()->user()->hasRole('editor'), 403);
 
             return new WeeklyDigest(Newsletter::digest(), null);
         })->name('.newsletter.preview');
@@ -156,6 +156,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('magazine', Admin\Magazine::class)->name('.magazine');
         Route::livewire('history', Admin\HistoryEntries::class)->name('.history');
         Route::livewire('moderation-insights', Admin\ModerationInsights::class)->name('.moderation-insights');
+        Route::livewire('activity', Admin\Activity::class)->name('.activity');
+        Route::livewire('spam', Admin\Spam::class)->name('.spam');
+        Route::livewire('bots', Admin\Bots::class)->name('.bots');
+        Route::livewire('roles', Admin\Roles::class)->name('.roles');
     });
     // A dispatch author answers an editor's request to quote it (from Notifications).
     Route::post('quote-requests/{quoteRequest}/{answer}', function (QuoteRequest $quoteRequest, string $answer) {

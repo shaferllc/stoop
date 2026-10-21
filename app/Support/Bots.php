@@ -6,6 +6,7 @@ use Anthropic\Client;
 use Anthropic\Core\Exceptions\APIException;
 use App\Bots\Bot;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -52,7 +53,7 @@ class Bots
      */
     public static function answer(string $question): string
     {
-        $knowledge = file_get_contents(resource_path('knowledge/stoop.md'));
+        $knowledge = self::knowledge();
         $question = trim(preg_replace('/(?<![\w.@])@stoop\b/i', '', $question));
 
         if ($key = config('services.anthropic.key')) {
@@ -78,6 +79,23 @@ class Bots
         }
 
         return self::closestSection($knowledge, $question);
+    }
+
+    /**
+     * What @stoop knows: the entries staff edit in Admin → Bots, as Markdown sections. Falls
+     * back to resources/knowledge/stoop.md, which also seeded the entries.
+     */
+    public static function knowledge(): string
+    {
+        $entries = DB::table('bot_knowledge')->orderBy('id')->get(['section', 'body']);
+
+        if ($entries->isEmpty()) {
+            return file_get_contents(resource_path('knowledge/stoop.md'));
+        }
+
+        return "# About Stoop\n\n".$entries->groupBy('section')
+            ->map(fn ($rows, $section) => "## $section\n".$rows->map(fn ($r) => '- '.$r->body)->implode("\n"))
+            ->implode("\n\n");
     }
 
     /**

@@ -9,12 +9,31 @@
         </select>
     </div>
 
+    @if ($selected)
+        <div class="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-flag bg-card p-3 text-sm">
+            <b>{{ count($selected) }} selected</b>
+            <button type="button" wire:click="bulk('verify')" class="rounded-lg border border-rule px-2.5 py-1">Verify</button>
+            <select wire:model="bulkHours" aria-label="Timeout length" class="rounded-md border border-rule bg-paper px-2 py-1">
+                @foreach (\App\Models\Penalty::TIMEOUTS as $h => $label)<option value="{{ $h }}">{{ $label }}</option>@endforeach
+            </select>
+            <select wire:model="bulkReason" aria-label="Reason" class="max-w-56 rounded-md border border-rule bg-paper px-2 py-1">
+                @foreach (config('stoop.rule_reasons') as $r)<option>{{ $r }}</option>@endforeach
+            </select>
+            <button type="button" wire:click="bulk('timeout')" wire:confirm="Put everyone selected in a timeout? Staff and house accounts are skipped." class="rounded-lg bg-flag px-2.5 py-1 font-semibold text-white">Timeout</button>
+            <input wire:model="bulkNote" maxlength="2000" placeholder="Note for staff" aria-label="Note" class="min-w-0 flex-1 rounded-md border border-rule bg-paper px-2 py-1">
+            <button type="button" wire:click="bulk('note')" class="rounded-lg border border-rule px-2.5 py-1">Add note</button>
+            <button type="button" wire:click="$set('selected', [])" class="text-mute underline">Clear</button>
+            @error('body') <p class="w-full text-flag">{{ $message }}</p> @enderror
+        </div>
+    @endif
+
     <div class="mt-3 overflow-x-auto rounded-xl border border-rule bg-card">
         <table class="w-full text-sm">
-            <thead class="text-left text-[11px] uppercase tracking-wide text-mute"><tr><th class="px-4 py-2">Person</th><th class="px-4 py-2">Email</th><th class="px-4 py-2">Posts</th><th class="px-4 py-2">Joined</th><th class="px-4 py-2"></th></tr></thead>
+            <thead class="text-left text-[11px] uppercase tracking-wide text-mute"><tr><th class="w-8 py-2 pl-4"><span class="sr-only">Select</span></th><th class="px-4 py-2">Person</th><th class="px-4 py-2">Email</th><th class="px-4 py-2">Posts</th><th class="px-4 py-2">Joined</th><th class="px-4 py-2"></th></tr></thead>
             <tbody class="divide-y divide-rule">
                 @foreach ($users as $u)
                     <tr wire:key="u-{{ $u->id }}">
+                        <td class="py-2 pl-4"><input type="checkbox" wire:model.live="selected" value="{{ $u->id }}" aria-label="Select {{ '@'.$u->username }}"></td>
                         <td class="px-4 py-2"><a href="{{ route('admin.users.show', $u) }}" wire:navigate class="font-semibold hover:underline">{{ $u->name }}</a> <span class="text-mute">{{ '@'.$u->username }}</span></td>
                         <td class="px-4 py-2 text-mute">{{ $u->email }}</td>
                         <td class="px-4 py-2 tabular-nums">{{ $u->dispatches_count }}</td>

@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\AdminController as Admin;
+use App\Http\Middleware\StaffRole;
 use Illuminate\Support\Facades\Route;
 
-// The Stoop Admin desktop app. Staff only, with a token made with the "admin" ability...
-Route::prefix('admin')->middleware(['auth:sanctum', 'throttle:240,1'])->group(function () {
+// The Stoop Admin desktop app. Staff only, with a token made with the "admin" ability,
+// and a staff role that covers the path (App\Support\Roles::API)...
+Route::prefix('admin')->middleware(['auth:sanctum', 'throttle:240,1', StaffRole::class])->group(function () {
     Route::get('me', [Admin::class, 'me']);
     Route::get('attention', [Admin::class, 'attention']);
     Route::get('stats', [Admin::class, 'stats']);
@@ -34,4 +36,5 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'throttle:240,1'])->group(fu
     Route::get('audit', [Admin::class, 'audit']);
 
     require __DIR__.'/api-admin-ai.php';
+    require __DIR__.'/api-admin-ops.php';
 });

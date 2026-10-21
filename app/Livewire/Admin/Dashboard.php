@@ -21,12 +21,14 @@ class Dashboard extends Component
 
     public function retry(string $uuid): void
     {
+        abort_unless($this->staff()->hasRole('admin'), 403);
         Artisan::call('queue:retry', ['id' => [$uuid]]);
         Flux::toast('Queued again.');
     }
 
     public function forget(string $uuid): void
     {
+        abort_unless($this->staff()->hasRole('admin'), 403);
         Artisan::call('queue:forget', ['id' => $uuid]);
     }
 

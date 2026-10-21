@@ -24,6 +24,8 @@ class ModerationInsights extends Component
 {
     use StaffOnly;
 
+    public const ROLE = 'moderator';
+
     public ?int $editing = null;
 
     public string $phrase = '';

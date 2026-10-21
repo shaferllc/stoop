@@ -22,6 +22,8 @@ class Assist extends Component
 {
     use StaffOnly;
 
+    public const ROLE = 'moderator';
+
     #[Locked]
     public string $kind;
 

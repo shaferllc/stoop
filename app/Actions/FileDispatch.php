@@ -18,6 +18,7 @@ use App\Support\OpenAiModeration;
 use App\Support\Photos;
 use App\Support\Profanity;
 use App\Support\Settings;
+use App\Support\SignupRisk;
 use App\Support\WatchPhrases;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -224,12 +225,12 @@ class FileDispatch
     }
 
     /**
-     * Held if it matches a held pattern; pending the automatic check when it's on, for
+     * Held if it matches a held pattern or comes from a risky new account; pending the automatic check when it's on, for
      * everyone but Stoop's house accounts (staff too); otherwise approved.
      */
     protected static function initialStatus(User $user, string $body): string
     {
-        if (Civility::shouldHold($body)) {
+        if (Civility::shouldHold($body) || SignupRisk::holds($user)) {
             return 'held';
         }
 
