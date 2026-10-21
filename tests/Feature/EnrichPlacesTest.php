@@ -33,4 +33,11 @@ class EnrichPlacesTest extends TestCase
         $this->assertSame('https://www.albidc.com/', $place->website);
         $this->assertStringNotContainsString('review', (string) $place->blurb);
     }
+
+    public function test_the_first_listed_and_most_specific_location_picks_the_station(): void
+    {
+        $this->assertSame('A12', MagazineBackCatalog::stationFor('North Bethesda'));
+        $this->assertSame('A09', MagazineBackCatalog::stationFor('Bethesda, Navy Yard, Shaw'));
+        $this->assertNull(MagazineBackCatalog::stationFor('Great Falls'));
+    }
 }

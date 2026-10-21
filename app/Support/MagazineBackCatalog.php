@@ -343,18 +343,40 @@ class MagazineBackCatalog
             $details = self::providerDetails($html);
             $checked++;
 
-            $tagged = Archive::tag(trim(($details['neighborhood'] ?? '').' '.($details['address'] ?? '')));
+            $stop = self::stationFor(trim(($details['neighborhood'] ?? $place->neighborhood ?? '').' '.($details['address'] ?? '')));
             $place->forceFill(array_filter([
                 'neighborhood' => $place->neighborhood ?: $details['neighborhood'],
                 'category' => in_array($place->category, [null, '', 'Restaurant'], true) && $details['cuisine'] ? $details['cuisine'] : null,
                 'address' => $place->address ?: $details['address'],
                 'website' => $place->website ?: $details['website'],
-                'stop' => $tagged['stations'][0] ?? null,
+                'stop' => $stop,
             ]))->save();
             $stations += $place->stop ? 1 : 0;
         });
 
         return ['checked' => $checked, 'stations' => $stations];
+    }
+
+    /**
+     * The station for the first location listed that we recognize, using its most specific name
+     * ("North Bethesda" beats "Bethesda"). "Bethesda, Navy Yard, Shaw" is Bethesda.
+     */
+    public static function stationFor(string $text): ?string
+    {
+        $names = Archive::names();
+        foreach (array_filter(array_map('trim', explode(',', $text))) as $part) {
+            $best = null;
+            foreach ($names as $name => $codes) {
+                if (Archive::tag($part, [$name => $codes])['stations'] && (! $best || mb_strlen($name) > mb_strlen($best[0]))) {
+                    $best = [$name, $codes[0]];
+                }
+            }
+            if ($best) {
+                return $best[1];
+            }
+        }
+
+        return null;
     }
 
     /**
