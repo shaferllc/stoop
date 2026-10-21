@@ -297,6 +297,9 @@ trait HandlesDispatchActions
     {
         if ($this->actor()) {
             $this->dispatch('quote-dispatch', id: $this->findVisible($id)->id);
+            // Show where the quote went: the post box on the page if one is visible, otherwise the post sheet.
+            $this->js("const box = [...document.querySelectorAll('[data-composer]')].find(el => el.offsetParent && ! el.closest('[role=dialog]') && ! el.closest('#reply'));"
+                ." box ? (box.scrollIntoView({ block: 'center' }), box.focus()) : window.dispatchEvent(new CustomEvent('open-composer'))");
         }
     }
 
