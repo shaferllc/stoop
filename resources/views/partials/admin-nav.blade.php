@@ -5,6 +5,7 @@
         'admin.users' => 'People',
         'admin.places' => 'Places',
         'admin.sponsorships' => 'Sponsorships',
+        'admin.ads' => 'Ads',
         'admin.content' => 'Content',
         'admin.magazine' => 'Magazine',
         'admin.editorial' => 'Editorial',

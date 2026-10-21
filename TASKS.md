@@ -172,7 +172,13 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 
 ## Making money
 - [x] Claimed places: owners request, staff approve, owners post as the business
-- [x] Sponsored stops and lines, labeled, with view and click counts
+- [x] Sponsored stops and lines, labeled, with view and click counts; a view counts once per person per day, with a daily report and CSV
+- [x] Sponsored dispatches (Admin → Ads, sales role): advertiser, text, photo, link, target stations and topics, dates, a daily cap per person and an impression goal; at most one per 10 posts in feeds, labeled “Sponsored · advertiser”, never in threads, notifications, messages, points, mayors, rivalries, bots or the moderation queue
+- [x] “Why am I seeing this?” (the stop or topic only, never the reader), Hide this ad, and Report (signed in) on every feed ad
+- [x] Best of Washington party tickets: a ticket promotion on a ballot, on the ballot page and as a “From the magazine” feed card until voting closes or the party; click-throughs counted, no payments
+- [x] Ad inventory (Admin → Ads and the Mac app): every running and upcoming placement with dates, delivery vs goal, clicks, CTR, hides and reports; CSV, and daily reports for stops/lines, sponsored dispatches and parties
+- [ ] Ads in the iOS/Mac user app’s feed (/api/app): needs an app update that understands an ad item first
+- [ ] Impression counts for sponsored callouts, featured happenings and sponsored open houses (they’re dispatches; the inventory shows ticket clicks only)
 - [x] Sponsored callouts (staff only), labeled
 - [ ] Ticketed Happening posts
 - [x] Reader insights for advertisers (Admin → Insights): posts, people, top topics, sentiment per station and line, top Been here places, rising keywords, games; any cell from fewer than 10 people shows “<10”; CSV and printable (PDF) views; optional Claude summary from the aggregates only (needs `ANTHROPIC_API_KEY`)

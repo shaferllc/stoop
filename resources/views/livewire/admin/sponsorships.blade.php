@@ -1,7 +1,7 @@
 <div>
     <h1 class="mb-2 font-display text-3xl font-bold">Sponsorships</h1>
     @include('partials.admin-nav')
-    <p class="text-sm text-mute">Sponsored cards show at the top of a station’s or line’s feed, always labeled “Sponsored”. They never change rankings, Been here counts or poll results.</p>
+    <p class="text-sm text-mute">Sponsored cards show at the top of a station’s or line’s feed, always labeled “Sponsored”. They never change rankings, Been here counts or poll results. A view counts once per person per day; daily reports are under Report.</p>
 
     <button type="button" wire:click="edit" class="mt-3 rounded-lg border border-rule px-3 py-1.5 text-sm">New sponsorship</button>
 
@@ -33,7 +33,7 @@
                         <td class="px-4 py-2">{{ $s->starts_on->format('M j') }} to {{ $s->ends_on->format('M j, Y') }} @if ($running)<span class="rounded bg-flag px-1 text-[10px] font-bold text-white">LIVE</span>@endif</td>
                         <td class="px-4 py-2 tabular-nums">{{ number_format($s->impressions) }}</td>
                         <td class="px-4 py-2 tabular-nums">{{ number_format($s->clicks) }} <span class="text-mute">{{ $s->impressions ? round($s->clicks / $s->impressions * 100, 1).'%' : '' }}</span></td>
-                        <td class="whitespace-nowrap px-4 py-2 text-right"><button type="button" wire:click="edit({{ $s->id }})" class="underline">Edit</button> @if ($running)<button type="button" wire:click="end({{ $s->id }})" class="ml-2 underline">End now</button>@endif</td>
+                        <td class="whitespace-nowrap px-4 py-2 text-right"><a href="{{ route('admin.ads', ['report' => 'sponsorship:'.$s->id]) }}" wire:navigate class="underline">Report</a> <button type="button" wire:click="edit({{ $s->id }})" class="ml-2 underline">Edit</button> @if ($running)<button type="button" wire:click="end({{ $s->id }})" class="ml-2 underline">End now</button>@endif</td>
                     </tr>
                 @empty
                     <tr><td colspan="6" class="p-6 text-center text-mute">No sponsorships yet.</td></tr>

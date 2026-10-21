@@ -10,6 +10,7 @@ extension Section {
         case .queue, .appeals, .messages, .penalties, .people, .spam: "moderator"
         case .bots: "editor"
         case .maintenance, .roles: "admin"
+        case .ads: "sales"
         default: nil
         }
     }

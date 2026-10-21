@@ -3,9 +3,11 @@
 namespace App\Livewire\Pages;
 
 use App\Livewire\Concerns\HandlesDispatchActions;
+use App\Livewire\Concerns\ShowsAds;
 use App\Models\Dispatch;
 use App\Models\Sponsorship;
 use App\Models\User;
+use App\Support\Ads;
 use App\Support\Suggestions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -23,7 +25,7 @@ use Livewire\Component;
 #[Title('Front Stoop')]
 class Feed extends Component
 {
-    use HandlesDispatchActions;
+    use HandlesDispatchActions, ShowsAds;
 
     #[Url(except: '')]
     public string $tab = '';
@@ -59,8 +61,8 @@ class Feed extends Component
 
         $this->since = now()->toDateTimeString();
 
-        if ($sponsorship = Sponsorship::for($this->stop, $this->line)) {
-            $sponsorship->increment('impressions');
+        if ($sponsorship = Sponsorship::for($this->stop, $this->line, Ads::hidden('sponsorship'))) {
+            Ads::record($sponsorship);
             $this->sponsorshipId = $sponsorship->id;
         }
 

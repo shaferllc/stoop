@@ -33,6 +33,7 @@ use App\Models\MessageImage;
 use App\Models\QuoteRequest;
 use App\Models\Sponsorship;
 use App\Models\User;
+use App\Support\Ads;
 use App\Support\Audit;
 use App\Support\Newsletter;
 use App\Support\QuoteRequests;
@@ -83,7 +84,7 @@ Route::livewire('best-of/{ballot}', BallotShow::class)->name('ballots.show');
 
 // Sponsored placements count a click, then send people on to the sponsor.
 Route::get('s/{sponsorship}', function (Sponsorship $sponsorship) {
-    $sponsorship->increment('clicks');
+    Ads::click($sponsorship);
 
     return redirect()->away($sponsorship->url ?: ($sponsorship->place ? route('places.show', $sponsorship->place) : route('home')));
 })->middleware('throttle:60,1')->name('sponsorships.click');
@@ -236,3 +237,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
 require __DIR__.'/settings.php';
 require __DIR__.'/community.php';
 require __DIR__.'/web-newsroom.php';
+require __DIR__.'/web-ads.php';

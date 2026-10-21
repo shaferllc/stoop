@@ -12,7 +12,7 @@ class Roles
     public const ROLES = [
         'moderator' => 'Moderator: the queue, appeals, people, spam',
         'editor' => 'Editor: content, the quiz, moments, the house bots',
-        'sales' => 'Sales: sponsorships and places',
+        'sales' => 'Sales: sponsorships, ads and places',
         'admin' => 'Admin: everything, plus maintenance and roles',
     ];
 
@@ -20,7 +20,7 @@ class Roles
     public const PAGES = [
         'admin.users' => 'moderator', 'moderation' => 'moderator', 'admin.spam' => 'moderator', 'admin.moderation-insights' => 'moderator',
         'admin.content' => 'editor', 'admin.quiz' => 'editor', 'admin.moments' => 'editor', 'admin.bots' => 'editor', 'admin.magazine' => 'editor', 'admin.history' => 'editor', 'admin.editorial' => 'editor', 'admin.anc' => 'editor', 'admin.tips' => 'editor', 'admin.radar' => 'editor', 'admin.callouts' => 'editor', 'admin.archive' => 'editor', 'admin.issues' => 'editor', 'admin.hunts' => 'editor', 'admin.readers-picks' => 'editor',
-        'admin.places' => 'sales', 'admin.sponsorships' => 'sales', 'admin.real-estate' => 'sales', 'admin.insights' => 'sales', 'admin.insights.csv' => 'sales', 'admin.insights.print' => 'sales',
+        'admin.places' => 'sales', 'admin.sponsorships' => 'sales', 'admin.real-estate' => 'sales', 'admin.insights' => 'sales', 'admin.insights.csv' => 'sales', 'admin.insights.print' => 'sales', 'admin.ads' => 'sales', 'admin.ads.csv' => 'sales', 'admin.ads.report' => 'sales',
         'admin.roles' => 'admin',
     ];
 
@@ -29,6 +29,7 @@ class Roles
         'queue' => 'moderator', 'dispatches/' => 'moderator', 'appeals' => 'moderator', 'message-reports' => 'moderator',
         'penalties' => 'moderator', 'users' => 'moderator', 'spam-clusters' => 'moderator', 'ai/' => 'moderator', 'sentinel' => 'moderator',
         'bots/' => 'editor', 'radar' => 'editor', 'tips' => 'editor', 'editors' => 'editor', 'callouts' => 'editor',
+        'ads' => 'sales',
         'health' => 'admin', 'maintenance/' => 'admin', 'log' => 'admin', 'failed-jobs' => 'admin', 'roles' => 'admin',
     ];
 
