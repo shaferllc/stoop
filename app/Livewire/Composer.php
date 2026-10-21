@@ -80,6 +80,13 @@ class Composer extends Component
     /** Open house form: block, date, from, to, price, url, agent. */
     public array $openHouse = [];
 
+    /** A Happening's start time for the calendar (DC time), and a Lost & found post's details. */
+    public string $happeningStarts = '';
+
+    public ?string $lostKind = null;
+
+    public ?string $lostStatus = null;
+
     public function selectPlace(?int $id): void
     {
         $this->placeId = $id;
@@ -168,7 +175,7 @@ class Composer extends Component
 
         try {
             $dispatch = FileDispatch::handle($user, [
-                ...$this->only(['type', 'body', 'line', 'stop', 'happeningAt', 'options', 'pollHours', 'publishAt', 'photos', 'alts', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'quoteId', 'placeId', 'asBusiness', 'sponsor', 'eventId', 'rating', 'snowInches', 'plowed', 'openHouse']),
+                ...$this->only(['type', 'body', 'line', 'stop', 'happeningAt', 'options', 'pollHours', 'publishAt', 'photos', 'alts', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'quoteId', 'placeId', 'asBusiness', 'sponsor', 'eventId', 'rating', 'snowInches', 'plowed', 'openHouse', 'happeningStarts', 'lostKind', 'lostStatus']),
                 'parentId' => $this->parentId,
             ], confirmed: $this->warned);
         } catch (NudgeRequired) {
@@ -177,7 +184,7 @@ class Composer extends Component
             return;
         }
 
-        $this->reset('body', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'placeId', 'placeQuery', 'asBusiness', 'sponsor', 'showPlace', 'eventId', 'rating', 'snowInches', 'plowed', 'openHouse');
+        $this->reset('body', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'placeId', 'placeQuery', 'asBusiness', 'sponsor', 'showPlace', 'eventId', 'rating', 'snowInches', 'plowed', 'openHouse', 'happeningStarts', 'lostKind', 'lostStatus');
         $this->type = 'dispatch';
         $this->dispatch('dispatch-filed', id: $dispatch->id);
 

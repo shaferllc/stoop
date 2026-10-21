@@ -1,0 +1,79 @@
+<?php
+
+use App\Livewire\Admin;
+use App\Livewire\Pages\HappeningsCalendar;
+use App\Livewire\Pages\HuntShow;
+use App\Livewire\Pages\HuntsIndex;
+use App\Livewire\Pages\LostFound;
+use App\Livewire\Pages\MetroBingo;
+use App\Models\Dispatch;
+use App\Models\User;
+use App\Support\Happenings;
+use App\Support\ReadersPicks;
+use App\Support\Rivalries;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+
+/*
+ * Happenings, Lost & found and the city games (Metro Bingo, scavenger hunts, the Line Cup).
+ */
+Route::livewire('happenings', HappeningsCalendar::class)->name('happenings');
+Route::livewire('lost-and-found', LostFound::class)->name('lost-found');
+Route::livewire('hunts', HuntsIndex::class)->name('hunts');
+Route::livewire('hunts/{hunt:slug}', HuntShow::class)->name('hunts.show');
+
+// One happening as an .ics file.
+Route::get('happenings/{dispatch}.ics', function (Dispatch $dispatch) {
+    abort_unless($dispatch->type === 'happening' && $dispatch->status === 'approved' && $dispatch->happening?->starts_at, 404);
+
+    return response(Happenings::ics(collect([$dispatch]), 'Stoop'))
+        ->header('Content-Type', 'text/calendar; charset=UTF-8')
+        ->header('Content-Disposition', 'attachment; filename="stoop-happening-'.$dispatch->id.'.ics"');
+})->middleware('throttle:60,1')->name('happenings.ics');
+
+// "Get tickets" counts the click, then sends people to the host's ticket page. No payments here.
+Route::get('happenings/{dispatch}/tickets', function (Dispatch $dispatch) {
+    $happening = $dispatch->happening;
+    abort_unless($dispatch->status === 'approved' && $happening?->ticket_url, 404);
+    $happening->increment('ticket_clicks');
+
+    return redirect()->away($happening->ticket_url);
+})->middleware('throttle:30,1')->name('happenings.tickets');
+
+// The personal calendar feed. Calendar apps can't log in, so the secret token is the key.
+Route::get('calendar/{token}.ics', function (string $token) {
+    $userId = DB::table('calendar_feeds')->where('token', $token)->value('user_id');
+    abort_unless($userId && $user = User::find($userId), 404);
+
+    return response(Happenings::ics(Happenings::forFeed($user), 'Stoop: '.$user->username))
+        ->header('Content-Type', 'text/calendar; charset=UTF-8')->header('Cache-Control', 'private, max-age=900');
+})->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:30,1')->name('calendar.feed');
+
+Route::get('line-cup', fn () => view('line-cup', [
+    'current' => Rivalries::lineCup(Rivalries::monthStart()),
+    'last' => Rivalries::lineCup(Rivalries::monthStart()->subMonthNoOverflow()),
+    'winners' => Rivalries::cupWinners(6),
+]))->name('line-cup');
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::livewire('bingo', MetroBingo::class)->name('bingo');
+
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::livewire('hunts', Admin\Hunts::class)->name('hunts');
+        Route::livewire('readers-picks', Admin\ReadersPicks::class)->name('readers-picks');
+        Route::get('readers-picks.csv', function () {
+            abort_unless(auth()->user()->is_staff, 403);
+            $list = (string) request('list');
+            abort_unless(ReadersPicks::lists()->contains($list), 404);
+            $days = in_array((int) request('days'), [30, 90, 365], true) ? (int) request('days') : 90;
+
+            return response()->streamDownload(function () use ($list, $days) {
+                $out = fopen('php://output', 'w');
+                foreach (ReadersPicks::csv($list, $days) as $row) {
+                    fputcsv($out, $row, escape: '');
+                }
+                fclose($out);
+            }, 'readers-picks-'.str($list)->slug().'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+        })->middleware('throttle:10,1')->name('readers-picks.csv');
+    });
+});

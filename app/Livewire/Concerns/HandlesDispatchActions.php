@@ -7,6 +7,7 @@ use App\Models\Dispatch;
 use App\Models\User;
 use App\Notifications\StoopActivity;
 use App\Support\Audit;
+use App\Support\LostAndFound;
 use App\Support\QuoteRequests;
 use App\Support\Translator;
 use Flux\Flux;
@@ -53,7 +54,7 @@ trait HandlesDispatchActions
 
     public function toggleMark(int $id, string $kind): void
     {
-        abort_unless(in_array($kind, ['save', 'been', 'going', 'mumbo'], true), 422);
+        abort_unless(in_array($kind, ['save', 'been', 'going', 'interested', 'mumbo'], true), 422);
 
         if (! $user = $this->actor()) {
             return;
@@ -220,6 +221,17 @@ trait HandlesDispatchActions
         abort_unless($reply->parent?->user_id === $user->id, 403);
 
         $reply->forceFill(['hidden_by_author' => ! $reply->hidden_by_author])->save();
+    }
+
+    /**
+     * Close your own Lost & found post once the pet or item is home.
+     */
+    public function markReunited(int $id): void
+    {
+        if ($user = $this->actor()) {
+            LostAndFound::reunite($user, $this->findVisible($id));
+            Flux::toast('Marked as reunited. Glad it’s home.');
+        }
     }
 
     public function togglePin(int $id): void

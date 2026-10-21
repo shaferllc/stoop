@@ -34,6 +34,8 @@
         @endif
     </section>
 
+    <livewire:place-deal-panel :place-id="$place->id" :key="'deal-'.$place->id" />
+
     @if ($photos->isNotEmpty())
         <div class="grid grid-cols-3 gap-1.5 overflow-hidden rounded-xl">
             @foreach ($photos as $photo)

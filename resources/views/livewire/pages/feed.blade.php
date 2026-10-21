@@ -68,6 +68,8 @@
         </a>
     @endif
 
+    @includeWhen($stop, 'partials.stop-deals')
+
     <div class="hidden lg:block"><livewire:composer /></div>
 
     @if ($line || $stop || trim($q) !== '')

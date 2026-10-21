@@ -74,7 +74,7 @@ class Present
                 'line' => ['key' => $d->line, 'name' => $d->lineName(), 'color' => $d->lineColor()],
                 'stop' => null, 'parent_id' => $d->parent_id, 'created_at' => $d->created_at->toIso8601String(),
                 'counts' => ['replies' => (int) $d->replies_count, 'quotes' => 0, 'been' => 0, 'going' => 0, 'mumbo' => 0, 'half_smokes' => 0],
-                'viewer' => ['mine' => false, 'saved' => false, 'been' => false, 'going' => false, 'mumbo' => false],
+                'viewer' => ['mine' => false, 'saved' => false, 'been' => false, 'going' => false, 'interested' => false, 'mumbo' => false],
             ];
         }
 
@@ -113,6 +113,7 @@ class Present
                 'saved' => in_array('save', $marks, true),
                 'been' => in_array('been', $marks, true),
                 'going' => in_array('going', $marks, true),
+                'interested' => in_array('interested', $marks, true),
                 'mumbo' => in_array('mumbo', $marks, true),
             ],
         ];

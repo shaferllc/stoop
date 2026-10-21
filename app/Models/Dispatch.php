@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\HtmlString;
 
@@ -91,6 +92,11 @@ class Dispatch extends Model
     public function event(): BelongsTo
     {
         return $this->belongsTo(CityEvent::class, 'event_id');
+    }
+
+    public function happening(): HasOne
+    {
+        return $this->hasOne(Happening::class);
     }
 
     public function linkPreview(): BelongsTo

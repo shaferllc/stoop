@@ -10,6 +10,8 @@
         'admin.history' => 'History',
         'admin.quiz' => 'Quiz',
         'admin.moments' => 'Moments',
+        'admin.hunts' => 'Hunts',
+        'admin.readers-picks' => 'Readers’ picks',
         'moderation' => 'Moderation',
         'admin.moderation-insights' => 'Mod insights',
         'admin.spam' => 'Spam',

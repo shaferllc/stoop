@@ -56,6 +56,21 @@ class Passports
     }
 
     /**
+     * Scavenger hunt stamps: one for every step found, newest first.
+     *
+     * @return Collection<int, object{hunt: string, slug: string, position: int, stamped_at: string}>
+     */
+    public static function huntStamps(User $user): Collection
+    {
+        return DB::table('hunt_completions')
+            ->join('hunt_steps', 'hunt_steps.id', '=', 'hunt_completions.hunt_step_id')
+            ->join('hunts', 'hunts.id', '=', 'hunt_steps.hunt_id')
+            ->where('hunt_completions.user_id', $user->id)
+            ->orderByDesc('hunt_completions.created_at')
+            ->get(['hunts.name as hunt', 'hunts.slug', 'hunt_steps.position', 'hunt_completions.created_at as stamped_at']);
+    }
+
+    /**
      * Everyone who has earned a stamp, newest first, for the magazine's shout-outs.
      *
      * @return Collection<int, array{user: User, list: string, stamped_at: string}>

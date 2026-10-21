@@ -37,6 +37,10 @@ class ExportController extends Controller
             'places_you_manage' => DB::table('places')->where('owner_id', $user->id)->pluck('name'),
             'push_devices' => DB::table('push_subscriptions')->where('user_id', $user->id)->get(['endpoint', 'created_at']),
             'notes_you_wrote_as_staff' => DB::table('user_notes')->where('author_id', $user->id)->get(['user_id', 'body', 'created_at']),
+            'bingo_marks' => DB::table('bingo_marks')->where('user_id', $user->id)->get(['week', 'square', 'dispatch_id', 'created_at']),
+            'hunt_stamps' => DB::table('hunt_completions')->join('hunt_steps', 'hunt_steps.id', '=', 'hunt_completions.hunt_step_id')->join('hunts', 'hunts.id', '=', 'hunt_steps.hunt_id')
+                ->where('hunt_completions.user_id', $user->id)->get(['hunts.name as hunt', 'hunt_steps.position', 'hunt_completions.dispatch_id', 'hunt_completions.created_at']),
+            'place_deals' => DB::table('place_deals')->where('user_id', $user->id)->get(['place_id', 'title', 'details', 'starts_at', 'ends_at', 'created_at']),
             'api_tokens' => $user->tokens()->get(['name', 'last_used_at', 'created_at']),
         ];
 

@@ -13,7 +13,7 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [ ] Connect `subscribed_until` to the real subscription system
 
 ## Dispatches
-- [x] Types: Dispatch, Ask DC, Poll, Happening, Been here, Crime & safety, Callout (staff only)
+- [x] Types: Dispatch, Ask DC, Poll, Happening, Been here, Crime & safety, Lost & found, Callout (staff only)
 - [x] Line and Metro stop on every dispatch; 3–500 characters; ⌘/Ctrl+Enter to post; 10 a minute
 - [x] One shared posting action (`app/Actions/FileDispatch.php`) for the website, API and terminal
 - [x] Replies, threads, quotes
@@ -41,6 +41,10 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 
 ## Engagement and fun
 - [x] Follow, Save, Been here, Going
+- [x] Happenings: start time for the calendar, Going/Interested RSVPs with the attendee list for the host, a week/month calendar filtered by line and stop (city events alongside), .ics per happening and a private calendar feed link
+- [x] Lost & found: pet or item, lost or found, last-seen stop, photo; no phone numbers or emails (replies and messages only); the poster marks it Reunited; board filtered by stop, line and kind
+- [ ] Old Happenings with only a free-text time ("Tonight · 8pm") aren't on the calendar; hosts can add a start time from the post
+- [ ] Lost & found: strangers can only message the poster if the poster has message requests on; consider opening requests for Lost & found replies
 - [x] Half-smokes (Stoop’s pastéis): opt-in, 10 a day, reset at midnight DC time, no ranking effect
 - [x] Badges and XP worked out from activity, with Metro ranks from Tourist to Mayor; toast when a badge unlocks
 - [x] Ridership graph (activity graph) on profiles, streaks, embeddable SVG
@@ -152,6 +156,13 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Open house posts on the Green line (block, date and time, price, link, labeled listing agent); staff mark them sponsored in Admin → Real estate
 - [ ] Give reader insights to a sales role once roles exist (staff only for now); add neighborhoods once stations have them
 - [ ] Ticketed or paid open house placements (sponsored is a label only)
+- [x] Ticketed Happening posts: verified place owners and staff add a price and an outside ticket link, labeled Ticketed; “Get tickets” click-throughs are counted
+- [x] Featured Happenings (staff), labeled, top of their day on the calendar
+- [x] Owner deals: one running deal per claimed place, on the place page and labeled at the top of its stop feed
+- [x] Readers’ picks report for editors (Admin → Readers’ picks): Been here check-ins, posts and word-count sentiment per place on a list, with CSV export
+- [ ] Ticket sales through Stripe (Checkout + Connect payouts to venues) instead of an outside link
+- [ ] Moderation queue for owner deals (they skip the dispatch pipeline; only the swearing filter runs)
+- [ ] Aggregated reader-insights report (no individual data)
 - [ ] Self-serve sponsorship booking and billing
 
 ## Admin
@@ -184,6 +195,10 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Glossary hovers for local terms, mumbo sauce reaction, Go-Go Friday thread, Stand Right badge with confetti
 - [x] Recent home sales near each station (median and count over 90 days, 5 latest by block) from DC’s public property records, imported nightly (`stoop:import-home-sales`); @homes posts a weekly roundup for the 3 busiest stations
 - [ ] Condo unit sales: DC GIS's owner polygons cover lots, so some condo sales may be missing
+- [x] Metro Bingo: weekly 5×5 card per person, squares mark themselves from activity or by hand with a post as proof; badge and XP for a bingo
+- [x] Seasonal scavenger hunts (Admin → Hunts): clues tied to stations or places, optional code words, passport stamps per step, leaderboard, Treasure Hunter badge
+- [x] Monthly Line Cup: lines score their riders’ helpfulness points at their stations; the winning line’s regulars get the Line Cup crown badge
+- [ ] Bingo only counts weeks where at least one square was marked by hand (all-automatic weeks show a bingo but don’t award it)
 - [ ] Ward and neighborhood data for stations, for a ward-explorer badge and ANC-specific meeting links
 - [ ] Grow the quiz bank from the magazine’s archive
 - [ ] Real prizes and fulfillment for contests and passport stamps

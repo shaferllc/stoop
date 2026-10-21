@@ -46,6 +46,7 @@
                         'safety' => 'What happened?',
                         'snow' => 'How’s it looking out there?',
                         'openhouse' => 'What should neighbors know about the place?',
+                        'lost' => 'Describe the pet or item, and where and when it was last seen',
                         default => 'What’s happening on your block?',
                     } }}"
                     class="w-full resize-none bg-transparent outline-none"></textarea>
@@ -164,6 +165,8 @@
             @if ($type === 'happening' && ! $parentId)
                 <input wire:model="happeningAt" maxlength="60" placeholder="When? For example: Tonight · 8pm" aria-label="When" class="mt-2 w-full rounded-md border border-rule bg-paper px-2.5 py-1.5 text-sm">
             @endif
+
+            @include('partials.composer-extras')
 
             @if ($warned)
                 <div class="mt-2 rounded-lg border border-flag/40 bg-flag/5 px-3 py-2 text-sm" role="alert">
