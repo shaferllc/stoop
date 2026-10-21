@@ -54,6 +54,7 @@ return [
     // The magazine's RSS or Atom feed. New articles post to Stoop from the account below.
     'magazine_feed' => env('STOOP_MAGAZINE_FEED'),
     'magazine_account' => env('STOOP_MAGAZINE_ACCOUNT', 'magazine'),
+    'magazine_name' => env('STOOP_MAGAZINE_NAME', 'From the Magazine'),
 
     // Mark new accounts as verified on sign-up, skipping the email link.
     'auto_verify' => env('STOOP_AUTO_VERIFY', true),

@@ -17,7 +17,25 @@ use Throwable;
  */
 class Magazine
 {
-    // Article categories mapped to Metro lines. Anything else goes on the Blue (Culture) line.
+    // The site's section (its first category) mapped to a Metro line.
+    protected const SECTIONS = [
+        'food' => 'red',
+        'things to do' => 'orange',
+        'arts & entertainment' => 'orange',
+        'home & real estate' => 'green',
+        'real estate' => 'green',
+        'home' => 'green',
+        'news & politics' => 'blue',
+        'weddings' => 'blue',
+        'health' => 'blue',
+        'style' => 'blue',
+        'sports' => 'orange',
+    ];
+
+    // Paid content is never posted as editorial.
+    protected const SKIP_SECTIONS = ['sponsored', 'sponsored content', 'partner content'];
+
+    // Fallback keywords, when the section isn't one of the above. Anything else goes on the Blue (Culture) line.
     protected const LINES = [
         'red' => ['food', 'restaurant', 'dining', 'eat', 'drink', 'bar', 'coffee'],
         'orange' => ['things to do', 'going out', 'nightlife', 'music', 'event', 'weekend'],
@@ -39,7 +57,7 @@ class Magazine
         $user = new User;
         $user->forceFill([
             'username' => $username,
-            'name' => 'From the Magazine',
+            'name' => config('stoop.magazine_name'),
             'email' => $username.'-desk@stoop.invalid',
             'password' => Str::random(64),
             'email_verified_at' => now(),
@@ -84,15 +102,16 @@ class Magazine
             $link = (string) ($item->link['href'] ?? $item->link);
             $title = trim(html_entity_decode(strip_tags((string) $item->title), ENT_QUOTES | ENT_HTML5));
             $guid = (string) ($item->guid ?? $item->id ?? $link);
-            $category = (string) ($item->category['term'] ?? $item->category);
+            $category = trim((string) ($item->category['term'] ?? $item->category));
 
-            if (! $link || ! $title || DB::table('articles')->where('guid_hash', hash('sha256', $guid))->exists()) {
+            if (! $link || ! $title || in_array(strtolower($category), self::SKIP_SECTIONS, true)
+                || DB::table('articles')->where('guid_hash', hash('sha256', $guid))->exists()) {
                 continue;
             }
 
             $dispatch = rescue(fn () => FileDispatch::handle(self::account(), [
                 'body' => Str::limit($title, config('stoop.max_length') - 30, '…').' '.$link,
-                'line' => self::lineFor($category.' '.$title),
+                'line' => self::SECTIONS[strtolower($category)] ?? self::lineFor($title),
             ], confirmed: true), null, false);
 
             DB::table('articles')->insert([
@@ -118,7 +137,8 @@ class Magazine
 
         foreach (self::LINES as $line => $words) {
             foreach ($words as $word) {
-                if (str_contains($text, $word)) {
+                // Whole words only, so "Beater" isn't food.
+                if (preg_match('/\b'.preg_quote($word, '/').'\b/', $text)) {
                     return $line;
                 }
             }

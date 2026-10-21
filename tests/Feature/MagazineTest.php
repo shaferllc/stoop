@@ -27,16 +27,20 @@ class MagazineTest extends TestCase
             'magazine.example/feed' => Http::response('<?xml version="1.0"?><rss><channel>
                 <item><title>The 25 Best Cheap Eats</title><link>https://magazine.example/cheap-eats</link><guid>a1</guid><category>Food</category></item>
                 <item><title>Homes for sale in Petworth</title><link>https://magazine.example/petworth</link><guid>a2</guid><category>Real Estate</category></item>
+                <item><title>A doctor’s approach to recovery</title><link>https://magazine.example/paid</link><guid>a3</guid><category>Sponsored</category></item>
             </channel></rss>'),
             '*' => Http::response('', 404),
         ]);
 
         $this->assertSame(2, Magazine::import());
         $this->assertSame(0, Magazine::import(), 'Nothing posts twice.');
+        $this->assertNull(Dispatch::where('body', 'like', '%doctor%')->first(), 'Sponsored articles are never posted.');
 
         $food = Dispatch::where('body', 'like', '%Cheap Eats%')->first();
         $this->assertSame('red', $food->line);
         $this->assertSame('green', Dispatch::where('body', 'like', '%Petworth%')->value('line'));
+        $this->assertSame('blue', Magazine::lineFor('I Scored a Buzzer-Beater as a Washington Wizard'));
+        $this->assertSame('red', Magazine::lineFor('Where to eat in Shaw'));
         $this->assertSame('magazine', $food->user->username);
     }
 
