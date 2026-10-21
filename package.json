@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vp build",
-        "dev": "vp dev"
+        "dev": "vp dev",
+        "workers": "concurrently -k -n queue,schedule -c blue,green \"php artisan queue:work --tries=3 --timeout=120\" \"php artisan schedule:work\""
     },
     "dependencies": {
         "@laravel/passkeys": "^0.2.0",
