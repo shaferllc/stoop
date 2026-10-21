@@ -13,6 +13,7 @@
                 <flux:switch wire:model.live="dmsOn" :label="__('Accept messages')" :description="__('People you follow can message you. Turning this off keeps your existing conversations.')" />
                 <flux:switch wire:model.live="messageRequests" :label="__('Message requests')" :description="__('Let people you don’t follow send one message, which waits until you accept it.')" />
                 <flux:switch wire:model.live="readReceipts" :label="__('Read receipts')" :description="__('Shown only when both people have them on.')" />
+                <flux:switch wire:model.live="moderationEmails" :label="__('Moderation emails')" :description="__('Email me when I’m put in a timeout or banned, and when an appeal is decided.')" />
             </div>
 
             <div>

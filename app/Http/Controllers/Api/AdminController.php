@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Support\Attention;
 use App\Support\Audit;
 use App\Support\Maintenance;
+use App\Support\Roles;
 use App\Support\Strikes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -40,6 +41,8 @@ class AdminController extends Controller implements HasMiddleware
     {
         return response()->json([
             'user' => $this->person($request->user()),
+            // Admin includes every other role, so the app can check for one name.
+            'roles' => $request->user()->hasRole('admin') ? array_keys(Roles::ROLES) : $request->user()->staffRoles(),
             'site' => ['name' => config('app.name'), 'url' => url('/')],
             'options' => [
                 'rule_reasons' => config('stoop.rule_reasons'),

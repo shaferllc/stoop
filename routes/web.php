@@ -142,13 +142,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('sponsorships', Admin\Sponsorships::class)->name('.sponsorships');
         Route::livewire('content', Admin\Content::class)->name('.content');
         Route::get('newsletter/preview', function () {
-            abort_unless(auth()->user()->is_staff, 403);
+            abort_unless(auth()->user()->hasRole('editor'), 403);
 
             return new WeeklyDigest(Newsletter::digest(), null);
         })->name('.newsletter.preview');
         Route::livewire('audit', Admin\AuditLog::class)->name('.audit');
         Route::livewire('quiz', Admin\QuizQuestions::class)->name('.quiz');
         Route::livewire('moments', Admin\Moments::class)->name('.moments');
+        Route::livewire('activity', Admin\Activity::class)->name('.activity');
+        Route::livewire('spam', Admin\Spam::class)->name('.spam');
+        Route::livewire('bots', Admin\Bots::class)->name('.bots');
+        Route::livewire('roles', Admin\Roles::class)->name('.roles');
     });
     Route::get('settings/export', ExportController::class)->middleware('throttle:5,1')->name('export');
     // Push notification sign-ups from a browser or the installed app...

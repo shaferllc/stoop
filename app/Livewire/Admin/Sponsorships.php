@@ -17,6 +17,8 @@ class Sponsorships extends Component
 {
     use StaffOnly;
 
+    protected const ROLE = 'sales';
+
     public const FIELDS = ['sponsor', 'place_id', 'stop', 'line', 'headline', 'body', 'url', 'starts_on', 'ends_on'];
 
     public ?int $editing = null;

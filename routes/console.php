@@ -4,8 +4,12 @@ use App\Actions\AnnounceDispatch;
 use App\Actions\FileDispatch;
 use App\Jobs\ModerateDispatch;
 use App\Mail\WeeklyDigest;
+use App\Models\Appeal;
 use App\Models\Dispatch;
+use App\Models\MessageReport;
+use App\Models\Report;
 use App\Models\User;
+use App\Notifications\ModerationMail;
 use App\Support\Bots;
 use App\Support\Civility;
 use App\Support\Later;
@@ -13,10 +17,12 @@ use App\Support\Magazine;
 use App\Support\ModerationModel;
 use App\Support\Newsletter;
 use App\Support\OpenAiModeration;
+use App\Support\SpamRings;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Storage;
 
@@ -81,6 +87,30 @@ Artisan::command('stoop:go-go-friday', function () {
     $this->info('Posted.');
 })->purpose('Post the weekly Go-Go Friday music thread');
 
+Artisan::command('stoop:detect-spam', function () {
+    $this->info(SpamRings::detect().' open spam clusters.');
+})->purpose('Look for spam rings: copied posts, new-account bursts, link spam and message blasts');
+
+Artisan::command('stoop:admin-digest', function () {
+    // Anything staff haven't touched in a day, emailed to admins. Nothing waiting, no email.
+    $day = now()->subDay();
+    $waiting = array_filter([
+        'posts in the moderation queue' => Dispatch::where(fn ($q) => $q->whereIn('status', ['held', 'hidden'])->orWhereNotNull('flagged_at'))->where('status', '!=', 'removed')->where('updated_at', '<', $day)->count(),
+        'reported posts' => Report::whereNull('resolved_at')->where('created_at', '<', $day)->distinct()->count('dispatch_id'),
+        'appeals' => Appeal::where('status', 'open')->where('created_at', '<', $day)->count(),
+        'reported messages' => MessageReport::whereNull('resolved_at')->where('created_at', '<', $day)->distinct()->count('message_id'),
+    ]);
+    if (! $waiting) {
+        return;
+    }
+    $lines = ['These have been waiting more than 24 hours:', ...array_map(fn ($label, $n) => "- $n $label", array_keys($waiting), $waiting)];
+    $admins = User::where('is_staff', true)->get()->filter->hasRole('admin');
+    Notification::send($admins, new ModerationMail('Stoop: '.array_sum($waiting).' items waiting over a day', $lines, route('moderation'), 'Open moderation'));
+    $this->info('Sent to '.$admins->count().' admins.');
+})->purpose('Email admins when moderation items have waited more than a day');
+
+Schedule::command('stoop:detect-spam')->everyTenMinutes()->withoutOverlapping();
+Schedule::command('stoop:admin-digest')->dailyAt('9:00')->timezone('America/New_York');
 Schedule::command('stoop:go-go-friday')->fridays()->at('10:00')->timezone('America/New_York');
 Schedule::command('stoop:import-articles')->everyFifteenMinutes()->withoutOverlapping();
 Schedule::command('stoop:send-newsletter')->weeklyOn(1, '8:00')->timezone('America/New_York');

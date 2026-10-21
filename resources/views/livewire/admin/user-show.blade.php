@@ -16,7 +16,7 @@
                 <a href="{{ route('users.show', $user) }}" wire:navigate class="rounded-lg border border-rule px-3 py-1">Public profile</a>
                 @unless ($user->email_verified_at)<button type="button" wire:click="verify" class="rounded-lg border border-rule px-3 py-1">Verify email</button>@endunless
                 @if ($user->id !== auth()->id())
-                    <button type="button" wire:click="toggleStaff" wire:confirm="{{ $user->is_staff ? 'Remove staff access?' : 'Give this person staff access, including moderation and admin?' }}" class="rounded-lg border border-rule px-3 py-1">{{ $user->is_staff ? 'Remove staff' : 'Make staff' }}</button>
+                    @if (auth()->user()->hasRole('admin'))<button type="button" wire:click="toggleStaff" wire:confirm="{{ $user->is_staff ? 'Remove staff access?' : 'Make this person a moderator? Change roles in Admin → Roles.' }}" class="rounded-lg border border-rule px-3 py-1">{{ $user->is_staff ? 'Remove staff' : 'Make staff' }}</button>@endif
                     @unless ($user->is_bot)<button type="button" wire:click="deleteAccount" wire:confirm="Delete this account and everything in it? Penalties stay. This can’t be undone." class="rounded-lg border border-flag px-3 py-1 text-flag">Delete account</button>@endunless
                 @endif
             </div>
@@ -51,6 +51,8 @@
                 @endforelse
             </ul>
         </section>
+
+        <livewire:admin.account-panel :user-id="$user->id" :key="'account-'.$user->id" />
 
         <section class="rounded-xl border border-rule bg-card p-4 text-sm">
             <h2 class="font-semibold">Moderator notes</h2>

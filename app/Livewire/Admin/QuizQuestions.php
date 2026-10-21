@@ -17,6 +17,8 @@ class QuizQuestions extends Component
 {
     use StaffOnly;
 
+    protected const ROLE = 'editor';
+
     public string $question = '';
 
     /** @var array<int, string> */

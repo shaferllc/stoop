@@ -25,6 +25,8 @@ class Moments extends Component
 {
     use StaffOnly;
 
+    protected const ROLE = 'editor';
+
     /** @var array<string, mixed> */
     public array $contest = ['title' => '', 'question' => '', 'prize' => '', 'closes_at' => '', 'winners' => 3];
 

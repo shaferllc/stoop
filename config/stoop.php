@@ -144,6 +144,11 @@ return [
     'new_account_dm_hours' => 72,
     'new_account_daily_posts' => 20,
 
+    // Sign-up risk (app/Support/SignupRisk.php): throwaway email domains, and the score
+    // (0 to 100) at which a new account's first posts wait for a moderator.
+    'disposable_email_domains' => ['mailinator.com', 'guerrillamail.com', 'sharklasers.com', '10minutemail.com', 'temp-mail.org', 'tempmail.com', 'yopmail.com', 'trashmail.com', 'getnada.com', 'dispostable.com', 'maildrop.cc', 'throwawaymail.com', 'fakeinbox.com', 'mohmal.com', 'emailondeck.com'],
+    'signup_risk_hold' => 50,
+
     'nudge_pattern' => '/\b(idiots?|stupid|morons?|trash people|go back to|shut up|losers?|scum|hate (you|them|these)|f+u+c+k+ (you|u|off|them|this guy)|fck (you|u|off)|screw (you|u)|go to hell|kill yourself|kys)\b/i',
 
 ];

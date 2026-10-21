@@ -7,6 +7,7 @@ use App\Concerns\ProfileValidationRules;
 use App\Models\User;
 use App\Support\Bots;
 use App\Support\Magazine;
+use App\Support\SignupRisk;
 use App\Support\Turnstile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -23,11 +24,13 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        $turnstile = null;
         Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
-            'cf-turnstile-response' => [config('services.turnstile.secret') ? 'required' : 'nullable', 'string', function ($attribute, $value, $fail) {
-                if (config('services.turnstile.secret') && ! Turnstile::passes($value)) {
+            'cf-turnstile-response' => [config('services.turnstile.secret') ? 'required' : 'nullable', 'string', function ($attribute, $value, $fail) use (&$turnstile) {
+                // Tokens work once, so keep the result for the risk score.
+                if (config('services.turnstile.secret') && ! ($turnstile = Turnstile::passes($value))) {
                     $fail('We couldn’t confirm you’re a person. Try again.');
                 }
             }],
@@ -50,6 +53,9 @@ class CreateNewUser implements CreatesNewUsers
         if (config('stoop.auto_verify')) {
             $user->forceFill(['email_verified_at' => now()])->save();
         }
+
+        // Staff see how risky the sign-up looked; risky accounts' first posts wait for a moderator.
+        SignupRisk::assess($user, request()->ip(), $turnstile);
 
         // Everyone's first friend: new accounts follow @stoop, and @stoop follows them back.
         $stoop = Bots::account('stoop');

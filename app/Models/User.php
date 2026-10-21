@@ -36,7 +36,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $updated_at
  */
 #[Fillable(['name', 'username', 'email', 'password', 'is_native', 'dc_since', 'stops', 'half_smokes_on', 'translation_language', 'newsletter'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'risk_score', 'risk_reasons', 'signup_ip_hash', 'roles'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
@@ -57,6 +57,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         'is_bot' => false,
         'is_staff' => false,
         'is_native' => false,
+        'moderation_emails' => true,
     ];
 
     /**
@@ -81,6 +82,9 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'read_receipts' => 'boolean',
             'live_until' => 'datetime',
             'accepted_rules_at' => 'datetime',
+            'roles' => 'array',
+            'risk_reasons' => 'array',
+            'moderation_emails' => 'boolean',
         ];
     }
 
@@ -232,6 +236,25 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function isHouseAccount(): bool
     {
         return $this->is_bot || $this->username === config('stoop.magazine_account');
+    }
+
+    /**
+     * Staff roles: moderator, editor, sales and admin (admin can do everything). With no
+     * role given, any staff role will do. Staff from before roles existed count as admins.
+     */
+    public function hasRole(?string $role = null): bool
+    {
+        $roles = $this->staffRoles();
+
+        return $roles && ($role === null || in_array('admin', $roles, true) || in_array($role, $roles, true));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function staffRoles(): array
+    {
+        return $this->is_staff ? ($this->roles ?: ['admin']) : [];
     }
 
     public function isLive(): bool

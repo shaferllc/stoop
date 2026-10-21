@@ -23,6 +23,8 @@ class Content extends Component
 {
     use StaffOnly;
 
+    protected const ROLE = 'editor';
+
     public function importNow(): void
     {
         $posted = Magazine::import();

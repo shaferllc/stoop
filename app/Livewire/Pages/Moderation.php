@@ -35,12 +35,12 @@ class Moderation extends Component
 
     public function mount(): void
     {
-        abort_unless(Auth::user()?->is_staff, 403);
+        abort_unless(Auth::user()?->hasRole('moderator'), 403);
     }
 
     protected function moderator(): User
     {
-        abort_unless(Auth::user()?->is_staff, 403);
+        abort_unless(Auth::user()?->hasRole('moderator'), 403);
 
         return Auth::user();
     }

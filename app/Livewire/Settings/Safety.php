@@ -23,6 +23,8 @@ class Safety extends Component
 
     public bool $readReceipts = true;
 
+    public bool $moderationEmails = true;
+
     public function mount(): void
     {
         $user = Auth::user();
@@ -30,11 +32,12 @@ class Safety extends Component
         $this->dmsOn = (bool) ($user->dms_on ?? true);
         $this->messageRequests = (bool) $user->message_requests;
         $this->readReceipts = (bool) ($user->read_receipts ?? true);
+        $this->moderationEmails = (bool) ($user->moderation_emails ?? true);
     }
 
     public function updated(string $property): void
     {
-        $columns = ['dmsOn' => 'dms_on', 'messageRequests' => 'message_requests', 'readReceipts' => 'read_receipts'];
+        $columns = ['dmsOn' => 'dms_on', 'messageRequests' => 'message_requests', 'readReceipts' => 'read_receipts', 'moderationEmails' => 'moderation_emails'];
 
         if (isset($columns[$property])) {
             Auth::user()->forceFill([$columns[$property] => (bool) $this->{$property}])->save();
