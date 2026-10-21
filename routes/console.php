@@ -2,6 +2,7 @@
 
 use App\Actions\AnnounceDispatch;
 use App\Actions\FileDispatch;
+use App\Bots\Bot;
 use App\Jobs\ModerateDispatch;
 use App\Mail\WeeklyDigest;
 use App\Models\Dispatch;
@@ -89,3 +90,8 @@ Schedule::command('stoop:purge-deleted')->everyMinute()->withoutOverlapping();
 
 // Lets the admin app tell whether the scheduler is running.
 Schedule::call(fn () => Cache::forever('stoop:schedule-ran', now()->toIso8601String()))->everyMinute()->name('heartbeat');
+
+// Each house bot in app/Bots registers its own scheduled posts.
+foreach (Bot::all() as $bot) {
+    $bot->schedule(app(Illuminate\Console\Scheduling\Schedule::class));
+}

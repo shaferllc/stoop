@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Actions\FileDispatch;
+use App\Bots\Bot;
 use App\Models\Dispatch;
 use App\Support\Bots;
 use App\Support\Mentions;
@@ -32,6 +33,12 @@ class RunBots implements ShouldQueue
 
         if (in_array('stoop', Mentions::usernames($dispatch->body), true)) {
             $this->reply($dispatch, 'stoop', Bots::answer($dispatch->body));
+        }
+
+        foreach (Bot::all() as $bot) {
+            if ($bot->wantsToReply($dispatch) && ($body = $bot->reply($dispatch))) {
+                $this->reply($dispatch, $bot->username(), $body);
+            }
         }
     }
 

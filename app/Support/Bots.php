@@ -4,6 +4,7 @@ namespace App\Support;
 
 use Anthropic\Client;
 use Anthropic\Core\Exceptions\APIException;
+use App\Bots\Bot;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -18,9 +19,9 @@ class Bots
         'dc' => ['name' => 'DC', 'email' => 'dc-bot@stoop.invalid'],
     ];
 
-    public static function account(string $username): User
+    public static function account(string $username, ?string $name = null): User
     {
-        $profile = self::ACCOUNTS[$username];
+        $profile = self::ACCOUNTS[$username] ?? ['name' => $name ?? Bot::find($username)?->name() ?? $username, 'email' => $username.'-bot@stoop.invalid'];
 
         if ($bot = User::where('username', $username)->first()) {
             return $bot;
