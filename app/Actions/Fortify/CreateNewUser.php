@@ -6,6 +6,7 @@ use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\User;
 use App\Support\Bots;
+use App\Support\Magazine;
 use App\Support\Turnstile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -54,6 +55,11 @@ class CreateNewUser implements CreatesNewUsers
         $stoop = Bots::account('stoop');
         $user->following()->attach($stoop->id);
         $stoop->following()->attach($user->id);
+
+        // New accounts also follow the magazine, so its articles show up in Following.
+        if (config('stoop.magazine_feed')) {
+            $user->following()->attach(Magazine::account()->id);
+        }
 
         return $user;
     }
