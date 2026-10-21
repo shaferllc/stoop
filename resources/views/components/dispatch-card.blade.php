@@ -8,6 +8,10 @@
     $totalVotes = $d->options->sum('voters_count');
     $showResults = $myVote !== null || $d->user_id === $me?->id || $d->isClosed() || ! $me;
     $btn = 'cursor-pointer hover:text-ink';
+    // A bot post ending in "Presented by …": one impression per viewer per day.
+    if (($pid = $d->details['presenter'] ?? null) && $d->status === 'approved' && $presenter = \App\Models\Presenter::find($pid)) {
+        \App\Support\Ads::record($presenter);
+    }
 @endphp
 
 <article wire:key="dispatch-{{ $d->id }}" id="d{{ $d->id }}" tabindex="-1" data-dispatch data-href="{{ route('dispatches.show', $d) }}" @class(['rounded-xl border bg-card px-4 py-3.5', 'border-ink' => $focus, 'border-rule' => ! $focus])>

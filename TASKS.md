@@ -196,6 +196,11 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [ ] Moderation queue for owner deals (they skip the dispatch pipeline; only the swearing filter runs)
 - [ ] Aggregated reader-insights report (no individual data)
 - [ ] Self-serve sponsorship booking and billing
+- [x] “Presented by” sponsors (Admin → Ads, sales): name, optional logo, https link and dates on @weather, @metro, @gameday, @quizmaster, @recap, @weekend, The Daily, the Line Cup, a contest, a hunt or a challenge; one per bot or game at a time. Bots end scheduled posts with “Presented by …” and a click-through link, never on replies or safety posts (@metro incidents, @weather alerts, anything from @calm or @sentinel), and only when it fits in 500 characters. Games show it with the logo on their page and Play card. Impressions once per viewer per day, clicks, inventory and daily CSV
+- [x] Sponsored Stoop Sits meetups (Admin → Moments, sales): a host venue, optional offer and link; “Hosted by …”, labeled Sponsored, on the meetup page and its Happenings calendar card; RSVPs (“I’m going”) on meetups; checked-in attendees get an offer code the venue owner marks used once on their place page, with a report (going, checked in, redeemed); in the ads inventory
+- [ ] @metro only posts incidents, so a @metro sponsor never shows until it has non-safety scheduled posts
+- [ ] “Presented by” and meetup sponsors in the Mac admin app and the /api/app feed
+- [ ] Bot post impressions count on the web card only (not in the iOS app)
 
 ## Admin
 - [x] Overview with what needs attention, activity numbers and failed jobs

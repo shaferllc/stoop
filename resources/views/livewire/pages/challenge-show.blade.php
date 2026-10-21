@@ -4,6 +4,7 @@
     <div>
         <a href="{{ route('challenges') }}" wire:navigate class="text-sm text-mute hover:underline">← Challenges</a>
         <h1 class="font-display text-3xl font-bold">{{ $challenge->title }}</h1>
+        <x-presented-by :target="'challenge:'.$challenge->id" />
         <p class="text-sm text-mute">{{ $challenge->list_name }} · {{ $challenge->starts_at->timezone($tz)->format('M j') }} – {{ $challenge->ends_at->timezone($tz)->format('M j, g:ia') }} · Badge: {{ $challenge->badge_name }}</p>
         @if ($challenge->prize)<p class="mt-1 max-w-prose"><b>Prize:</b> {{ $challenge->prize }}</p>@endif
     </div>

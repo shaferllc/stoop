@@ -69,6 +69,8 @@
         </section>
     @endif
 
+    <livewire:admin.presenters />
+
     <h2 class="mt-5 font-display text-xl font-bold">Running and upcoming</h2>
     <div class="mt-2 overflow-x-auto rounded-xl border border-rule bg-card">
         <table class="w-full text-sm">

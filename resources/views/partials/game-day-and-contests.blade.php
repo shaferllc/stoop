@@ -21,10 +21,10 @@
         <h2 class="mb-2 text-[11px] font-semibold uppercase tracking-[0.13em] text-mute">Contests</h2>
         <ul class="grid gap-2 sm:grid-cols-2">
             @foreach ($contests as $c)
-                <li><a href="{{ route('contests.show', $c) }}" wire:navigate class="block rounded-xl border border-rule bg-card p-4 hover:border-ink">
+                <li class="flex flex-col gap-1"><a href="{{ route('contests.show', $c) }}" wire:navigate class="block flex-1 rounded-xl border border-rule bg-card p-4 hover:border-ink">
                     <div class="font-display text-lg font-bold">{{ $c->title }}</div>
                     <div class="text-[13px] text-mute">{{ $c->isOpen() ? 'Open until '.$c->closes_at->timezone(config('stoop.timezone'))->format('M j') : ($c->answer ? 'Results are in' : 'Closed, waiting on the answer') }}</div>
-                </a></li>
+                </a><x-presented-by :target="'contest:'.$c->id" class="px-1" /></li>
             @endforeach
         </ul>
     </section>

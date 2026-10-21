@@ -76,7 +76,7 @@ class GameDay extends Bot
                     .($game->venue ? ' at '.$game->venue : '').'. Who wins? Right picks are worth 10 XP. Score, trains and watch parties: '.route('sports.game', $game),
             ]);
             // Picks close at first pitch, not 24 hours from now.
-            $dispatch->forceFill(['closes_at' => $game->starts_at, 'details' => ['game' => $game->id]])->save();
+            $dispatch->forceFill(['closes_at' => $game->starts_at, 'details' => [...$dispatch->details ?? [], 'game' => $game->id]])->save();
             $options = $dispatch->options()->pluck('id', 'label');
 
             return (bool) Game::whereKey($game->id)->whereNull('dispatch_id')->update([

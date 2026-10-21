@@ -3,6 +3,7 @@
     @include('partials.games-nav')
     <div>
         <h1 class="font-display text-3xl font-bold">{{ $hunt->name }}</h1>
+        <x-presented-by :target="'hunt:'.$hunt->id" />
         <p class="text-sm text-mute">{{ $hunt->starts_at->timezone($tz)->format('M j') }} – {{ $hunt->ends_at->timezone($tz)->format('M j, g:ia') }} · {{ count($done) }} of {{ $hunt->steps->count() }} found</p>
         @if ($hunt->description)<p class="mt-1 max-w-prose whitespace-pre-line">{{ $hunt->description }}</p>@endif
     </div>

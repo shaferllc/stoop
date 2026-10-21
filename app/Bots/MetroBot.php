@@ -92,7 +92,8 @@ class MetroBot extends Bot
             }
 
             try {
-                $this->post(['line' => $incident['line'], 'stop' => Stations::find($message), 'body' => Str::limit($message, 480)]);
+                // Safety posts never carry a sponsor.
+                $this->post(['line' => $incident['line'], 'stop' => Stations::find($message), 'body' => Str::limit($message, 480), 'sponsorable' => false]);
                 Cache::put($today, Cache::get($today, 0) + 1, now()->addDay());
                 $posted++;
             } catch (Throwable $e) {

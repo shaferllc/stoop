@@ -39,6 +39,8 @@ Optional settings in `.env`:
 
 Ads (sales role): Admin → Ads makes sponsored dispatches and Best of Washington party ticket promotions, and lists every running and upcoming placement with delivery, clicks, CTR and CSVs (also in the Mac app). Ads live apart from dispatches, show at most once per 10 posts, are matched only to the stop or topic being read, count an impression once per person per day (a keyed hash of the account or session and the day, no extra cookie), and click through `/ad/{kind}/{id}` to their stored link only. There is no paid ad-free option.
 
+“Presented by” (Admin → Ads, sales): one sponsor at a time per house bot or game (`presenters` table, App\Models\Presenter). `Bot::post()` adds the line to a bot’s top-level scheduled posts unless the post passes `'sponsorable' => false` (safety posts do) or it would pass 500 characters; replies never get it. Games use `<x-presented-by target="…" />`. Sponsored meetups (Admin → Moments, sales): a host venue on a Stoop Sits meetup (`meetup_sponsors`), RSVPs (`event_rsvps`), and offer codes for checked-in attendees (`meetup_redemptions`) the venue owner marks used on their place page. Both are ad kinds `presenter` and `meetup` in App\Support\Ads.
+
 Staff pages for this area: Admin → Real estate (sales import status, open houses, the sponsored label) and Admin → Insights (the k-anonymous reader report for advertisers, with CSV and printable views).
 
 Happenings, Lost & found and games: `/happenings` (calendar, .ics, a private feed link at `/calendar/<token>.ics`), `/lost-and-found`, `/bingo`, `/hunts` and `/line-cup`. Editors create hunts in Admin → Hunts and pull readers’ picks (CSV) from Admin → Readers’ picks. Ticketed happenings link out to the host’s ticket page; Stoop takes no payments.
