@@ -1,5 +1,8 @@
 <div>
     <h1 class="font-display text-3xl font-bold">Moderation</h1>
+    @if (auth()->user()->hasRole('moderator') && \App\Models\Promotion::where('status', 'review')->exists())
+        <livewire:admin.promotion-queue />
+    @endif
 
     <div class="mt-3 mb-4 flex gap-0.5 border-b border-rule">
         @foreach (['queue' => 'Queue ('.$queue->count().')', 'appeals' => 'Appeals ('.$appeals->count().')', 'messages' => 'Messages ('.$messageReports->count().')', 'penalties' => 'Timeouts & bans ('.$penalties->count().')'] as $key => $label)

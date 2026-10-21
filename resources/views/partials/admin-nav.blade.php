@@ -6,6 +6,7 @@
         'admin.places' => 'Places',
         'admin.sponsorships' => 'Sponsorships',
         'admin.ads' => 'Ads',
+        'admin.business' => 'Business',
         'admin.content' => 'Content',
         'admin.magazine' => 'Magazine',
         'admin.editorial' => 'Editorial',

@@ -205,7 +205,7 @@ class Ads
 
         return collect()
             ->concat(Sponsorship::whereDate('ends_on', '>=', $today)->get()->map(fn (Sponsorship $s) => $row('sponsorship', $s, 'Sponsored stop/line', $s->sponsor.': '.$s->headline, $place($s->stop, $s->line), $s->starts_on, $s->ends_on, $s->impressions, null, $s->clicks)))
-            ->concat(SponsoredDispatch::where('ends_at', '>=', now())->get()->map(fn (SponsoredDispatch $a) => $row('dispatch', $a, 'Sponsored dispatch', $a->advertiser.': '.str($a->body)->limit(60), self::targets($a), $a->starts_at, $a->ends_at, $a->impressions, $a->goal, $a->clicks)))
+            ->concat(SponsoredDispatch::where('ends_at', '>=', now())->get()->map(fn (SponsoredDispatch $a) => $row('dispatch', $a, $a->promoted ? 'Promoted post' : 'Sponsored dispatch', $a->advertiser.': '.str($a->body)->limit(60), self::targets($a), $a->starts_at, $a->ends_at, $a->impressions, $a->goal, $a->clicks)))
             ->concat(BallotPromotion::with('ballot')->get()->filter(fn ($p) => $p->event_on->toDateString() >= $today || $p->ballot->closes_at->isFuture())
                 ->map(fn (BallotPromotion $p) => $row('party', $p, 'Party tickets', $p->title, 'Everywhere · '.$p->ballot->title, $p->ballot->opens_at, $p->event_on->max($p->ballot->closes_at), $p->impressions, null, $p->clicks)))
             ->concat(Dispatch::topLevel()->where('type', 'callout')->whereNotNull('sponsor')->where('status', 'approved')->where('created_at', '>=', now()->subDays(30))->get()

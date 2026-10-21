@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Business;
 use App\Support\Profanity;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -14,7 +15,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * A deal a verified owner posts for their place, shown on the place page and, labeled,
- * at the top of the place's stop feed. One deal runs at a time per place.
+ * at the top of the place's stop feed. One deal at a time per place, three on the Business plan.
  */
 #[Fillable(['place_id', 'user_id', 'title', 'details', 'starts_at', 'ends_at'])]
 class PlaceDeal extends Model
@@ -68,8 +69,9 @@ class PlaceDeal extends Model
         }
 
         return DB::transaction(function () use ($user, $place, $data, $starts, $ends) {
-            if (self::where('place_id', $place->id)->where('ends_at', '>', now())->exists()) {
-                throw ValidationException::withMessages(['title' => 'One deal at a time. End the current one first.']);
+            $limit = Business::dealLimit($place);
+            if (self::where('place_id', $place->id)->where('ends_at', '>', now())->count() >= $limit) {
+                throw ValidationException::withMessages(['title' => $limit === 1 ? 'One deal at a time. End the current one first.' : "Up to $limit deals at a time. End one first."]);
             }
 
             return self::create(['place_id' => $place->id, 'user_id' => $user->id, 'title' => $data['title'], 'details' => $data['details'] ?? null, 'starts_at' => $starts, 'ends_at' => $ends]);

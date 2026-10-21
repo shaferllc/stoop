@@ -50,7 +50,7 @@
                 <div x-show="open" x-cloak x-html="html" class="absolute left-0 top-full z-20 mt-1 w-72"></div>
             </span>
             <span class="ml-1.5 rounded border border-rule px-1 text-[10px] font-bold tracking-wide text-mute">{{ $d->user->badge() }}</span>
-            @if ($d->as_business && $d->place)<span class="ml-1 rounded bg-ink px-1 text-[10px] font-bold text-paper">OWNER · {{ str($d->place->name)->upper() }}</span>@endif
+            @if ($d->as_business && $d->place)<span class="ml-1 rounded bg-ink px-1 text-[10px] font-bold text-paper">OWNER · {{ str($d->place->name)->upper() }}</span>@if (\App\Support\Business::verified($d->place))<span class="ml-1 rounded border border-ink px-1 text-[10px] font-bold" title="This place is a verified business on Stoop">VERIFIED BUSINESS</span>@endif @endif
             @if ($d->user->isLive())<span class="ml-1 rounded bg-flag px-1 text-[10px] font-bold text-white">ON THE SCENE</span>@endif
             <div class="text-[12.5px] text-mute">
                 <a href="{{ route('users.show', $d->user) }}" wire:navigate>{{ '@'.$d->user->username }}</a>
@@ -255,6 +255,9 @@
                 <flux:menu>
                     @if ($d->user_id === $me->id && ! $d->parent_id && $d->status === 'approved')
                         <flux:menu.item wire:click="togglePin({{ $d->id }})">{{ $me->pinned_dispatch_id === $d->id ? 'Unpin from profile' : 'Pin to profile' }}</flux:menu.item>
+                    @endif
+                    @if ($d->user_id === $me->id && ! $d->parent_id && \App\Support\Promotions::kindFor($me, $d))
+                        <flux:menu.item :href="route('promote', ['dispatch', $d->id])" wire:navigate>Promote</flux:menu.item>
                     @endif
                     @if ($d->parent_id && $d->parent?->user_id === $me->id && $d->user_id !== $me->id)
                         <flux:menu.item wire:click="toggleHideReply({{ $d->id }})">{{ $d->hidden_by_author ? 'Unhide reply' : 'Hide reply' }}</flux:menu.item>
