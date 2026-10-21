@@ -20,7 +20,7 @@ class Roles
     public const PAGES = [
         'admin.users' => 'moderator', 'moderation' => 'moderator', 'admin.spam' => 'moderator', 'admin.moderation-insights' => 'moderator',
         'admin.content' => 'editor', 'admin.quiz' => 'editor', 'admin.moments' => 'editor', 'admin.bots' => 'editor', 'admin.magazine' => 'editor', 'admin.history' => 'editor',
-        'admin.places' => 'sales', 'admin.sponsorships' => 'sales',
+        'admin.places' => 'sales', 'admin.sponsorships' => 'sales', 'admin.real-estate' => 'sales', 'admin.insights' => 'sales', 'admin.insights.csv' => 'sales', 'admin.insights.print' => 'sales',
         'admin.roles' => 'admin',
     ];
 

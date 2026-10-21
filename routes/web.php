@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FeedController;
+use App\Http\Controllers\InsightsController;
 use App\Http\Controllers\TransparencyController;
 use App\Livewire\Admin;
 use App\Livewire\Pages\AppealCreate;
@@ -160,6 +161,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('spam', Admin\Spam::class)->name('.spam');
         Route::livewire('bots', Admin\Bots::class)->name('.bots');
         Route::livewire('roles', Admin\Roles::class)->name('.roles');
+        Route::livewire('real-estate', Admin\RealEstate::class)->name('.real-estate');
+        Route::livewire('insights', Admin\Insights::class)->name('.insights');
+        Route::get('insights.csv', [InsightsController::class, 'csv'])->middleware('throttle:20,1')->name('.insights.csv');
+        Route::get('insights/print', [InsightsController::class, 'print'])->middleware('throttle:20,1')->name('.insights.print');
     });
     // A dispatch author answers an editor's request to quote it (from Notifications).
     Route::post('quote-requests/{quoteRequest}/{answer}', function (QuoteRequest $quoteRequest, string $answer) {

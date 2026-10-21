@@ -45,6 +45,7 @@
                         'callout' => 'What do you want readers to tell the newsroom?',
                         'safety' => 'What happened?',
                         'snow' => 'How’s it looking out there?',
+                        'openhouse' => 'What should neighbors know about the place?',
                         default => 'What’s happening on your block?',
                     } }}"
                     class="w-full resize-none bg-transparent outline-none"></textarea>
@@ -157,6 +158,8 @@
                     <input wire:model="safetyPerson" maxlength="280" placeholder="Description of a person, if it helps (optional)" aria-label="Description of a person" class="w-full rounded-md border border-rule bg-card px-2.5 py-1.5">
                 </div>
             @endif
+
+            @includeWhen($type === 'openhouse' && ! $parentId, 'partials.composer-open-house')
 
             @if ($type === 'happening' && ! $parentId)
                 <input wire:model="happeningAt" maxlength="60" placeholder="When? For example: Tonight · 8pm" aria-label="When" class="mt-2 w-full rounded-md border border-rule bg-paper px-2.5 py-1.5 text-sm">

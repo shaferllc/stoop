@@ -22,7 +22,7 @@ Seeded logins (password `password`): `demo@example.com` (regular user) and `food
 
 Optional settings in `.env`:
 
-- `ANTHROPIC_API_KEY`: lets @stoop answer with Claude and turns on translation. Without it, @stoop answers from `resources/knowledge/stoop.md` and the Translate button is hidden.
+- `ANTHROPIC_API_KEY`: lets @stoop answer with Claude, turns on translation and the reader insights summary. Without it, @stoop answers from `resources/knowledge/stoop.md` and the Translate button is hidden.
 - `WMATA_API_KEY`: shows live Metro delays in the sidebar, and lets @metro post major disruptions and answer “@metro next <station>”.
 - `STOOP_REQUIRE_SUBSCRIPTION=true`: only subscribers can post.
 - `STOOP_MAGAZINE_FEED`: the magazine’s RSS or Atom feed. New articles post to Stoop automatically.
@@ -34,11 +34,8 @@ Optional settings in `.env`:
 - `STOOP_MODEL_MODERATION=false`: turn off the Claude check on new posts while keeping the bot and translation. The model defaults to `claude-opus-5-5`; `STOOP_MODERATION_MODEL` changes it.
 - `STOOP_AUTO_VERIFY=false`: require the email link again.
 
-- `STOOP_MAGAZINE_ORIGINS`: comma-separated sites allowed to call the embed APIs from a browser (default `https://www.washingtonian.com,https://washingtonian.com`).
+Staff pages for this area: Admin → Real estate (sales import status, open houses, the sponsored label) and Admin → Insights (the k-anonymous reader report for advertisers, with CSV and printable views).
 
-Embeds for magazine article pages (any combination, one script):
-City bots in `app/Bots` (all keyless except @metro): @metro (WMATA disruptions, next trains), @bikeshare (Capital Bikeshare docks near a stop or neighborhood), @weather (6:30am forecast and NWS alerts from api.weather.gov; suggests Snow Day mode to staff, never turns it on), @cherry (NPS Bloom Watch stages, March 1 to April 15) and @311 (how to report a problem, plus a Sunday summary from DC’s open 311 data).
-House bots live in `app/Bots`, one class each, and register their own schedules. @ask links unanswered Ask DC questions (2+ hours old) to similar answered ones; @welcome sends each new account one in-app note with tips for their home stops and people to follow; @recap posts “Your stop this week” for the 5 busiest stops on Sunday mornings; reply `@translate to Spanish` in a thread to translate the post above; @calm posts one neighborly reminder when a pile-on-flagged thread reopens. Only @ask (one framing sentence) and @translate use Claude, and both work or say so without `ANTHROPIC_API_KEY`.
 
 Embed on magazine article pages:
 

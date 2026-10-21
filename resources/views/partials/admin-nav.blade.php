@@ -15,6 +15,8 @@
         'admin.spam' => 'Spam',
         'admin.bots' => 'Bots',
         'admin.roles' => 'Roles',
+        'admin.real-estate' => 'Real estate',
+        'admin.insights' => 'Insights',
         'admin.audit' => 'Audit log',
     ])
     @foreach ($adminTabs as $route => $label)

@@ -31,7 +31,7 @@ class DispatchController extends Controller
     {
         $user = $request->user();
         $types = collect(config('stoop.types'))
-            ->reject(fn ($label, $key) => ($key === 'callout' && ! $user->is_staff) || ($key === 'snow' && ! Settings::snowDay()));
+            ->reject(fn ($label, $key) => ($key === 'callout' && ! $user->is_staff) || ($key === 'snow' && ! Settings::snowDay()) || $key === 'openhouse');
 
         return response()->json(['data' => [
             'lines' => collect(config('stoop.lines'))->map(fn ($line, $key) => ['key' => $key, 'name' => $line['name'], 'color' => $line['color'], 'stops' => config("metro.lines.$key")])->values(),
@@ -141,6 +141,7 @@ class DispatchController extends Controller
                 'parentId' => $request->integer('parent_id') ?: null,
                 'quoteId' => $request->integer('quote_id') ?: null,
                 'placeId' => $request->integer('place_id') ?: null,
+                'openHouse' => (array) $request->input('open_house', []),
             ], confirmed: $request->boolean('confirm'));
         } catch (NudgeRequired) {
             $message = 'That reads as a personal attack. Would you say it to a neighbor?';

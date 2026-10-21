@@ -15,6 +15,7 @@ use App\Support\LinkPreviews;
 use App\Support\Mentions;
 use App\Support\ModerationModel;
 use App\Support\OpenAiModeration;
+use App\Support\OpenHouses;
 use App\Support\Photos;
 use App\Support\Profanity;
 use App\Support\Settings;
@@ -45,7 +46,7 @@ class FileDispatch
         $input = [
             'type' => 'dispatch', 'body' => '', 'line' => 'red', 'stop' => null, 'happeningAt' => '',
             'options' => [], 'pollHours' => 24, 'publishAt' => '', 'photos' => [], 'alts' => [],
-            'safetyWhen' => '', 'safetyBlock' => '', 'safetyPerson' => '', 'parentId' => null, 'quoteId' => null, 'placeId' => null, 'asBusiness' => false, 'sponsor' => '', 'eventId' => null, 'rating' => null, 'snowInches' => null, 'plowed' => null,
+            'safetyWhen' => '', 'safetyBlock' => '', 'safetyPerson' => '', 'parentId' => null, 'quoteId' => null, 'placeId' => null, 'asBusiness' => false, 'sponsor' => '', 'eventId' => null, 'rating' => null, 'snowInches' => null, 'plowed' => null, 'openHouse' => [],
             ...array_filter($input, fn ($v) => $v !== null),
         ];
         $input['body'] = trim((string) $input['body']);
@@ -110,6 +111,8 @@ class FileDispatch
             }
         }
 
+        $openHouse = $input['type'] === 'openhouse' && $topLevel ? OpenHouses::details((array) $input['openHouse'], $input['stop']) : [];
+
         $parent = $input['parentId'] ? Dispatch::visibleTo($user)->find($input['parentId']) : null;
         if ($input['parentId'] && ! $parent) {
             $fail('parentId', 'That dispatch isn’t available.');
@@ -165,14 +168,18 @@ class FileDispatch
             'rating' => $event?->rating_label && $input['rating'] ? (int) $input['rating'] : null,
             'snow_inches' => $type === 'snow' ? (float) $input['snowInches'] : null,
             'plowed' => $type === 'snow' ? $input['plowed'] : null,
-        ], fn ($v) => $v !== null);
+        ], fn ($v) => $v !== null) + ($type === 'openhouse' ? $openHouse : []);
 
         $dispatch = DB::transaction(function () use ($user, $input, $parent, $quoted, $options, $publishAt, $preview, $type, $place, $event, $details) {
             $dispatch = $user->dispatches()->create([
                 'parent_id' => $parent?->id,
                 'quote_id' => $quoted?->id,
                 'type' => $type,
-                'line' => $parent?->line ?? ($type === 'ask' ? 'yellow' : $input['line']),
+                'line' => $parent?->line ?? match ($type) {
+                    'ask' => 'yellow',
+                    'openhouse' => 'green',
+                    default => $input['line'],
+                },
                 'body' => $input['body'],
                 'happening_at' => $type === 'happening' ? $input['happeningAt'] : null,
                 'status' => $publishAt ? 'scheduled' : self::initialStatus($user, $input['body']),

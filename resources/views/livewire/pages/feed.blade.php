@@ -37,6 +37,7 @@
                 @endif
             </p>
             <livewire:station-live :code="$stop" :key="'live-'.$stop" />
+            @include('partials.home-sales', ['stop' => $stop])
             <a href="{{ route('feeds.stop', $stop) }}" class="mt-2 inline-block text-[12.5px] text-mute underline">Follow this stop in a feed reader</a>
         </div>
     @endif
