@@ -168,3 +168,8 @@ Artisan::command('stoop:login-link {username} {--minutes=120}', function () {
     $user = User::where('username', ltrim($this->argument('username'), '@'))->firstOrFail();
     $this->line(URL::temporarySignedRoute('dev.login', now()->addMinutes((int) $this->option('minutes')), ['user' => $user], absolute: false));
 })->purpose('Print a one-click sign-in path for local testing (add it to the site or tunnel address)');
+
+Artisan::command('stoop:enrich-places', function () {
+    $result = MagazineBackCatalog::enrichPlaces();
+    $this->info("Checked {$result['checked']} list places; {$result['stations']} now have a station.");
+})->purpose('Read neighborhood, cuisine and address for magazine list places and match them to stations');

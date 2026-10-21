@@ -323,6 +323,71 @@ class MagazineBackCatalog
     }
 
     /**
+     * Fill in neighborhood, cuisine, address, website and the nearest station for list places,
+     * read from each place's page on the magazine's site (one polite request each). Only empty
+     * fields are filled, and no review text is stored.
+     *
+     * @return array{checked: int, stations: int}
+     */
+    public static function enrichPlaces(): array
+    {
+        $host = parse_url(self::site(), PHP_URL_HOST);
+        $checked = $stations = 0;
+
+        Place::whereNotNull('list_name')->whereNull('stop')->where('article_url', 'like', '%'.$host.'/%')->each(function (Place $place) use (&$checked, &$stations) {
+            $path = parse_url($place->article_url, PHP_URL_PATH) ?: '/';
+            if (! self::allowed($path)) {
+                return;
+            }
+            $html = Cache::remember('stoop:wp:page:'.md5($path), now()->addWeek(), fn () => self::request(self::site().$path)?->body() ?? '');
+            $details = self::providerDetails($html);
+            $checked++;
+
+            $tagged = Archive::tag(trim(($details['neighborhood'] ?? '').' '.($details['address'] ?? '')));
+            $place->forceFill(array_filter([
+                'neighborhood' => $place->neighborhood ?: $details['neighborhood'],
+                'category' => in_array($place->category, [null, '', 'Restaurant'], true) && $details['cuisine'] ? $details['cuisine'] : null,
+                'address' => $place->address ?: $details['address'],
+                'website' => $place->website ?: $details['website'],
+                'stop' => $tagged['stations'][0] ?? null,
+            ]))->save();
+            $stations += $place->stop ? 1 : 0;
+        });
+
+        return ['checked' => $checked, 'stations' => $stations];
+    }
+
+    /**
+     * The facts block on a provider page: "Navy Yard • Palestinian • $$$", then Locations and Website.
+     *
+     * @return array{neighborhood: ?string, cuisine: ?string, address: ?string, website: ?string}
+     */
+    public static function providerDetails(string $html): array
+    {
+        $text = html_entity_decode(preg_replace('/<[^>]+>/', "\n", preg_replace('/<(script|style)\b.*?<\/\1>/si', '', $html)), ENT_QUOTES | ENT_HTML5);
+        $lines = array_values(array_filter(array_map('trim', explode("\n", $text)), fn ($l) => $l !== ''));
+        $out = ['neighborhood' => null, 'cuisine' => null, 'address' => null, 'website' => null];
+
+        $dot = array_search('•', $lines, true);
+        if ($dot !== false && $dot > 0) {
+            $out['neighborhood'] = Str::limit($lines[$dot - 1], 60, '');
+            $out['cuisine'] = isset($lines[$dot + 1]) && $lines[$dot + 1] !== '•' ? Str::limit($lines[$dot + 1], 60, '') : null;
+        }
+        if (($at = array_search('Locations', $lines, true)) !== false) {
+            $parts = [];
+            for ($i = $at + 1; $i < count($lines) && $i <= $at + 6 && $lines[$i] !== 'Website'; $i++) {
+                $parts[] = rtrim($lines[$i], ',');
+            }
+            $out['address'] = $parts ? Str::limit(implode(', ', $parts), 200, '') : null;
+        }
+        if (($at = array_search('Website', $lines, true)) !== false && preg_match('~^https?://\S+$~', $lines[$at + 1] ?? '')) {
+            $out['website'] = Str::limit($lines[$at + 1], 255, '');
+        }
+
+        return $out;
+    }
+
+    /**
      * A JSON GET on the magazine's site, or null if robots.txt disallows it or it keeps failing.
      *
      * @param  array<string, mixed>  $query
