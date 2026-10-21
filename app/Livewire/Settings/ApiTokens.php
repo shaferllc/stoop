@@ -4,9 +4,11 @@ namespace App\Livewire\Settings;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Layout('layouts::stoop')]
 #[Title('Terminal & API')]
 class ApiTokens extends Component
 {

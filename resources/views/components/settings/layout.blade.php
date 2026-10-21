@@ -1,22 +1,17 @@
-<div class="flex items-start max-md:flex-col">
-    <div class="me-10 w-full pb-4 md:w-[220px]">
-        <flux:navlist aria-label="{{ __('Settings') }}">
-            <flux:navlist.item :href="route('profile.edit')" wire:navigate>{{ __('Profile') }}</flux:navlist.item>
-            <flux:navlist.item :href="route('safety.edit')" wire:navigate>{{ __('Safety') }}</flux:navlist.item>
-            <flux:navlist.item :href="route('tokens.edit')" wire:navigate>{{ __('Terminal & API') }}</flux:navlist.item>
-            <flux:navlist.item :href="route('security.edit')" wire:navigate>{{ __('Security') }}</flux:navlist.item>
-            <flux:navlist.item :href="route('appearance.edit')" wire:navigate>{{ __('Appearance') }}</flux:navlist.item>
-        </flux:navlist>
-    </div>
+{{-- Settings pages inside the Stoop layout: tabs across the top, the page in a card. --}}
+<div>
+    <nav class="mb-4 mt-3 flex gap-1 overflow-x-auto border-b border-rule text-sm" aria-label="{{ __('Settings') }}">
+        @foreach (['profile.edit' => __('Profile'), 'safety.edit' => __('Safety'), 'tokens.edit' => __('Terminal & API'), 'security.edit' => __('Security'), 'appearance.edit' => __('Appearance')] as $route => $label)
+            <a href="{{ route($route) }}" wire:navigate @class(['whitespace-nowrap border-b-2 px-3 py-2 font-medium', 'border-flag text-ink' => request()->routeIs($route), 'border-transparent text-mute hover:text-ink' => ! request()->routeIs($route)])>{{ $label }}</a>
+        @endforeach
+    </nav>
 
-    <flux:separator class="md:hidden" />
+    <section class="rounded-xl border border-rule bg-card p-5 sm:p-6">
+        @if ($heading ?? null)<h2 class="font-display text-xl font-bold">{{ $heading }}</h2>@endif
+        @if ($subheading ?? null)<p class="text-sm text-mute">{{ $subheading }}</p>@endif
 
-    <div class="flex-1 self-stretch max-md:pt-6">
-        <flux:heading>{{ $heading ?? '' }}</flux:heading>
-        <flux:subheading>{{ $subheading ?? '' }}</flux:subheading>
-
-        <div class="mt-5 w-full max-w-lg">
+        <div class="mt-4 w-full max-w-xl">
             {{ $slot }}
         </div>
-    </div>
+    </section>
 </div>
