@@ -35,6 +35,8 @@ struct OverviewView: View {
                     }
                 }
 
+                if model.allows(.spam) { SentinelPanel() }
+
                 Loaded(path: "health") { (health: Health) in
                     let down = health.checks.filter { !$0.ok }
                     VStack(alignment: .leading, spacing: 10) {

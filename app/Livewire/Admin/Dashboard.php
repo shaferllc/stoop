@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Bots\Sentinel;
 use App\Models\Dispatch;
 use App\Models\User;
 use App\Support\Attention;
@@ -49,6 +50,7 @@ class Dashboard extends Component
             ],
             'todo' => Attention::items(),
             'failed' => DB::table('failed_jobs')->latest('failed_at')->take(25)->get(),
+            'sentinel' => $this->staff()->hasRole('moderator') ? Sentinel::latest(5) : null,
         ]);
     }
 }

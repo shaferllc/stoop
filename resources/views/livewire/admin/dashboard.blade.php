@@ -16,6 +16,8 @@
         @endforeach
     </dl>
 
+    @includeWhen($sentinel !== null, 'partials.admin-sentinel', ['summaries' => $sentinel])
+
     <h2 class="mt-6 font-display text-xl font-bold">Failed jobs</h2>
     <ul class="mt-2 divide-y divide-rule rounded-xl border border-rule bg-card text-sm">
         @forelse ($failed as $job)

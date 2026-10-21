@@ -60,6 +60,10 @@ Each bot is one class in `app/Bots`, found automatically, with its scheduled pos
 - **@weekend**: Fridays at noon, a round-up of city events and Happening posts for Friday to Sunday. Staff mark editors’ picks from a Happening post’s ••• menu (“Pick for @weekend”). Skipped when nothing’s on.
 - **@history**: 9am “On this day in DC” from Admin → History. Seeded entries are marked VERIFY and don’t post until an editor checks them. “Draft with AI” fills the form when the key is set.
 - **@quizmaster**: The Daily at 7am, the five longest current streaks at 8pm, and one cheer per shared result.
+- **@bingo**: new Metro Bingo cards Mondays at 8am, a count of the week’s bingos Sundays at 6pm (counts only), and “@bingo” replies with your card progress.
+- **@hunt**: a hunt’s first clue when it opens, a 10am clue reminder while one runs, a first-finisher shout-out, and “@hunt” for your next clue. Never says answers or code words.
+- **@linecup**: Line Cup standings with friendly trash talk aimed at lines Mondays at 9am, and the winning line on the 1st.
+- **@sentinel**: staff only, never posts. Hourly in-app summary to moderators of the last hour’s spam clusters, held and watch-phrase posts, OpenAI flags and reports (Claude writes it from counts when `ANTHROPIC_API_KEY` is set). Also on the admin Overview, the Mac app Overview and `GET /api/admin/sentinel`.
 ## Staff roles and spam tools
 
 Staff have roles: moderator, editor, sales and admin (admin does everything; existing staff became admins). Admins set them in Admin → Roles. Admin → Spam lists suspected spam rings (`php artisan stoop:detect-spam`, also every 10 minutes); Admin → Bots reviews the house bots and edits @stoop’s knowledge base; Admin → Activity shows a live feed and 30-day charts. Admins get a daily email when moderation items wait more than a day (`stoop:admin-digest`). Throwaway email domains and the risk score that holds a new account’s first posts are in `config/stoop.php`.

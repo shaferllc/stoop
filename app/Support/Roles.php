@@ -27,7 +27,7 @@ class Roles
     /** Admin API paths (after /api/admin/) by prefix. Missing means any staff role. */
     public const API = [
         'queue' => 'moderator', 'dispatches/' => 'moderator', 'appeals' => 'moderator', 'message-reports' => 'moderator',
-        'penalties' => 'moderator', 'users' => 'moderator', 'spam-clusters' => 'moderator', 'ai/' => 'moderator',
+        'penalties' => 'moderator', 'users' => 'moderator', 'spam-clusters' => 'moderator', 'ai/' => 'moderator', 'sentinel' => 'moderator',
         'bots/' => 'editor', 'radar' => 'editor', 'tips' => 'editor', 'editors' => 'editor', 'callouts' => 'editor',
         'health' => 'admin', 'maintenance/' => 'admin', 'log' => 'admin', 'failed-jobs' => 'admin', 'roles' => 'admin',
     ];
