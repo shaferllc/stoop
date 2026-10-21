@@ -9,9 +9,11 @@ use App\Models\Dispatch;
 use App\Models\Place;
 use App\Models\User;
 use App\Support\Achievements;
+use App\Support\ComposeHints;
 use App\Support\Settings;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -51,6 +53,9 @@ class Composer extends Component
     public array $alts = [];
 
     public bool $warned = false;
+
+    /** @var array<string, string> Suggested line, type and stop for what's being typed; offered as chips, never applied. */
+    public array $hints = [];
 
     /** Crime & safety form: when it happened, the block, and an optional description of a person. */
     public string $safetyWhen = '';
@@ -99,6 +104,19 @@ class Composer extends Component
     public function updatedBody(): void
     {
         $this->warned = false;
+        $this->hints = $this->parentId ? [] : array_filter(ComposeHints::guess($this->body));
+    }
+
+    /**
+     * Ask Claude for a better guess (the Suggest button, or a longer pause in typing).
+     */
+    public function refineHints(): void
+    {
+        if ($this->parentId || ! Auth::check() || ! RateLimiter::attempt('compose-hints:'.Auth::id(), 12, fn () => true)) {
+            return;
+        }
+
+        $this->hints = array_filter(ComposeHints::refine($this->body) ?? []) ?: $this->hints;
     }
 
     public function removePhoto(int $index): void
@@ -174,7 +192,7 @@ class Composer extends Component
             return;
         }
 
-        $this->reset('body', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'placeId', 'placeQuery', 'asBusiness', 'sponsor', 'showPlace', 'eventId', 'rating', 'snowInches', 'plowed');
+        $this->reset('body', 'hints', 'happeningAt', 'options', 'quoteId', 'warned', 'publishAt', 'photos', 'alts', 'pollHours', 'safetyWhen', 'safetyBlock', 'safetyPerson', 'placeId', 'placeQuery', 'asBusiness', 'sponsor', 'showPlace', 'eventId', 'rating', 'snowInches', 'plowed');
         $this->type = 'dispatch';
         $this->dispatch('dispatch-filed', id: $dispatch->id);
 

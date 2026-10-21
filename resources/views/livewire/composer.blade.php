@@ -34,7 +34,7 @@
             <div class="relative" x-data="mentionPicker($wire)">
                 <label for="body-{{ $this->getId() }}" class="sr-only">{{ $parentId ? 'Reply' : 'New dispatch' }}</label>
                 <textarea id="body-{{ $this->getId() }}" x-ref="input" wire:model.live.debounce.400ms="body" rows="2" maxlength="{{ config('stoop.max_length') }}"
-                    x-on:input="lookup()" x-on:keydown="keys($event)" x-on:blur="setTimeout(() => open = false, 150)"
+                    x-on:input="lookup()" x-on:keydown="keys($event)" x-on:input.debounce.2500ms="{{ ! $parentId && \App\Support\Claude::enabled() ? '$wire.refineHints()' : '' }}" x-on:blur="setTimeout(() => open = false, 150)"
                     x-on:keydown.meta.enter.prevent="$wire.file()" x-on:keydown.ctrl.enter.prevent="$wire.file()"
                     data-composer
                     placeholder="{{ $parentId ? 'Reply as a neighbor' : match ($type) {
@@ -56,6 +56,34 @@
                     </template>
                 </ul>
             </div>
+
+            @unless ($parentId)
+                {{-- Suggestions while typing: tap to use, never applied for you. --}}
+                @php
+                    $chips = array_filter([
+                        'type' => ($hints['type'] ?? null) && $hints['type'] !== $type ? $hints['type'] : null,
+                        'line' => ($hints['line'] ?? null) && $hints['line'] !== $line && ($hints['type'] ?? $type) !== 'ask' ? $hints['line'] : null,
+                        'stop' => ($hints['stop'] ?? null) && $hints['stop'] !== $stop ? $hints['stop'] : null,
+                    ]);
+                @endphp
+                @if ($chips || (\App\Support\Claude::enabled() && mb_strlen(trim($body)) >= 8))
+                    <div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-[12.5px]" aria-label="Suggestions">
+                        @if ($chips)<span class="text-mute">Suggested:</span>@endif
+                        @isset($chips['type'])
+                            <button type="button" wire:click="$set('type', '{{ $chips['type'] }}')" class="rounded-full border border-dashed border-rule px-2.5 py-0.5 hover:border-ink">{{ config("stoop.types.{$chips['type']}") }}</button>
+                        @endisset
+                        @isset($chips['line'])
+                            <button type="button" wire:click="$set('line', '{{ $chips['line'] }}')" class="inline-flex items-center gap-1 rounded-full border border-dashed border-rule px-2.5 py-0.5 hover:border-ink"><span class="size-2 rounded-full" style="background: {{ config("stoop.lines.{$chips['line']}.color") }}"></span>{{ config("stoop.lines.{$chips['line']}.name") }}</button>
+                        @endisset
+                        @isset($chips['stop'])
+                            <button type="button" wire:click="$set('stop', '{{ $chips['stop'] }}')" class="rounded-full border border-dashed border-rule px-2.5 py-0.5 hover:border-ink">{{ config("stoop.stations.{$chips['stop']}") }} ({{ $chips['stop'] }})</button>
+                        @endisset
+                        @if (\App\Support\Claude::enabled())
+                            <button type="button" wire:click="refineHints" class="ml-auto text-mute underline hover:text-ink">Suggest<span wire:loading wire:target="refineHints">…</span></button>
+                        @endif
+                    </div>
+                @endif
+            @endunless
 
             @if ($quoted)
                 <div class="mt-2 flex justify-between gap-2 border-l-3 border-rule px-2.5 py-1 text-[13px] text-mute">

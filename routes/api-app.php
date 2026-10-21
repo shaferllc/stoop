@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\App\AuthController;
 use App\Http\Controllers\Api\App\DispatchController;
 use App\Http\Controllers\Api\App\MessagesController;
+use App\Http\Controllers\Api\App\NeighborhoodController;
 use App\Http\Controllers\Api\App\PeopleController;
 use App\Http\Controllers\Api\App\QuizController;
 use App\Http\Middleware\EnsureNotBanned;
@@ -41,6 +42,10 @@ Route::prefix('app')->name('app.')->group(function () {
             Route::get('search', [PeopleController::class, 'search'])->middleware('throttle:15,1,app-search');
             Route::get('stations/{code}', [PeopleController::class, 'station'])->middleware('throttle:30,1,app-station');
             Route::get('notifications', [PeopleController::class, 'notifications'])->middleware('verified');
+
+            Route::get('stations/{code}/neighborhood', [NeighborhoodController::class, 'station'])->middleware('throttle:30,1,app-neighborhood');
+            Route::get('catch-up', [NeighborhoodController::class, 'catchUp'])->middleware('throttle:10,1,app-catch-up');
+            Route::post('compose/suggest', [NeighborhoodController::class, 'suggest'])->middleware('throttle:30,1,app-suggest');
 
             Route::get('quiz', [QuizController::class, 'show']);
             Route::post('quiz/answer', [QuizController::class, 'answer'])->middleware('throttle:30,1,app-quiz');
