@@ -47,6 +47,9 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] On the scene (Going live): YouTube, Twitch or Instagram link for 1–12 hours, red ring and marker
 - [x] House bots: @stoop answers questions (Claude when `ANTHROPIC_API_KEY` is set, knowledge-base lookup otherwise); @dc answers “hello DC”
 - [x] New accounts start out following @stoop, and @stoop follows them back
+- [x] City bots: @metro (major WMATA incidents once each, quiet 10pm–6am except closures and suspensions; “@metro next <station>”), @bikeshare, @weather (morning forecast, NWS alerts, Snow Day suggestion to staff), @cherry (NPS bloom stages in season, links an open Peak Bloom contest, asks staff to settle it at peak), @311 (request-type guide and a Sunday summary near busy stops)
+- [ ] @cherry parses the NPS Bloom Watch page’s table; switch to a feed if NPS publishes one
+- [ ] @311’s weekly summary uses a fixed list of busy stops; rank by ridership or Stoop activity if it matters
 
 ## Notifications
 - [x] Replies, quotes, mentions, follows and moderation outcomes

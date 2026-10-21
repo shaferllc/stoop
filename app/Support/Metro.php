@@ -14,7 +14,7 @@ class Metro
     protected const LINE_KEYS = ['RD' => 'red', 'OR' => 'orange', 'BL' => 'blue', 'GR' => 'green', 'YL' => 'yellow', 'SV' => 'silver'];
 
     /**
-     * @return array<int, array{line: string, message: string}>|null Null when no key is set or WMATA is unreachable.
+     * @return array<int, array{id: string, line: string, message: string}>|null Null when no key is set or WMATA is unreachable.
      */
     public static function incidents(): ?array
     {
@@ -31,7 +31,7 @@ class Metro
             }
 
             return collect($incidents)->flatMap(fn ($i) => collect(preg_split('/[;\s]+/', (string) $i['LinesAffected'], -1, PREG_SPLIT_NO_EMPTY))
-                ->map(fn ($code) => ['line' => self::LINE_KEYS[$code] ?? null, 'message' => (string) $i['Description']]))
+                ->map(fn ($code) => ['id' => (string) ($i['IncidentID'] ?? md5((string) $i['Description'])), 'line' => self::LINE_KEYS[$code] ?? null, 'message' => (string) $i['Description']]))
                 ->filter(fn ($i) => $i['line'])->values()->all();
         });
     }

@@ -27,6 +27,34 @@ class Stations
         return config("metro.stations.$code.1");
     }
 
+    /**
+     * The station some text names, by code ("A03", "C01") or name ("dupont", "Columbia Heights",
+     * "Gallery Pl-Chinatown"). Picks the first name mentioned, then the longest. Null if none.
+     */
+    public static function find(string $text): ?string
+    {
+        $code = strtoupper(trim($text));
+        if (config("metro.stations.$code")) {
+            return $code;
+        }
+        if ($alias = config("metro.aliases.$code")) {
+            return $alias;
+        }
+
+        $plain = fn (string $s) => ' '.trim(preg_replace(
+            ['/[’\']/u', '/[^a-z0-9]+/', '/\bsquare\b/', '/\bheights\b/', '/\bavenue\b/', '/\bstreet\b/', '/\broad\b/', '/\bmount\b/', '/\bplace\b/'],
+            ['', ' ', 'sq', 'hts', 'ave', 'st', 'rd', 'mt', 'pl'],
+            mb_strtolower($s),
+        )).' ';
+        $haystack = $plain($text);
+        $names = collect(config('metro.stations'))->map(fn ($station) => $plain($station[0]));
+
+        $match = $names->map(fn ($name) => strpos($haystack, $name))->filter(fn ($at) => $at !== false)
+            ->sortBy(fn ($at, $c) => [$at, -strlen($names[$c])])->keys()->first();
+
+        return $match ?? (strlen(trim($haystack)) >= 3 ? $names->search(fn ($name) => str_starts_with($name, $haystack)) ?: null : null);
+    }
+
     public static function eastOfTheRiver(string $code): bool
     {
         return config("metro.stations.$code.2") === 'east';
