@@ -28,6 +28,7 @@
                         'mention' => 'mentioned you',
                         'best' => 'picked your reply as the Best Answer',
                         'follow' => 'followed you',
+                        'update' => 'posted an update to an article you joined in on',
                         'moderation' => $data['message'] ?? 'A moderator reviewed your dispatch',
                         'author' => 'posted a new story by '.($data['author'] ?? 'a writer you follow'),
                         'quote_request' => 'asked to quote your dispatch in a '.config('stoop.magazine_name').' story',

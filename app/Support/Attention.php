@@ -6,6 +6,7 @@ use App\Models\Appeal;
 use App\Models\Dispatch;
 use App\Models\MessageReport;
 use App\Models\PlaceClaim;
+use App\Models\Tip;
 
 /**
  * What staff need to look at, for the admin overview and the desktop app's badge.
@@ -22,6 +23,7 @@ class Attention
             'appeals' => ['label' => 'Open appeals', 'count' => Appeal::where('status', 'open')->count(), 'url' => route('moderation', ['view' => 'appeals'])],
             'messages' => ['label' => 'Reported messages', 'count' => MessageReport::whereNull('resolved_at')->distinct()->count('message_id'), 'url' => route('moderation', ['view' => 'messages'])],
             'bans' => ['label' => 'Accounts with 4+ strikes to review for a ban', 'count' => Strikes::banCandidates()->count(), 'url' => route('admin.users', ['filter' => 'ban_review'])],
+            'tips' => ['label' => 'New tips to the newsroom', 'count' => Tip::where('status', 'new')->count(), 'url' => route('admin.tips')],
             'claims' => ['label' => 'Place claims to check', 'count' => PlaceClaim::where('status', 'pending')->count(), 'url' => route('admin.places', ['tab' => 'claims'])],
         ];
     }

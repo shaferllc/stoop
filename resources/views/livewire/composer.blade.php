@@ -179,6 +179,10 @@
                 <input wire:model="sponsor" maxlength="120" placeholder="Sponsored by (leave empty if not sponsored)" aria-label="Sponsor" class="mt-2 w-full rounded-md border border-rule bg-paper px-2.5 py-1.5 text-sm">
             @endif
 
+            @if ($replyingToCallout)
+                <label class="mt-2 flex items-center gap-2 text-[13px] text-mute"><input type="checkbox" wire:model="quoteOk"> The newsroom may quote this reply in a story.</label>
+            @endif
+
             @if ($type === 'safety' && ! $parentId)
                 <div class="mt-2 space-y-1.5 rounded-lg border border-rule bg-paper p-2.5 text-sm">
                     <p class="text-[13px] text-mute">Say what happened, where and when. If you describe a person, describe clothing, height, a vehicle or what they did. Race or gender alone isn’t allowed.</p>

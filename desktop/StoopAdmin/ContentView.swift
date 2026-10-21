@@ -44,6 +44,8 @@ struct ContentView: View {
                         case .spam: SpamView()
                         case .bots: BotsView()
                         case .roles: RolesView()
+                        case .radar: RadarView()
+                        case .tips: TipsView()
                         }
                         }
                         .navigationDestination(for: Person.self) { PersonView(id: $0.id) }

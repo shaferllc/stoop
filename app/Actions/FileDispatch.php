@@ -48,7 +48,7 @@ class FileDispatch
         $input = [
             'type' => 'dispatch', 'body' => '', 'line' => 'red', 'stop' => null, 'happeningAt' => '',
             'options' => [], 'pollHours' => 24, 'publishAt' => '', 'photos' => [], 'alts' => [],
-            'safetyWhen' => '', 'safetyBlock' => '', 'safetyPerson' => '', 'parentId' => null, 'quoteId' => null, 'placeId' => null, 'asBusiness' => false, 'sponsor' => '', 'eventId' => null, 'rating' => null, 'snowInches' => null, 'plowed' => null, 'openHouse' => [], 'happeningStarts' => '', 'lostKind' => null, 'lostStatus' => null,
+            'safetyWhen' => '', 'safetyBlock' => '', 'safetyPerson' => '', 'parentId' => null, 'quoteId' => null, 'placeId' => null, 'asBusiness' => false, 'sponsor' => '', 'eventId' => null, 'rating' => null, 'snowInches' => null, 'plowed' => null, 'openHouse' => [], 'happeningStarts' => '', 'lostKind' => null, 'lostStatus' => null, 'quoteOk' => false,
             ...array_filter($input, fn ($v) => $v !== null),
         ];
         $input['body'] = trim((string) $input['body']);
@@ -183,6 +183,8 @@ class FileDispatch
             'plowed' => $type === 'snow' ? $input['plowed'] : null,
             'lost_kind' => $type === 'lost' ? $input['lostKind'] : null,
             'lost_status' => $type === 'lost' ? $input['lostStatus'] : null,
+            // A reply to a newsroom callout that the newsroom may quote in a story.
+            'quote_ok' => $parent?->type === 'callout' && $input['quoteOk'] ? true : null,
         ], fn ($v) => $v !== null) + ($type === 'openhouse' ? $openHouse : []);
 
         // The calendar start time is typed in DC time.

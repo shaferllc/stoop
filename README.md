@@ -64,6 +64,15 @@ Each bot is one class in `app/Bots`, found automatically, with its scheduled pos
 
 Staff have roles: moderator, editor, sales and admin (admin does everything; existing staff became admins). Admins set them in Admin → Roles. Admin → Spam lists suspected spam rings (`php artisan stoop:detect-spam`, also every 10 minutes); Admin → Bots reviews the house bots and edits @stoop’s knowledge base; Admin → Activity shows a live feed and 30-day charts. Admins get a daily email when moderation items wait more than a day (`stoop:admin-digest`). Throwaway email domains and the risk score that holds a new account’s first posts are in `config/stoop.php`.
 
+## Newsroom tools
+
+Staff find these under Admin → Tips, Radar, Call-outs, Archive and Issues; Radar and Tips are also in the Stoop Admin Mac app.
+
+- Readers send private tips from the footer or a dispatch’s … menu; editors reply in Stoop messages only if the tipster allowed it.
+- Radar compares the last 7 days with the 4 weeks before. With `ANTHROPIC_API_KEY`, each trend can get a Claude story idea.
+- Archive stories are imported as CSV (`title,url,date,section,stations,neighborhoods,description`) and tagged to stations by name and the alias list. Station pages show three of them.
+- When a feed article changes, or an editor posts a correction, @magazine replies in its thread and everyone who joined in is notified once.
+
 ## Tests
 
 ```

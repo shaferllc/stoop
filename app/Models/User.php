@@ -126,6 +126,8 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
                 $message->delete();
             });
 
+            Tip::where('user_id', $user->id)->each(fn (Tip $tip) => Storage::disk('local')->delete($tip->photos ?? []));
+
             $user->notifications()->delete();
             $user->tokens()->delete();
             DB::table('notifications')->where('data->actor_id', $user->id)->delete();

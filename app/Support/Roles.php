@@ -19,7 +19,7 @@ class Roles
     /** Web admin pages by route name. Missing means any staff role. */
     public const PAGES = [
         'admin.users' => 'moderator', 'moderation' => 'moderator', 'admin.spam' => 'moderator', 'admin.moderation-insights' => 'moderator',
-        'admin.content' => 'editor', 'admin.quiz' => 'editor', 'admin.moments' => 'editor', 'admin.bots' => 'editor', 'admin.magazine' => 'editor', 'admin.history' => 'editor', 'admin.editorial' => 'editor', 'admin.anc' => 'editor', 'admin.hunts' => 'editor', 'admin.readers-picks' => 'editor',
+        'admin.content' => 'editor', 'admin.quiz' => 'editor', 'admin.moments' => 'editor', 'admin.bots' => 'editor', 'admin.magazine' => 'editor', 'admin.history' => 'editor', 'admin.editorial' => 'editor', 'admin.anc' => 'editor', 'admin.tips' => 'editor', 'admin.radar' => 'editor', 'admin.callouts' => 'editor', 'admin.archive' => 'editor', 'admin.issues' => 'editor', 'admin.hunts' => 'editor', 'admin.readers-picks' => 'editor',
         'admin.places' => 'sales', 'admin.sponsorships' => 'sales', 'admin.real-estate' => 'sales', 'admin.insights' => 'sales', 'admin.insights.csv' => 'sales', 'admin.insights.print' => 'sales',
         'admin.roles' => 'admin',
     ];
@@ -28,7 +28,7 @@ class Roles
     public const API = [
         'queue' => 'moderator', 'dispatches/' => 'moderator', 'appeals' => 'moderator', 'message-reports' => 'moderator',
         'penalties' => 'moderator', 'users' => 'moderator', 'spam-clusters' => 'moderator', 'ai/' => 'moderator',
-        'bots/' => 'editor',
+        'bots/' => 'editor', 'radar' => 'editor', 'tips' => 'editor', 'editors' => 'editor', 'callouts' => 'editor',
         'health' => 'admin', 'maintenance/' => 'admin', 'log' => 'admin', 'failed-jobs' => 'admin', 'roles' => 'admin',
     ];
 

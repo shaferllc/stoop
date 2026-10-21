@@ -145,6 +145,7 @@ class DispatchController extends Controller
                 'happeningStarts' => (string) $request->input('happening_starts', ''),
                 'lostKind' => $request->input('lost_kind'),
                 'lostStatus' => $request->input('lost_status'),
+                'quoteOk' => $request->boolean('quote_ok'),
             ], confirmed: $request->boolean('confirm'));
         } catch (NudgeRequired) {
             $message = 'That reads as a personal attack. Would you say it to a neighbor?';

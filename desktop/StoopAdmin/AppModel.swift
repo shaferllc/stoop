@@ -4,6 +4,8 @@ import UserNotifications
 
 enum Section: String, CaseIterable, Identifiable {
     case overview, activity, queue, appeals, messages, penalties, people, spam, bots, insights, maintenance, roles, audit
+    // Newsroom
+    case radar, tips
     var id: String { rawValue }
 
     var title: String {
@@ -21,6 +23,8 @@ enum Section: String, CaseIterable, Identifiable {
         case .spam: "Spam"
         case .bots: "House Bots"
         case .roles: "Roles"
+        case .radar: "Radar"
+        case .tips: "Tips"
         }
     }
 
@@ -39,6 +43,8 @@ enum Section: String, CaseIterable, Identifiable {
         case .spam: "exclamationmark.shield"
         case .bots: "bubble.left.and.text.bubble.right"
         case .roles: "person.badge.key"
+        case .radar: "dot.radiowaves.left.and.right"
+        case .tips: "envelope.badge"
         }
     }
 
@@ -49,6 +55,7 @@ enum Section: String, CaseIterable, Identifiable {
         case .appeals: "appeals"
         case .messages: "messages"
         case .people: "bans"
+        case .tips: "tips"
         default: nil
         }
     }
@@ -144,6 +151,7 @@ final class AppModel {
         case "appeals": .appeals
         case "messages": .messages
         case "bans": .people
+        case "tips": .tips
         case "claims": .overview
         default: .queue
         }
