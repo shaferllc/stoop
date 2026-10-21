@@ -16,6 +16,8 @@ composer run dev
 
 For a full month of sample activity on top of that (about 60 neighbors, hundreds of posts and replies, places, passports, polls, quizzes, rivalries, events, game picks, messages and a moderation queue), run `php artisan db:seed --class=DemoCitySeeder`. It adds to the database without wiping it, and every sample person logs in with the password `password`.
 
+To show off everything at once, run `php artisan db:seed --class=ShowcaseSeeder` after that: about 40 more neighbors (two editors, a moderator and a sales staffer), a fresh week on every line, the house bots, happenings, lost & found, open houses, the games, the newsroom tools, a moderation queue with a spam ring and an appeal, and new notifications for `@tshafer`. It adds to the database, runs only once (the `showcase_seeded_at` site setting) and takes a few seconds.
+
 Seeded logins (password `password`): `demo@example.com` (regular user) and `food@example.com` (staff, can open `/moderation` and `/operations`). All seeded people and posts are sample data.
 
 `composer run dev` starts everything: the web server, queue, Vite, the Reverb server for real-time updates, and the scheduler (scheduled posts, article import, the weekly email).
