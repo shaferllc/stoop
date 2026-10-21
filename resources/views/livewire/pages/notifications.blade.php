@@ -29,8 +29,12 @@
                         'best' => 'picked your reply as the Best Answer',
                         'follow' => 'followed you',
                         'moderation' => $data['message'] ?? 'A moderator reviewed your dispatch',
+<<<<<<< HEAD
                         'author' => 'posted a new story by '.($data['author'] ?? 'a writer you follow'),
                         'quote_request' => 'asked to quote your dispatch in a '.config('stoop.magazine_name').' story',
+=======
+                        'welcome' => 'says welcome to Stoop',
+>>>>>>> worktree-agent-a4ea324e96877cacd
                         default => 'did something',
                     } }}</span>
                     <span class="text-mute">· {{ $group['latest']->created_at->shortAbsoluteDiffForHumans() }}</span>
@@ -45,6 +49,17 @@
                             @endif
                         @endforeach
                     </div>
+                @elseif ($group['kind'] === 'welcome')
+                    <ul class="mt-1 list-disc pl-5 text-mute">
+                        @foreach ($data['tips'] ?? [] as $tip)<li>{{ $tip }}</li>@endforeach
+                    </ul>
+                    @if ($data['people'] ?? [])
+                        <div class="mt-1.5 flex flex-wrap gap-2">
+                            @foreach ($data['people'] as $username)
+                                <a href="{{ url('@'.$username) }}" wire:navigate class="rounded-full border border-rule px-2.5 py-0.5 text-[12.5px] font-semibold">Follow {{ '@'.$username }}</a>
+                            @endforeach
+                        </div>
+                    @endif
                 @elseif ($data['dispatch_id'] ?? null)
                     <a href="{{ route('dispatches.show', $data['dispatch_id']) }}" wire:navigate class="mt-1 block text-mute hover:text-ink">{{ $data['excerpt'] }}</a>
                 @endif

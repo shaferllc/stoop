@@ -48,6 +48,7 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] House bots: @stoop answers questions (Claude when `ANTHROPIC_API_KEY` is set, knowledge-base lookup otherwise); @dc answers “hello DC”
 - [x] New accounts start out following @stoop, and @stoop follows them back
 <<<<<<< HEAD
+<<<<<<< HEAD
 - [x] @eats (place picks from the magazine’s lists), @weekend (Friday round-up with editors’ picks), @history (On this day in DC, staff-edited at Admin → History), @quizmaster (The Daily, streak leaders, cheers for shared results)
 - [ ] Editors: check the seeded @history entries (marked VERIFY) so they start posting
 - [ ] A public-stats opt-out for the quiz streak leaderboard (everyone who plays is listed now, by username)
@@ -57,6 +58,15 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [ ] @cherry parses the NPS Bloom Watch page’s table; switch to a feed if NPS publishes one
 - [ ] @311’s weekly summary uses a fixed list of busy stops; rank by ridership or Stoop activity if it matters
 >>>>>>> worktree-agent-ad66da2e7879c6f34
+=======
+- [x] @ask: every 30 minutes, replies once to Ask DC questions 2–24 hours old with no replies, linking up to 3 similar answered questions (full-text index); Claude writes one framing sentence when a key is set; skips safety and medical questions and anything without a close match
+- [x] @welcome: one in-app welcome notification per new account (on its first post, or the 5-minute sweep after it accepts the rules) with 3 tips for its home stops and 3 active neighbors to follow; recorded in `bot_welcomes`
+- [x] @recap: Sundays 9:00 DC time, “Your stop this week” for the 5 busiest stops with the 3 best approved dispatches (replies plus half-smokes) and the stop’s mayor
+- [x] @translate: reply “@translate [to Spanish]” in a thread to translate the parent dispatch (any `Translator::LANGUAGES` language; defaults to your translation language)
+- [x] @calm: one neutral reminder on a pile-on-flagged thread once its reply pause ends; never acts, once per thread
+- [ ] @ask: search by meaning (embeddings) instead of shared keywords
+- [ ] Reserve bot usernames (ask, welcome, recap, translate, calm) at sign-up: `Bots::account` returns an existing person with that username
+>>>>>>> worktree-agent-a4ea324e96877cacd
 
 ## Notifications
 - [x] Replies, quotes, mentions, follows and moderation outcomes
