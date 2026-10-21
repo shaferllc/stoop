@@ -18,6 +18,8 @@ Route::post('subscriptions', SubscriptionWebhookController::class)->middleware('
 // Posting with a personal token from Settings → Terminal & API...
 Route::post('dispatches', [DispatchController::class, 'store'])->middleware(['auth:sanctum', 'throttle:20,1,api-post']);
 
+require __DIR__.'/api-embed.php';
+
 require __DIR__.'/api-admin.php';
 
 require __DIR__.'/api-app.php';

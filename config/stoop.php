@@ -56,6 +56,9 @@ return [
     'magazine_account' => env('STOOP_MAGAZINE_ACCOUNT', 'magazine'),
     'magazine_name' => env('STOOP_MAGAZINE_NAME', 'From the Magazine'),
 
+    // Sites allowed to call the embed APIs from the browser (neighborhood, place, quote, poll, byline boxes).
+    'magazine_origins' => array_filter(explode(',', (string) env('STOOP_MAGAZINE_ORIGINS', 'https://www.washingtonian.com,https://washingtonian.com'))),
+
     // Mark new accounts as verified on sign-up, skipping the email link.
     'auto_verify' => env('STOOP_AUTO_VERIFY', true),
 

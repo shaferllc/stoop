@@ -5,6 +5,7 @@ use App\Http\Controllers\FeedController;
 use App\Http\Controllers\TransparencyController;
 use App\Livewire\Admin;
 use App\Livewire\Pages\AppealCreate;
+use App\Livewire\Pages\AuthorShow;
 use App\Livewire\Pages\ContestShow;
 use App\Livewire\Pages\ConversationView;
 use App\Livewire\Pages\EventShow;
@@ -26,9 +27,11 @@ use App\Models\Contest;
 use App\Models\Dispatch;
 use App\Models\Game;
 use App\Models\MessageImage;
+use App\Models\QuoteRequest;
 use App\Models\Sponsorship;
 use App\Models\User;
 use App\Support\Newsletter;
+use App\Support\QuoteRequests;
 use App\Support\RidershipGraph;
 use App\Support\Rivalries;
 use App\Support\Settings;
@@ -52,6 +55,7 @@ Route::livewire('places', PlacesIndex::class)->name('places');
 Route::livewire('passports', PassportsPage::class)->name('passports');
 Route::livewire('daily', Quiz::class)->name('quiz');
 Route::livewire('places/{place}', PlaceShow::class)->name('places.show');
+Route::livewire('authors/{author:slug}', AuthorShow::class)->name('authors.show');
 
 // Sponsored placements count a click, then send people on to the sponsor.
 Route::get('s/{sponsorship}', function (Sponsorship $sponsorship) {
@@ -149,7 +153,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('audit', Admin\AuditLog::class)->name('.audit');
         Route::livewire('quiz', Admin\QuizQuestions::class)->name('.quiz');
         Route::livewire('moments', Admin\Moments::class)->name('.moments');
+        Route::livewire('magazine', Admin\Magazine::class)->name('.magazine');
     });
+    // A dispatch author answers an editor's request to quote it (from Notifications).
+    Route::post('quote-requests/{quoteRequest}/{answer}', function (QuoteRequest $quoteRequest, string $answer) {
+        QuoteRequests::decide(auth()->user(), $quoteRequest, $answer === 'allow');
+
+        return back();
+    })->whereIn('answer', ['allow', 'decline'])->middleware('throttle:20,1')->name('quote-requests.answer');
     Route::get('settings/export', ExportController::class)->middleware('throttle:5,1')->name('export');
     // Push notification sign-ups from a browser or the installed app...
     Route::post('push/subscriptions', function (Request $request) {

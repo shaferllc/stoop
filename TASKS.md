@@ -110,6 +110,12 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [x] Discussion embed for article pages (`<div data-stoop-discussion></div>` + `/embed.js`), with “Join the conversation” prefilling the composer
 - [x] Subscription webhook from the magazine’s system (`POST /api/subscriptions`, HMAC-signed); applies to people who sign up later too
 - [x] Weekly email: best dispatches, poll results, Talk of the Town, where people went; opt-in, one-click unsubscribe, admin preview and test send
+- [x] Neighborhood and place boxes for articles (`data-stoop-neighborhood`, `data-stoop-place`), from a cached, throttled JSON API open only to the magazine's origins
+- [x] Reader quotes: editors request, authors allow or decline (14-day expiry), quote card embed and oEmbed-style JSON, consent log
+- [x] Reader polls for articles, posted by @magazine, with live results in the embed (voting links out to Stoop)
+- [x] Writers from article bylines: author pages with discussion counts, follow for new-story notifications, byline embed, “By …” credit on @magazine posts, staff-editable title/photo/linked account, backfill command
+- [ ] Run `php artisan stoop:backfill-authors` once in production
+- [ ] Check the real feed's byline format (`dc:creator`) and article pages' `<meta name="author">` against the parser
 - [ ] Point `STOOP_MAGAZINE_FEED` and the subscription system at the real ones
 - [ ] Push notifications and the installable app need HTTPS; try them once the site is served over HTTPS
 

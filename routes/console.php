@@ -53,6 +53,10 @@ Artisan::command('stoop:import-articles', function () {
     $this->info('Posted '.Magazine::import().' new articles.');
 })->purpose('Post new magazine articles from the site feed');
 
+Artisan::command('stoop:backfill-authors', function () {
+    $this->info('Credited writers on '.Magazine::backfillAuthors().' articles.');
+})->purpose('Credit writers on articles imported before bylines were stored');
+
 Artisan::command('stoop:send-newsletter {--to= : Send one copy to this email instead of every subscriber}', function () {
     $digest = Newsletter::digest();
     if ($to = $this->option('to')) {

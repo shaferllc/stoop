@@ -33,12 +33,21 @@ Optional settings in `.env`:
 - `STOOP_MODEL_MODERATION=false`: turn off the Claude check on new posts while keeping the bot and translation. The model defaults to `claude-opus-5-5`; `STOOP_MODERATION_MODEL` changes it.
 - `STOOP_AUTO_VERIFY=false`: require the email link again.
 
-Embed on magazine article pages:
+- `STOOP_MAGAZINE_ORIGINS`: comma-separated sites allowed to call the embed APIs from a browser (default `https://www.washingtonian.com,https://washingtonian.com`).
+
+Embeds for magazine article pages (any combination, one script):
 
 ```html
-<div data-stoop-discussion></div>
+<div data-stoop-discussion></div>               <!-- neighbors talking about this article -->
+<div data-stoop-neighborhood="E02"></div>       <!-- what neighbors at a Metro stop are saying -->
+<div data-stoop-place="le-diplomate"></div>     <!-- Been here count and recent check-ins (slug or id) -->
+<div data-stoop-quote="12"></div>               <!-- a reader quote its author allowed -->
+<div data-stoop-poll="345"></div>               <!-- live results of a reader poll -->
+<div data-stoop-byline="ann-limpert"></div>     <!-- a writer's byline with a follow link -->
 <script src="https://stoop.test/embed.js" async></script>
 ```
+
+The boxes read public JSON from `/api/embed/*` (cached, throttled, no cookies or tracking). Editors post reader polls and manage writers and quote requests in Admin → Magazine; “Request to quote” is in the … menu on any dispatch, and the author allows or declines from Notifications (every step is kept in `quote_consents`). Writers are made from the bylines (`dc:creator` or Atom `author`) of imported articles and have pages at `/authors/{slug}` that readers can follow. `php artisan stoop:backfill-authors` credits writers on articles imported before bylines were stored.
 
 ## Tests
 

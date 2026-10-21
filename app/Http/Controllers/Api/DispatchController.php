@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\DispatchResource;
 use App\Models\Dispatch;
 use App\Models\User;
+use App\Support\Magazine;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -61,19 +62,13 @@ class DispatchController extends Controller
         $request->validate(['url' => ['required', 'url', 'max:2048']]);
         $url = $request->query('url');
 
-        $query = Dispatch::visibleTo(null)
-            ->whereHas('linkPreview', fn ($q) => $q->where('url_hash', hash('sha256', $url)));
-        $ids = (clone $query)->pluck('id');
-
         // Replies under posts that share the article count as part of the conversation.
-        $latest = Dispatch::visibleTo(null)->with('user')
-            ->where(fn ($q) => $q->whereIn('id', $ids)->orWhereIn('parent_id', $ids))
-            ->latest()->take(3)->get()
+        $latest = Magazine::discussion($url)->with('user')->latest()->take(3)->get()
             ->map(fn ($d) => ['body' => $d->body, 'author' => $d->user?->username, 'url' => route('dispatches.show', $d), 'at' => $d->created_at->toIso8601String()]);
 
         return response()->json([
             'url' => $url,
-            'count' => Dispatch::visibleTo(null)->where(fn ($q) => $q->whereIn('id', $ids)->orWhereIn('parent_id', $ids))->count(),
+            'count' => Magazine::discussion($url)->count(),
             'latest' => $latest,
             'join' => route('home', ['share' => $url]),
         ])->header('Access-Control-Allow-Origin', '*')->header('Cache-Control', 'public, max-age=60');

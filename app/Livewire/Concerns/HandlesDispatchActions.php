@@ -6,6 +6,7 @@ use App\Actions\DispatchActions;
 use App\Models\Dispatch;
 use App\Models\User;
 use App\Notifications\StoopActivity;
+use App\Support\QuoteRequests;
 use App\Support\Translator;
 use Flux\Flux;
 use Illuminate\Support\Collection;
@@ -252,6 +253,16 @@ trait HandlesDispatchActions
     public function showOriginal(int $id): void
     {
         unset($this->translations[$id]);
+    }
+
+    /**
+     * Editors ask the author before quoting a dispatch in a story.
+     */
+    public function requestQuote(int $id): void
+    {
+        if ($user = $this->actor()) {
+            Flux::toast(QuoteRequests::request($user, $this->findVisible($id)) ?? 'Asked. You’ll see the answer in Admin → Magazine.');
+        }
     }
 
     public function quote(int $id): void

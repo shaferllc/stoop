@@ -29,6 +29,8 @@
                         'best' => 'picked your reply as the Best Answer',
                         'follow' => 'followed you',
                         'moderation' => $data['message'] ?? 'A moderator reviewed your dispatch',
+                        'author' => 'posted a new story by '.($data['author'] ?? 'a writer you follow'),
+                        'quote_request' => 'asked to quote your dispatch in a '.config('stoop.magazine_name').' story',
                         default => 'did something',
                     } }}</span>
                     <span class="text-mute">· {{ $group['latest']->created_at->shortAbsoluteDiffForHumans() }}</span>
@@ -45,6 +47,21 @@
                     </div>
                 @elseif ($data['dispatch_id'] ?? null)
                     <a href="{{ route('dispatches.show', $data['dispatch_id']) }}" wire:navigate class="mt-1 block text-mute hover:text-ink">{{ $data['excerpt'] }}</a>
+                @endif
+
+                @if ($group['kind'] === 'quote_request' && ($request = \App\Models\QuoteRequest::find($data['quote_request_id'] ?? 0)))
+                    <div class="mt-1.5 flex flex-wrap items-center gap-2 text-[12.5px]">
+                        @if ($request->state() === 'pending')
+                            <span class="text-mute">Your name and words would appear in the story. Expires {{ $request->expires_at->toFormattedDateString() }}.</span>
+                            <form method="POST" action="{{ route('quote-requests.answer', [$request, 'allow']) }}">@csrf<button class="rounded-full bg-flag px-2.5 py-0.5 font-semibold text-white">Allow</button></form>
+                            <form method="POST" action="{{ route('quote-requests.answer', [$request, 'decline']) }}">@csrf<button class="rounded-full border border-rule px-2.5 py-0.5 font-semibold">Decline</button></form>
+                        @elseif ($request->state() === 'allowed')
+                            <span class="text-mute">You allowed this.</span>
+                            <form method="POST" action="{{ route('quote-requests.answer', [$request, 'decline']) }}">@csrf<button class="rounded-full border border-rule px-2.5 py-0.5 font-semibold">Withdraw permission</button></form>
+                        @else
+                            <span class="text-mute">{{ $request->state() === 'expired' ? 'This request expired.' : 'You declined.' }}</span>
+                        @endif
+                    </div>
                 @endif
             </li>
         @empty

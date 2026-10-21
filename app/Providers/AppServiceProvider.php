@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Support\Live;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\DevCommands;
+use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +32,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
 
+        // The magazine embed APIs answer only the magazine's own sites (see EmbedController), not every origin.
+        HandleCors::skipWhen(fn ($request) => $request->is('api/embed/*'));
+
         // `composer run dev` also starts the Reverb server and the scheduler.
         if ($this->app->runningInConsole()) {
             DevCommands::artisan('reverb:start', 'reverb');
@@ -54,6 +58,8 @@ class AppServiceProvider extends ServiceProvider
                 'best' => "$who picked your Best Answer",
                 'quote' => "$who quoted you",
                 'follow' => "$who followed you",
+                'author' => 'New story by '.($data['author'] ?? 'a writer you follow'),
+                'quote_request' => "$who asked to quote you in a story",
                 default => 'Stoop',
             }, $data['message'] ?? $data['excerpt'] ?? '', $data['dispatch_id'] ?? null ? route('dispatches.show', $data['dispatch_id']) : route('notifications'));
         });

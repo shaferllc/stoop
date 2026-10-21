@@ -3,7 +3,11 @@
 namespace App\Support;
 
 use App\Actions\FileDispatch;
+use App\Models\Author;
+use App\Models\Dispatch;
 use App\Models\User;
+use App\Notifications\MagazineActivity;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -114,7 +118,7 @@ class Magazine
                 'line' => self::SECTIONS[strtolower($category)] ?? self::lineFor($title),
             ], confirmed: true), null, false);
 
-            DB::table('articles')->insert([
+            $articleId = DB::table('articles')->insertGetId([
                 'guid_hash' => hash('sha256', $guid),
                 'url' => Str::limit($link, 500, ''),
                 'title' => Str::limit($title, 300, ''),
@@ -125,10 +129,124 @@ class Magazine
                 'updated_at' => now(),
             ]);
 
+            $authors = self::credit($articleId, self::bylines($item));
+            if ($dispatch) {
+                self::notifyFollowers($authors, $dispatch);
+            }
+
             $posted += $dispatch ? 1 : 0;
         }
 
         return $posted;
+    }
+
+    /**
+     * Byline names from an RSS item (one or more dc:creator, each possibly "A and B")
+     * or an Atom entry (author/name).
+     *
+     * @return array<int, string>
+     */
+    public static function bylines(SimpleXMLElement $item): array
+    {
+        $names = [];
+        foreach ($item->children('http://purl.org/dc/elements/1.1/')->creator as $creator) {
+            $names[] = (string) $creator;
+        }
+        foreach ($item->author ?? [] as $author) {
+            $names[] = (string) ($author->name ?? '') ?: (string) $author;
+        }
+
+        return self::names($names);
+    }
+
+    /**
+     * Clean byline strings into separate names: splits "A, B and C", drops "By " and email addresses.
+     *
+     * @param  array<int, string>  $raw
+     * @return array<int, string>
+     */
+    public static function names(array $raw): array
+    {
+        return collect($raw)
+            ->flatMap(fn ($name) => preg_split('/\s*(?:,|&|\band\b)\s*/i', html_entity_decode(strip_tags($name), ENT_QUOTES | ENT_HTML5)))
+            ->map(fn ($name) => trim((string) preg_replace('/^by\s+/i', '', trim($name))))
+            // RSS <author> is often an email address; never show one.
+            ->filter(fn ($name) => $name !== '' && ! str_contains($name, '@') && mb_strlen($name) <= 120)
+            ->unique(fn ($name) => Str::slug($name))->values()->all();
+    }
+
+    /**
+     * Attach writers to an article, creating any we haven't seen. Returns the writers.
+     *
+     * @param  array<int, string>  $names
+     * @return array<int, Author>
+     */
+    public static function credit(int $articleId, array $names): array
+    {
+        $authors = array_values(array_filter(array_map(fn ($name) => Author::forName($name), $names)));
+        foreach ($authors as $i => $author) {
+            DB::table('article_author')->insertOrIgnore(['article_id' => $articleId, 'author_id' => $author->id, 'position' => $i]);
+        }
+
+        return $authors;
+    }
+
+    /**
+     * Tell readers who follow a writer that their new article is up (once each, even with co-authors).
+     *
+     * @param  array<int, Author>  $authors
+     */
+    protected static function notifyFollowers(array $authors, Dispatch $dispatch): void
+    {
+        $notified = [];
+        foreach ($authors as $author) {
+            $author->followers()->whereNotIn('users.id', $notified)->each(function (User $user) use ($author, $dispatch, &$notified) {
+                $user->notify(new MagazineActivity('author', $dispatch->user, $dispatch, ['author' => $author->name, 'author_slug' => $author->slug]));
+                $notified[] = $user->id;
+            });
+        }
+    }
+
+    /**
+     * Credit writers on articles imported before bylines were stored: first from the current
+     * feed, then from each remaining article page's author meta tag. Nobody is notified.
+     */
+    public static function backfillAuthors(): int
+    {
+        $missing = fn () => DB::table('articles')->whereNotExists(fn ($q) => $q->from('article_author')->whereColumn('article_author.article_id', 'articles.id'));
+        $credited = 0;
+
+        if ($url = config('stoop.magazine_feed')) {
+            $xml = rescue(fn () => new SimpleXMLElement(Http::timeout(10)->get($url)->throw()->body(), LIBXML_NONET | LIBXML_NOCDATA), null, false);
+            foreach ($xml ? ($xml->channel->item ?? $xml->entry ?? []) : [] as $item) {
+                $guid = (string) ($item->guid ?? $item->id ?? ($item->link['href'] ?? $item->link));
+                $id = $missing()->where('guid_hash', hash('sha256', $guid))->value('id');
+                $credited += $id && self::credit($id, self::bylines($item)) ? 1 : 0;
+            }
+        }
+
+        foreach ($missing()->get(['id', 'url']) as $article) {
+            $html = rescue(fn () => Http::timeout(10)->get($article->url)->throw()->body(), '', false);
+            // ponytail: one regex for <meta name="author">; read JSON-LD if the site drops the tag
+            if (preg_match('/<meta[^>]+name=["\']author["\'][^>]+content=["\']([^"\']+)["\']/i', $html, $m)) {
+                $credited += self::credit($article->id, self::names([$m[1]])) ? 1 : 0;
+            }
+        }
+
+        return $credited;
+    }
+
+    /**
+     * Visible dispatches linking to an article, plus the replies under them: the conversation
+     * the discussion embed counts.
+     *
+     * @return Builder<Dispatch>
+     */
+    public static function discussion(string $url): Builder
+    {
+        $ids = Dispatch::visibleTo(null)->whereHas('linkPreview', fn ($q) => $q->where('url_hash', hash('sha256', $url)))->pluck('id');
+
+        return Dispatch::visibleTo(null)->where(fn ($q) => $q->whereIn('id', $ids)->orWhereIn('parent_id', $ids));
     }
 
     public static function lineFor(string $text): string

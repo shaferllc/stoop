@@ -90,6 +90,11 @@
         </div>
     @endif
 
+    {{-- Magazine articles credit their writers, linked to the writer's page. --}}
+    @if (! $d->parent_id && $d->user->username === config('stoop.magazine_account') && ($writers = \App\Models\Author::forDispatch($d->id))->isNotEmpty())
+        <div class="mt-1 text-[13px] text-mute sm:ml-[46px]">By @foreach ($writers as $writer)<a href="{{ $writer->url() }}" wire:navigate class="font-semibold text-ink hover:underline">{{ $writer->name }}</a>{{ $loop->remaining > 1 ? ', ' : ($loop->remaining === 1 ? ' and ' : '') }}@endforeach</div>
+    @endif
+
     @if ($d->place)
         <a href="{{ route('places.show', $d->place) }}" wire:navigate class="mt-2 flex items-center gap-2 rounded-lg border border-rule px-3 py-1.5 text-[13.5px] hover:border-ink sm:ml-[46px]">
             <b>{{ $d->place->name }}</b>
@@ -226,6 +231,9 @@
                     @endif
                     @if ($d->status === 'removed' && $d->user_id === $me->id)
                         <flux:menu.item :href="route('appeals.create', ['dispatch' => $d->id])" wire:navigate>Appeal this decision</flux:menu.item>
+                    @endif
+                    @if ($me->is_staff && $d->user_id !== $me->id && $d->status === 'approved' && ! $d->user->isHouseAccount())
+                        <flux:menu.item wire:click="requestQuote({{ $d->id }})">Request to quote</flux:menu.item>
                     @endif
                     @if ($d->user_id === $me->id || $me->is_staff)
                         <flux:menu.item wire:click="deleteDispatch({{ $d->id }})">Delete</flux:menu.item>
