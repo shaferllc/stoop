@@ -28,6 +28,7 @@ class ReferralsTest extends TestCase
         config([
             'services.anthropic.key' => null, 'services.openai.key' => null, 'stoop.model_moderation' => false,
             'referrals.providers.opentable.value' => null, 'referrals.providers.resy.value' => null,
+            'referrals.providers.tock.value' => null, 'referrals.providers.eventbrite.value' => null,
         ]);
     }
 
