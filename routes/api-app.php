@@ -29,7 +29,7 @@ Route::prefix('app')->name('app.')->group(function () {
             Route::get('saved', [DispatchController::class, 'saved'])->middleware('verified');
             Route::get('dispatches/{id}', [DispatchController::class, 'show'])->whereNumber('id');
             Route::post('dispatches', [DispatchController::class, 'store'])->middleware('throttle:20,1,app-post');
-            Route::post('dispatches/{id}/marks/{kind}', [DispatchController::class, 'mark'])->whereNumber('id')->whereIn('kind', ['save', 'been', 'going', 'mumbo'])->middleware('throttle:60,1,app-mark');
+            Route::post('dispatches/{id}/marks/{kind}', [DispatchController::class, 'mark'])->whereNumber('id')->whereIn('kind', ['save', 'been', 'going', 'interested', 'mumbo'])->middleware('throttle:60,1,app-mark');
             Route::post('dispatches/{id}/half-smoke', [DispatchController::class, 'halfSmoke'])->whereNumber('id')->middleware('throttle:30,1,app-half-smoke');
             Route::post('dispatches/{id}/vote', [DispatchController::class, 'vote'])->whereNumber('id')->middleware('throttle:30,1,app-vote');
             Route::post('dispatches/{id}/report', [DispatchController::class, 'report'])->whereNumber('id')->middleware('throttle:10,1,app-report');
@@ -44,6 +44,8 @@ Route::prefix('app')->name('app.')->group(function () {
 
             Route::get('quiz', [QuizController::class, 'show']);
             Route::post('quiz/answer', [QuizController::class, 'answer'])->middleware('throttle:30,1,app-quiz');
+
+            require __DIR__.'/api-app-community.php';
 
             Route::middleware('verified')->group(function () {
                 Route::get('conversations', [MessagesController::class, 'index']);

@@ -82,6 +82,9 @@
                 <a href="{{ route('around-town') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('around-town', 'events.*', 'contests.*', 'snow') ? 'bg-chip text-ink' : '' }}">Around town</a>
                 <a href="{{ route('rivalries') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('rivalries') ? 'bg-chip text-ink' : '' }}">Rivalries</a>
                 <a href="{{ route('passports') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('passports') ? 'bg-chip text-ink' : '' }}">Passports</a>
+                <a href="{{ route('happenings') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('happenings') ? 'bg-chip text-ink' : '' }}">Happenings</a>
+                <a href="{{ route('lost-found') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('lost-found') ? 'bg-chip text-ink' : '' }}">Lost &amp; found</a>
+                <a href="{{ route('hunts') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('bingo', 'hunts', 'hunts.show', 'line-cup') ? 'bg-chip text-ink' : '' }}">Games</a>
                 @auth
                     <a href="{{ route('notifications') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('notifications') ? 'bg-chip text-ink' : '' }}">
                         Notifications

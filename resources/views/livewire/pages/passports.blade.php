@@ -29,4 +29,6 @@
             <x-empty title="No lists yet" art="stoop">Staff import the magazine’s lists from Admin → Places.</x-empty>
         @endforelse
     </div>
+
+    @auth @include('partials.hunt-stamps') @endauth
 </div>

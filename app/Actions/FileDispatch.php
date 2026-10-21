@@ -12,12 +12,14 @@ use App\Models\User;
 use App\Support\Civility;
 use App\Support\Later;
 use App\Support\LinkPreviews;
+use App\Support\LostAndFound;
 use App\Support\Mentions;
 use App\Support\ModerationModel;
 use App\Support\OpenAiModeration;
 use App\Support\Photos;
 use App\Support\Profanity;
 use App\Support\Settings;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
@@ -43,7 +45,7 @@ class FileDispatch
         $input = [
             'type' => 'dispatch', 'body' => '', 'line' => 'red', 'stop' => null, 'happeningAt' => '',
             'options' => [], 'pollHours' => 24, 'publishAt' => '', 'photos' => [], 'alts' => [],
-            'safetyWhen' => '', 'safetyBlock' => '', 'safetyPerson' => '', 'parentId' => null, 'quoteId' => null, 'placeId' => null, 'asBusiness' => false, 'sponsor' => '', 'eventId' => null, 'rating' => null, 'snowInches' => null, 'plowed' => null,
+            'safetyWhen' => '', 'safetyBlock' => '', 'safetyPerson' => '', 'parentId' => null, 'quoteId' => null, 'placeId' => null, 'asBusiness' => false, 'sponsor' => '', 'eventId' => null, 'rating' => null, 'snowInches' => null, 'plowed' => null, 'happeningStarts' => '', 'lostKind' => null, 'lostStatus' => null,
             ...array_filter($input, fn ($v) => $v !== null),
         ];
         $input['body'] = trim((string) $input['body']);
@@ -70,7 +72,10 @@ class FileDispatch
             'body' => [Rule::requiredIf(! $input['photos']), 'nullable', 'string', 'min:3', 'max:'.config('stoop.max_length')],
             'line' => ['required', Rule::in(array_keys(config('stoop.lines')))],
             'stop' => ['nullable', Rule::in(array_keys(config('stoop.stations')))],
-            'happeningAt' => [Rule::requiredIf($input['type'] === 'happening' && $topLevel), 'nullable', 'string', 'max:60'],
+            'happeningAt' => [Rule::requiredIf($input['type'] === 'happening' && $topLevel && $input['happeningStarts'] === ''), 'nullable', 'string', 'max:60'],
+            'happeningStarts' => ['nullable', 'date'],
+            'lostKind' => [Rule::requiredIf($input['type'] === 'lost' && $topLevel), 'nullable', Rule::in(array_keys(LostAndFound::KINDS))],
+            'lostStatus' => [Rule::requiredIf($input['type'] === 'lost' && $topLevel), 'nullable', Rule::in(array_keys(LostAndFound::STATUSES))],
             'options' => ['array', 'max:4'],
             'options.*' => ['nullable', 'string', 'max:50'],
             'pollHours' => [Rule::in([1, 24, 72, 168])],
@@ -87,7 +92,7 @@ class FileDispatch
             'rating' => ['nullable', 'integer', 'between:1,5'],
             'snowInches' => [Rule::requiredIf($input['type'] === 'snow' && $topLevel), 'nullable', 'numeric', 'between:0,60'],
             'plowed' => [Rule::requiredIf($input['type'] === 'snow' && $topLevel), 'nullable', Rule::in(['yes', 'partly', 'no'])],
-        ], [], ['snowInches' => 'snow total', 'plowed' => 'plowing', 'happeningAt' => 'when', 'options.*' => 'option', 'publishAt' => 'scheduled time', 'photos.*' => 'photo', 'safetyWhen' => 'when it happened'])->validate();
+        ], [], ['lostKind' => 'pet or item', 'lostStatus' => 'lost or found', 'happeningStarts' => 'start time', 'snowInches' => 'snow total', 'plowed' => 'plowing', 'happeningAt' => 'when', 'options.*' => 'option', 'publishAt' => 'scheduled time', 'photos.*' => 'photo', 'safetyWhen' => 'when it happened'])->validate();
 
         $typed = [$input['body'], $input['happeningAt'], $input['safetyWhen'], $input['safetyBlock'], $input['safetyPerson'], ...$input['options'], ...$input['alts']];
         if (collect($typed)->contains(fn ($text) => Profanity::contains((string) $text))) {
@@ -131,6 +136,14 @@ class FileDispatch
         if ($input['eventId'] && ! $event) {
             $fail('eventId', 'That event isn’t happening right now.');
         }
+        if ($input['type'] === 'lost' && $topLevel) {
+            if (! $input['stop']) {
+                $fail('stop', 'Pick the stop it was last seen near.');
+            }
+            if (collect([$input['body'], ...$input['alts']])->contains(fn ($text) => LostAndFound::hasContactInfo((string) $text))) {
+                $fail('body', 'Leave out phone numbers and emails. Neighbors can reply or message you instead.');
+            }
+        }
         if ($input['type'] === 'snow' && $topLevel && ! $input['stop']) {
             $fail('stop', 'Pick the nearest stop so neighbors know where the snow is.');
         }
@@ -163,16 +176,21 @@ class FileDispatch
             'rating' => $event?->rating_label && $input['rating'] ? (int) $input['rating'] : null,
             'snow_inches' => $type === 'snow' ? (float) $input['snowInches'] : null,
             'plowed' => $type === 'snow' ? $input['plowed'] : null,
+            'lost_kind' => $type === 'lost' ? $input['lostKind'] : null,
+            'lost_status' => $type === 'lost' ? $input['lostStatus'] : null,
         ], fn ($v) => $v !== null);
 
-        $dispatch = DB::transaction(function () use ($user, $input, $parent, $quoted, $options, $publishAt, $preview, $type, $place, $event, $details) {
+        // The calendar start time is typed in DC time.
+        $startsAt = $type === 'happening' && $input['happeningStarts'] !== '' ? CarbonImmutable::parse($input['happeningStarts'], config('stoop.timezone'))->utc() : null;
+
+        $dispatch = DB::transaction(function () use ($user, $input, $parent, $quoted, $options, $publishAt, $preview, $type, $place, $event, $details, $startsAt) {
             $dispatch = $user->dispatches()->create([
                 'parent_id' => $parent?->id,
                 'quote_id' => $quoted?->id,
                 'type' => $type,
                 'line' => $parent?->line ?? ($type === 'ask' ? 'yellow' : $input['line']),
                 'body' => $input['body'],
-                'happening_at' => $type === 'happening' ? $input['happeningAt'] : null,
+                'happening_at' => $type === 'happening' ? ($input['happeningAt'] ?: $startsAt?->timezone(config('stoop.timezone'))->format('D M j · g:ia')) : null,
                 'status' => $publishAt ? 'scheduled' : self::initialStatus($user, $input['body']),
                 'publish_at' => $publishAt,
                 'closes_at' => $type === 'poll' ? ($publishAt ?? now())->copy()->addHours((int) $input['pollHours']) : null,
@@ -187,6 +205,10 @@ class FileDispatch
                     ? array_filter(['when' => $input['safetyWhen'], 'block' => $input['safetyBlock'], 'person' => $input['safetyPerson']])
                     : null,
             ]);
+
+            if ($startsAt) {
+                $dispatch->happening()->create(['starts_at' => $startsAt]);
+            }
 
             if ($type === 'poll') {
                 $dispatch->options()->createMany(array_map(fn ($label) => ['label' => $label], $options));

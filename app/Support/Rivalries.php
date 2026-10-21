@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -101,5 +102,84 @@ class Rivalries
                 return ['points' => (int) $mine->sum('points'), 'people' => $mine->pluck('user_id')->unique()->count()];
             })->sortByDesc('points')->all();
         }));
+    }
+
+    /** Helpfulness points at a line's stops in a month that make someone one of its regulars. */
+    public const CUP_REGULAR = 5;
+
+    public static function monthStart(?CarbonImmutable $at = null): CarbonImmutable
+    {
+        return ($at ?? now(config('stoop.timezone'))->toImmutable())->startOfMonth();
+    }
+
+    /**
+     * The monthly Line Cup: each line scores the helpfulness points its riders earned at its
+     * stops that month (the same points as the weekly standings). Regulars are the people
+     * who earned at least CUP_REGULAR of them; the winning line's regulars get the crown.
+     *
+     * @return Collection<string, array{points: int, people: int, regulars: array<int, int>}>
+     */
+    public static function lineCup(CarbonImmutable $monthStart): Collection
+    {
+        $key = 'stoop:line-cup:'.$monthStart->format('Y-m');
+        $compute = function () use ($monthStart) {
+            $rows = Stations::points($monthStart->utc(), $monthStart->addMonthNoOverflow()->utc());
+
+            return collect(config('metro.lines'))->map(function ($stops) use ($rows) {
+                $perUser = $rows->whereIn('stop', $stops)->groupBy('user_id')->map->sum('points');
+
+                return [
+                    'points' => (int) $perUser->sum(),
+                    'people' => $perUser->count(),
+                    'regulars' => $perUser->filter(fn ($p) => $p >= self::CUP_REGULAR)->keys()->map(fn ($id) => (int) $id)->values()->all(),
+                ];
+            })->sortByDesc('points')->all();
+        };
+
+        // Finished months never change; this month refreshes every 5 minutes.
+        return collect($monthStart->addMonthNoOverflow()->isPast() ? Cache::rememberForever($key, $compute) : Cache::remember($key, now()->addMinutes(5), $compute));
+    }
+
+    /**
+     * The line that won a finished month, or null for an empty month or a tie at the top.
+     */
+    public static function cupWinner(CarbonImmutable $monthStart): ?string
+    {
+        $cup = self::lineCup($monthStart);
+        [$first, $second] = [$cup->values()->get(0), $cup->values()->get(1)];
+
+        return $first && $first['points'] > 0 && $first['points'] > ($second['points'] ?? 0) ? $cup->keys()->first() : null;
+    }
+
+    /**
+     * Past winners, most recent first.
+     *
+     * @return Collection<int, array{month: CarbonImmutable, line: string, points: int}>
+     */
+    public static function cupWinners(int $months = 6): Collection
+    {
+        return collect(range(1, $months))->map(fn ($i) => self::monthStart()->subMonthsNoOverflow($i))
+            ->map(fn ($month) => ['month' => $month, 'line' => self::cupWinner($month)])
+            ->filter(fn ($row) => $row['line'])
+            ->map(fn ($row) => [...$row, 'points' => self::lineCup($row['month'])[$row['line']]['points']])->values();
+    }
+
+    /**
+     * Months this person was a regular on the winning line, over the last year.
+     *
+     * @return array<int, string>
+     */
+    public static function cupCrowns(User $user): array
+    {
+        $since = self::monthStart(($user->created_at ?? now())->toImmutable()->timezone(config('stoop.timezone')));
+        $crowns = [];
+        for ($month = self::monthStart()->subMonthNoOverflow(), $i = 0; $month->gte($since) && $i < 12; $month = $month->subMonthNoOverflow(), $i++) {
+            $line = self::cupWinner($month);
+            if ($line && in_array($user->id, self::lineCup($month)[$line]['regulars'], true)) {
+                $crowns[] = $month->format('Y-m');
+            }
+        }
+
+        return $crowns;
     }
 }

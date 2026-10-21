@@ -44,6 +44,9 @@ class Achievements
         'stand-right' => ['name' => 'Stand Right, Walk Left', 'description' => 'Posted about a Metro escalator'],
         'sauced' => ['name' => 'Sauced', 'description' => 'Got 10 mumbo sauces on your dispatches'],
         'mayor' => ['name' => 'Mayor', 'description' => 'The most helpful person at a stop this month'],
+        'bingo' => ['name' => 'Metro Bingo', 'description' => 'Got a bingo on a weekly Metro Bingo card'],
+        'hunter' => ['name' => 'Treasure Hunter', 'description' => 'Found every clue in a scavenger hunt'],
+        'line-cup' => ['name' => 'Line Cup', 'description' => 'A regular on the line that won a monthly Line Cup'],
     ];
 
     // Like /dev/null's Unix ranks, named for how far into the city you are.
@@ -83,6 +86,9 @@ class Achievements
             'stoop-sits' => $s['meetups'] > 0,
             'out-and-about' => $s['events'] >= 3,
             'passport' => $s['stamps'] >= 1,
+            'bingo' => $s['bingos'] > 0,
+            'hunter' => $s['hunts_finished'] > 0,
+            'line-cup' => $s['cup_crowns'] > 0,
         ];
 
         foreach (config('metro.lines') as $line => $stops) {
@@ -96,7 +102,8 @@ class Achievements
      * 10 per dispatch, 15 per day of the longest streak, 5 per Been here/Going/Save received,
      * 5 per reply to someone else, 2 per mark given to someone else, 25 per Best Answer
      * 100 per passport stamp, 2 per right answer on The Daily, 10 per right game-day pick,
-     * and 20 per meetup check-in.
+     * 20 per meetup check-in, 50 per Metro Bingo week, 25 per scavenger hunt stamp and 100 per
+     * Line Cup crown.
      */
     public static function xp(User $user): int
     {
@@ -104,7 +111,8 @@ class Achievements
 
         return $s['dispatches'] * 10 + $s['longest_streak'] * 15 + $s['marks_received'] * 5
             + $s['replies_to_others'] * 5 + $s['marks_given'] * 2 + $s['best_answers'] * 25 + $s['stamps'] * 100 + $s['quiz_correct'] * 2
-            + $s['right_picks'] * 10 + $s['meetups'] * 20;
+            + $s['right_picks'] * 10 + $s['meetups'] * 20
+            + $s['bingos'] * Bingo::XP + $s['hunt_steps'] * 25 + $s['cup_crowns'] * 100;
     }
 
     public static function rank(int $xp): string
@@ -190,6 +198,12 @@ class Achievements
                 'marks_received' => DB::table('marks')->whereIn('dispatch_id', $mine)->where('user_id', '!=', $user->id)->count(),
                 'marks_given' => DB::table('marks')->where('user_id', $user->id)
                     ->whereNotIn('dispatch_id', $mine)->count(),
+                'bingos' => Bingo::wins($user),
+                'hunt_steps' => DB::table('hunt_completions')->where('user_id', $user->id)->count(),
+                'hunts_finished' => DB::table('hunts')->whereRaw('(select count(*) from hunt_steps where hunt_steps.hunt_id = hunts.id) > 0')
+                    ->whereRaw('(select count(*) from hunt_steps join hunt_completions on hunt_completions.hunt_step_id = hunt_steps.id where hunt_steps.hunt_id = hunts.id and hunt_completions.user_id = ?) = (select count(*) from hunt_steps where hunt_steps.hunt_id = hunts.id)', [$user->id])
+                    ->count(),
+                'cup_crowns' => count(Rivalries::cupCrowns($user)),
             ];
         });
     }

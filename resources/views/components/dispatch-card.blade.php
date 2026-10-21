@@ -135,9 +135,7 @@
         </a>
     @endif
 
-    @if ($d->happening_at)
-        <div class="mt-2 rounded-lg border border-rule px-3 py-2 text-sm text-mute sm:ml-[46px]"><b class="text-ink">{{ $d->happening_at }}</b> · {{ $d->going_count }} going</div>
-    @endif
+    @include('partials.dispatch-extras')
 
     @if ($d->quoted)
         <a href="{{ route('dispatches.show', $d->quoted) }}" wire:navigate class="mt-2 block rounded-lg border border-rule px-3 py-2 text-sm text-mute hover:border-ink sm:ml-[46px]">

@@ -16,11 +16,12 @@ use Illuminate\Support\Facades\DB;
 class DispatchActions
 {
     /**
-     * Toggle a save, Been here, Going or mumbo mark. Returns whether it's on now.
+     * Toggle a save, Been here, Going, Interested or mumbo mark. Returns whether it's on now.
+     * Going and Interested are one RSVP, so picking one drops the other.
      */
     public static function toggleMark(User $user, Dispatch $dispatch, string $kind): bool
     {
-        abort_unless(in_array($kind, ['save', 'been', 'going', 'mumbo'], true), 422);
+        abort_unless(in_array($kind, ['save', 'been', 'going', 'interested', 'mumbo'], true), 422);
 
         $query = DB::table('marks')->where(['user_id' => $user->id, 'dispatch_id' => $dispatch->id, 'kind' => $kind]);
 
@@ -28,6 +29,10 @@ class DispatchActions
             $query->delete();
 
             return false;
+        }
+
+        if (in_array($kind, ['going', 'interested'], true)) {
+            DB::table('marks')->where(['user_id' => $user->id, 'dispatch_id' => $dispatch->id, 'kind' => $kind === 'going' ? 'interested' : 'going'])->delete();
         }
 
         $user->marked()->attach($dispatch->id, ['kind' => $kind]);
