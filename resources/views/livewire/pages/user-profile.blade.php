@@ -39,6 +39,7 @@
             <span><b class="text-ink tabular-nums">{{ number_format($xp) }}</b> XP</span>
             <span><b class="text-ink">{{ $streaks['current'] }}</b>-day streak</span>
             <span>Longest <b class="text-ink">{{ $streaks['longest'] }}</b></span>
+            @if ($streaks['pass_used_this_week'])<span title="One missed day a week doesn’t break a streak.">Single-tracking pass used this week</span>@endif
         </div>
         <div class="mt-3 overflow-x-auto [&_svg]:max-w-none dark:[&_rect[fill='#e8ebe8']]:fill-[#262a2c]">{!! $graph !!}</div>
         @if ($badges)

@@ -3,7 +3,6 @@
 namespace App\Support;
 
 use App\Models\User;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -36,6 +35,8 @@ class Achievements
         'tri-state' => ['name' => 'DMV', 'description' => 'Posted from stations in DC, Maryland and Virginia'],
         'know-it-all' => ['name' => 'Know-It-All', 'description' => 'Gave 5 Best Answers on Ask DC'],
         'passport' => ['name' => 'Stamped', 'description' => 'Earned a passport stamp for one of the magazine’s lists'],
+        'quiz-week' => ['name' => 'Regular Reader', 'description' => 'Played The Daily 7 days in a row'],
+        'quiz-perfect' => ['name' => 'Native Knowledge', 'description' => 'Got a perfect score on The Daily'],
         'mayor' => ['name' => 'Mayor', 'description' => 'The most helpful person at a stop this month'],
     ];
 
@@ -67,6 +68,8 @@ class Achievements
             'tri-state' => count(array_unique(array_map(fn ($code) => Stations::jurisdiction($code), $s['visited']))) >= 3,
             'mayor' => Stations::mayorships($user) !== [],
             'know-it-all' => $s['best_answers'] >= 5,
+            'quiz-week' => $s['quiz_longest'] >= 7,
+            'quiz-perfect' => $s['quiz_perfect'] > 0,
             'passport' => $s['stamps'] >= 1,
         ];
 
@@ -80,14 +83,14 @@ class Achievements
     /**
      * 10 per dispatch, 15 per day of the longest streak, 5 per Been here/Going/Save received,
      * 5 per reply to someone else, 2 per mark given to someone else, 25 per Best Answer
-     * and 100 per passport stamp.
+     * 100 per passport stamp, and 2 per right answer on The Daily.
      */
     public static function xp(User $user): int
     {
         $s = self::stats($user);
 
         return $s['dispatches'] * 10 + $s['longest_streak'] * 15 + $s['marks_received'] * 5
-            + $s['replies_to_others'] * 5 + $s['marks_given'] * 2 + $s['best_answers'] * 25 + $s['stamps'] * 100;
+            + $s['replies_to_others'] * 5 + $s['marks_given'] * 2 + $s['best_answers'] * 25 + $s['stamps'] * 100 + $s['quiz_correct'] * 2;
     }
 
     public static function rank(int $xp): string
@@ -96,29 +99,13 @@ class Achievements
     }
 
     /**
-     * @return array{current: int, longest: int}
+     * "On Time" posting streak, with one forgiven day a week (see Streaks).
+     *
+     * @return array{current: int, longest: int, pass_used_this_week: bool}
      */
     public static function streaks(User $user): array
     {
-        $days = self::activeDays($user);
-        $longest = $run = 0;
-        $previous = null;
-
-        foreach ($days as $day) {
-            $run = $previous && Carbon::parse($previous)->addDay()->toDateString() === $day ? $run + 1 : 1;
-            $longest = max($longest, $run);
-            $previous = $day;
-        }
-
-        $current = 0;
-        $today = now(config('stoop.timezone'))->startOfDay();
-        $cursor = in_array($today->toDateString(), $days, true) ? $today : $today->subDay();
-        while (in_array($cursor->toDateString(), $days, true)) {
-            $current++;
-            $cursor = $cursor->subDay();
-        }
-
-        return ['current' => $current, 'longest' => $longest];
+        return Streaks::compute(self::activeDays($user));
     }
 
     /**
@@ -173,6 +160,9 @@ class Achievements
                 'visited' => Stations::visited($user),
                 'best_answers' => DB::table('dispatches as q')->join('dispatches as a', 'a.id', '=', 'q.best_answer_id')->where('a.user_id', $user->id)->count(),
                 'stamps' => Passports::for($user)->whereNotNull('stamped_at')->count(),
+                'quiz_correct' => DailyQuiz::correctAnswers($user),
+                'quiz_longest' => DailyQuiz::streaks($user)['longest'],
+                'quiz_perfect' => DB::table('quiz_attempts')->where('user_id', $user->id)->where('score', DailyQuiz::PER_DAY)->count(),
                 'marks_received' => DB::table('marks')->whereIn('dispatch_id', $mine)->where('user_id', '!=', $user->id)->count(),
                 'marks_given' => DB::table('marks')->where('user_id', $user->id)
                     ->whereNotIn('dispatch_id', $mine)->count(),

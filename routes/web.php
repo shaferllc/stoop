@@ -13,6 +13,7 @@ use App\Livewire\Pages\Notifications;
 use App\Livewire\Pages\PassportsPage;
 use App\Livewire\Pages\PlaceShow;
 use App\Livewire\Pages\PlacesIndex;
+use App\Livewire\Pages\Quiz;
 use App\Livewire\Pages\Saved;
 use App\Livewire\Pages\Search;
 use App\Livewire\Pages\ShowDispatch;
@@ -42,6 +43,7 @@ Route::view('terms', 'terms')->name('terms');
 Route::livewire('search', Search::class)->name('search');
 Route::livewire('places', PlacesIndex::class)->name('places');
 Route::livewire('passports', PassportsPage::class)->name('passports');
+Route::livewire('daily', Quiz::class)->name('quiz');
 Route::livewire('places/{place}', PlaceShow::class)->name('places.show');
 
 // Sponsored placements count a click, then send people on to the sponsor.
@@ -118,6 +120,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return new WeeklyDigest(Newsletter::digest(), null);
         })->name('.newsletter.preview');
         Route::livewire('audit', Admin\AuditLog::class)->name('.audit');
+        Route::livewire('quiz', Admin\QuizQuestions::class)->name('.quiz');
     });
     Route::get('settings/export', ExportController::class)->middleware('throttle:5,1')->name('export');
     // Push notification sign-ups from a browser or the installed app...

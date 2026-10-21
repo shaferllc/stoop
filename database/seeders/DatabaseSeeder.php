@@ -76,6 +76,8 @@ class DatabaseSeeder extends Seeder
             ]);
         });
 
+        $this->call(QuizQuestionSeeder::class);
+
         $people['you']->following()->attach([$people['food']->id, $people['mayaeats']->id]);
         $people['you']->forceFill(['half_smokes_on' => true])->save();
 
