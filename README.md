@@ -35,6 +35,8 @@ Optional settings in `.env`:
 - `STOOP_AUTO_VERIFY=false`: require the email link again.
 - `STOOP_DC_311=false`: hide the nearby DC 311 requests on stop pages (on by default; DC GIS needs no key).
 
+Ads (sales role): Admin → Ads makes sponsored dispatches and Best of Washington party ticket promotions, and lists every running and upcoming placement with delivery, clicks, CTR and CSVs (also in the Mac app). Ads live apart from dispatches, show at most once per 10 posts, are matched only to the stop or topic being read, count an impression once per person per day (a keyed hash of the account or session and the day, no extra cookie), and click through `/ad/{kind}/{id}` to their stored link only. There is no paid ad-free option.
+
 Staff pages for this area: Admin → Real estate (sales import status, open houses, the sponsored label) and Admin → Insights (the k-anonymous reader report for advertisers, with CSV and printable views).
 
 Happenings, Lost & found and games: `/happenings` (calendar, .ics, a private feed link at `/calendar/<token>.ics`), `/lost-and-found`, `/bingo`, `/hunts` and `/line-cup`. Editors create hunts in Admin → Hunts and pull readers’ picks (CSV) from Admin → Readers’ picks. Ticketed happenings link out to the host’s ticket page; Stoop takes no payments.

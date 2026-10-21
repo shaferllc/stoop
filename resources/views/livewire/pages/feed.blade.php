@@ -62,11 +62,16 @@
     </div>
 
     @if ($sponsorship)
-        <a href="{{ route('sponsorships.click', $sponsorship) }}" target="_blank" rel="sponsored noopener" class="mb-3 block rounded-xl border border-rule bg-card p-3.5 hover:border-ink">
-            <div class="text-[11px] font-semibold uppercase tracking-wide text-mute">Sponsored · {{ $sponsorship->sponsor }}</div>
-            <div class="font-display text-lg font-bold">{{ $sponsorship->headline }}</div>
-            @if ($sponsorship->body)<p class="text-sm text-mute">{{ $sponsorship->body }}</p>@endif
-        </a>
+        <div class="mb-3 rounded-xl border border-rule bg-card p-3.5 hover:border-ink">
+            <div class="flex items-start justify-between gap-2 text-[11px] font-semibold uppercase tracking-wide text-mute">
+                <span>Sponsored · {{ $sponsorship->sponsor }}</span>
+                @include('partials.ad-menu', ['kind' => 'sponsorship', 'id' => $sponsorship->id, 'why' => $this->adWhy($sponsorship)])
+            </div>
+            <a href="{{ route('sponsorships.click', $sponsorship) }}" target="_blank" rel="sponsored noopener" class="block">
+                <div class="font-display text-lg font-bold">{{ $sponsorship->headline }}</div>
+                @if ($sponsorship->body)<p class="text-sm text-mute">{{ $sponsorship->body }}</p>@endif
+            </a>
+        </div>
     @endif
 
     @includeWhen($stop, 'partials.stop-deals')
@@ -101,6 +106,9 @@
     <div class="mt-3 space-y-2.5">
         @forelse ($this->dispatches as $dispatch)
             <x-dispatch-card :dispatch="$dispatch" :translated="$translations[$dispatch->id] ?? null" :state="$state" />
+            @if ($loop->iteration % \App\Support\Ads::EVERY === 0 && ($ad = $this->adAt(intdiv($loop->iteration, \App\Support\Ads::EVERY))))
+                @include('partials.ad-card', ['ad' => $ad, 'why' => $this->adWhy($ad)])
+            @endif
         @empty
             @if ($tab === 'following')
                 <x-empty title="Nobody on this platform yet">Follow some neighbors and their dispatches will pull in here.</x-empty>

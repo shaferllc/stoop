@@ -38,4 +38,5 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'throttle:240,1', StaffRole:
     require __DIR__.'/api-admin-ai.php';
     require __DIR__.'/api-admin-ops.php';
     require __DIR__.'/api-admin-editorial.php';
+    require __DIR__.'/api-admin-ads.php';
 });

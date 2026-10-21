@@ -31,8 +31,10 @@ class Sponsorship extends Model
 
     /**
      * The sponsorship to show on a feed for a stop or line, if any.
+     *
+     * @param  array<int, int>  $except  Ones the reader hid.
      */
-    public static function for(?string $stop, ?string $line): ?self
+    public static function for(?string $stop, ?string $line, array $except = []): ?self
     {
         if (! $stop && ! $line) {
             return null;
@@ -40,6 +42,6 @@ class Sponsorship extends Model
 
         return static::running()
             ->where(fn ($q) => $q->when($stop, fn ($q) => $q->where('stop', $stop))->when($line, fn ($q) => $q->orWhere('line', $line)))
-            ->inRandomOrder()->first();
+            ->whereNotIn('id', $except)->inRandomOrder()->first();
     }
 }

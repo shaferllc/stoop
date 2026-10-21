@@ -17,6 +17,8 @@
         @endguest
     </section>
 
+    @include('partials.ballot-party')
+
     @foreach ($categories as $c)
         <section wire:key="cat-{{ $c->id }}" class="rounded-xl border border-rule bg-card p-4">
             <h2 class="font-display text-xl font-bold">{{ $c->name }}</h2>

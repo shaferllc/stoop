@@ -6,6 +6,8 @@ enum Section: String, CaseIterable, Identifiable {
     case overview, activity, queue, appeals, messages, penalties, people, spam, bots, insights, maintenance, roles, audit
     // Newsroom
     case radar, tips
+    // Sales
+    case ads
     var id: String { rawValue }
 
     var title: String {
@@ -25,6 +27,7 @@ enum Section: String, CaseIterable, Identifiable {
         case .roles: "Roles"
         case .radar: "Radar"
         case .tips: "Tips"
+        case .ads: "Ads"
         }
     }
 
@@ -45,6 +48,7 @@ enum Section: String, CaseIterable, Identifiable {
         case .roles: "person.badge.key"
         case .radar: "dot.radiowaves.left.and.right"
         case .tips: "envelope.badge"
+        case .ads: "megaphone"
         }
     }
 
