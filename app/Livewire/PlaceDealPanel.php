@@ -4,6 +4,8 @@ namespace App\Livewire;
 
 use App\Models\Place;
 use App\Models\PlaceDeal;
+use App\Support\Business;
+use App\Support\Stripe;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -12,7 +14,7 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * A place's current deal, and the form its verified owner posts deals with.
+ * A place's current deals, and the form its verified owner posts deals with.
  */
 class PlaceDealPanel extends Component
 {
@@ -60,8 +62,10 @@ class PlaceDealPanel extends Component
         return view('livewire.place-deal-panel', [
             'place' => $place,
             'isOwner' => Auth::id() && $place->owner_id === Auth::id(),
-            'active' => PlaceDeal::where('place_id', $place->id)->active()->first(),
-            'upcoming' => PlaceDeal::where('place_id', $place->id)->where('starts_at', '>', now())->first(),
+            'active' => PlaceDeal::where('place_id', $place->id)->active()->oldest('ends_at')->get(),
+            'upcoming' => PlaceDeal::where('place_id', $place->id)->where('starts_at', '>', now())->oldest('starts_at')->get(),
+            'limit' => Business::dealLimit($place),
+            'canPromote' => Auth::id() && $place->owner_id === Auth::id() && Business::isBusiness(Auth::user()) && Stripe::configured(),
         ]);
     }
 }

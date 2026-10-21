@@ -1,9 +1,9 @@
 {{-- A sponsored dispatch or the magazine's party promotion in a feed. Never a Dispatch. --}}
 @php($kind = \App\Support\Ads::kindOf($ad))
 @php($href = route('ads.click', [$kind, $ad->id]))
-<aside wire:key="ad-{{ $kind }}-{{ $ad->id }}" data-ad class="rounded-xl border border-rule bg-card px-4 py-3.5" aria-label="{{ $kind === 'party' ? 'From the magazine' : 'Sponsored' }}">
+<aside wire:key="ad-{{ $kind }}-{{ $ad->id }}" data-ad class="rounded-xl border border-rule bg-card px-4 py-3.5" aria-label="{{ $kind === 'party' ? 'From the magazine' : ($ad->promoted ? 'Promoted' : 'Sponsored') }}">
     <div class="mb-1.5 flex items-start justify-between gap-2 text-[11.5px] font-semibold uppercase tracking-wide text-mute">
-        <span>{{ $kind === 'party' ? 'From the magazine' : 'Sponsored · '.$ad->advertiser }}</span>
+        <span>{{ $kind === 'party' ? 'From the magazine' : ($ad->promoted ? 'Promoted · ' : 'Sponsored · ').$ad->advertiser }}</span>
         @include('partials.ad-menu', ['id' => $ad->id, 'why' => $why])
     </div>
     @if ($kind === 'party')

@@ -203,6 +203,11 @@ Built from [docs/DEVNULL_FEATURES.md](docs/DEVNULL_FEATURES.md), which lists eve
 - [ ] @metro only posts incidents, so a @metro sponsor never shows until it has non-safety scheduled posts
 - [ ] “Presented by” and meetup sponsors in the Mac admin app and the /api/app feed
 - [ ] Bot post impressions count on the web card only (not in the iOS app)
+- [x] Business accounts ($49/mo through Stripe Checkout, test mode only; Settings → Business, managed and canceled in the Stripe Billing Portal): up to 3 deals at once, one free promoted happening a month, owner analytics (page views, deal views and clicks, check-ins, Been heres), several places per account, a “Verified business” badge on the place and its as-the-business posts; webhooks signed and idempotent; Admin → Business (sales) with subscribers, status, MRR and failed payments
+- [x] Self-serve promoted posts: Business owners boost deals, happenings and dispatches, any verified host their own Happening; stops, topics, dates and a $25/$50/$100 tier, paid once with Stripe Checkout; sales or a moderator approves (Ads and Moderation pages), it runs as “Promoted · name” under the usual ad rules, rejections are refunded through Stripe; delivery on the owner’s Business page and analytics
+- [ ] Stop a running promotion when its original post is later removed (approval checks moderation, nothing re-checks after)
+- [ ] Business accounts and promotions in the Mac admin app and the /api/app user API
+- [ ] Downgrades keep extra deals and places until they end or staff move them; decide whether to end them
 
 ## Admin
 - [x] Overview with what needs attention, activity numbers and failed jobs

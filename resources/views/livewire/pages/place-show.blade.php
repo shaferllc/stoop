@@ -4,6 +4,7 @@
             <div class="text-[11.5px] font-semibold uppercase tracking-wide text-flag">{{ $place->listLabel() }}</div>
         @endif
         <h1 class="font-display text-4xl font-bold leading-tight">{{ $place->name }}</h1>
+        @if (\App\Support\Business::verified($place))<span class="mt-1 inline-flex items-center gap-1 rounded bg-ink px-1.5 text-[11px] font-bold uppercase tracking-wide text-paper"><flux:icon.check-badge variant="micro" /> Verified business</span>@endif
         <div class="mt-1 flex flex-wrap gap-x-3 text-sm text-mute">
             @if ($place->category)<span>{{ $place->category }}</span>@endif
             @if ($place->neighborhood)<span>{{ $place->neighborhood }}</span>@endif
@@ -17,6 +18,13 @@
             @if ($place->website)<a href="{{ $place->website }}" target="_blank" rel="nofollow noopener" class="underline">Website</a>@endif
             @if ($place->owner)
                 <span class="rounded bg-chip px-1.5 text-[12px]">Managed by {{ '@'.$place->owner->username }}</span>
+                @if ($place->owner_id === auth()->id())
+                    @if (\App\Support\Business::isBusiness(auth()->user()))
+                        <a href="{{ route('business.analytics', $place) }}" wire:navigate class="underline">Analytics</a>
+                    @elseif (\App\Support\Business::canUpgrade())
+                        <a href="{{ route('business.edit') }}" wire:navigate class="font-semibold underline">Upgrade to Business</a>
+                    @endif
+                @endif
             @elseif (! $claiming)
                 <button type="button" wire:click="$set('claiming', true)" class="ml-auto text-mute underline">Own this place?</button>
             @endif

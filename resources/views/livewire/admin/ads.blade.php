@@ -4,6 +4,9 @@
     @php($input = 'mt-0.5 block w-full rounded-md border border-rule bg-paper px-2 py-1')
     <p class="text-sm text-mute">Sponsored dispatches show in feeds, at most one per {{ \App\Support\Ads::EVERY }} posts, labeled “Sponsored · advertiser”. They’re matched only to the stop or topic being read, never to the reader, and never appear in threads, notifications, messages, rankings, points or the moderation queue. An impression counts once per person per day.</p>
 
+    @unless (\App\Support\Stripe::configured())<p class="mt-2 rounded-lg bg-chip p-2 text-sm">Stripe not configured: self-serve promotions and Business upgrades are hidden. Set test-mode <code>STRIPE_SECRET</code> and <code>STRIPE_WEBHOOK_SECRET</code> (see the README).</p>@endunless
+    <livewire:admin.promotion-queue />
+
     <div class="mt-3 flex flex-wrap gap-2 text-sm">
         <button type="button" wire:click="edit" class="rounded-lg border border-rule px-3 py-1.5">New sponsored dispatch</button>
         <button type="button" wire:click="editParty" class="rounded-lg border border-rule px-3 py-1.5">Party tickets for a ballot</button>

@@ -6,6 +6,7 @@ use App\Models\Place;
 use App\Models\PlaceClaim;
 use App\Notifications\ModerationNotice;
 use App\Support\Audit;
+use App\Support\Business;
 use Flux\Flux;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -123,6 +124,11 @@ class Places extends Component
     public function decideClaim(int $claimId, bool $approve): void
     {
         $claim = PlaceClaim::with(['place', 'user'])->where('status', 'pending')->findOrFail($claimId);
+        if ($approve && Place::where('owner_id', $claim->user_id)->count() >= Business::plan($claim->user)['locations']) {
+            Flux::toast('They already manage a place. More locations need the Business plan.', variant: 'danger');
+
+            return;
+        }
         $claim->update(['status' => $approve ? 'approved' : 'denied', 'decided_by' => $this->staff()->id]);
 
         if ($approve) {

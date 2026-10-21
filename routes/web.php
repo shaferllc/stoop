@@ -41,7 +41,7 @@ use App\Support\RidershipGraph;
 use App\Support\Rivalries;
 use App\Support\Settings;
 use App\Support\ShareImage;
-use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -104,7 +104,7 @@ Route::post('newsletter/unsubscribe/{user}', function (User $user) {
     $user->forceFill(['newsletter' => false])->save();
 
     return view('unsubscribe', ['done' => true, 'action' => null]);
-})->middleware('signed')->withoutMiddleware(ValidateCsrfToken::class);
+})->middleware('signed')->withoutMiddleware(PreventRequestForgery::class);
 
 // The embed for magazine article pages...
 Route::get('embed.js', fn () => response()->view('embed')->header('Content-Type', 'application/javascript; charset=UTF-8')->header('Cache-Control', 'public, max-age=3600'))->name('embed');
@@ -240,3 +240,4 @@ require __DIR__.'/sports.php';
 require __DIR__.'/web-newsroom.php';
 require __DIR__.'/web-ads.php';
 require __DIR__.'/web-challenges.php';
+require __DIR__.'/web-business.php';

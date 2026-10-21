@@ -7,6 +7,8 @@ use App\Models\Dispatch;
 use App\Models\DispatchImage;
 use App\Models\Place;
 use App\Models\PlaceClaim;
+use App\Models\PlaceDeal;
+use App\Support\Business;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +35,11 @@ class PlaceShow extends Component
     public function mount(Place $place): void
     {
         $this->placeId = $place->id;
+        // Owner analytics: one view per person per day, and a deal view when a deal is up.
+        Business::count($place->id, 'views');
+        if (PlaceDeal::where('place_id', $place->id)->active()->exists()) {
+            Business::count($place->id, 'deal_views');
+        }
     }
 
     #[On('dispatch-filed')]
@@ -52,6 +59,12 @@ class PlaceShow extends Component
 
         if ($place->owner_id || $place->claims()->where('user_id', $user->id)->where('status', 'pending')->exists()) {
             $this->addError('claimEvidence', 'There’s already a claim in for this place.');
+
+            return;
+        }
+
+        if (Place::where('owner_id', $user->id)->count() >= Business::plan($user)['locations']) {
+            $this->addError('claimEvidence', 'Free accounts manage one place. Upgrade to Business in Settings → Business to add more locations.');
 
             return;
         }
