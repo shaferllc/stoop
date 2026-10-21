@@ -27,7 +27,10 @@
         </section>
 
         <section class="rounded-xl border border-rule bg-card p-4 text-sm">
-            <h2 class="font-semibold">Penalties</h2>
+            <h2 class="font-semibold">Penalties <span class="font-normal text-mute">· {{ \App\Support\Strikes::recent($user) }} {{ str('strike')->plural(\App\Support\Strikes::recent($user)) }} in the last {{ \App\Support\Strikes::WINDOW_DAYS }} days</span></h2>
+            @if (\App\Support\Strikes::recent($user) >= 4 && ! $user->activeBan())
+                <p class="mt-1 rounded-lg bg-flag/10 px-2.5 py-1.5 text-flag">Four or more strikes. Review their posts and decide whether to ban.</p>
+            @endif
             <form wire:submit="penalize" class="mt-2 flex flex-wrap gap-2">
                 <select wire:model="penaltyType" aria-label="Penalty" class="rounded-md border border-rule bg-paper px-2 py-1">
                     <option value="warning">Warning</option>

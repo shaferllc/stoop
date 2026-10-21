@@ -5,7 +5,7 @@
     <div class="flex flex-wrap gap-2">
         <input type="search" wire:model.live.debounce.300ms="q" placeholder="Name, username or email" aria-label="Search people" class="min-w-0 flex-1 rounded-lg border border-rule bg-card px-3 py-1.5">
         <select wire:model.live="filter" aria-label="Filter" class="rounded-lg border border-rule bg-card px-2 py-1.5 text-sm">
-            <option value="all">Everyone</option><option value="staff">Staff</option><option value="penalized">In a timeout or banned</option><option value="unverified">Unverified</option><option value="bots">House accounts</option>
+            <option value="all">Everyone</option><option value="staff">Staff</option><option value="penalized">In a timeout or banned</option><option value="unverified">Unverified</option><option value="bots">House accounts</option><option value="ban_review">4+ strikes, review for a ban</option>
         </select>
     </div>
 

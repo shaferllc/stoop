@@ -7,6 +7,7 @@ use App\Models\Dispatch;
 use App\Support\Later;
 use App\Support\ModerationModel;
 use App\Support\OpenAiModeration;
+use App\Support\Strikes;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use RuntimeException;
@@ -39,6 +40,15 @@ class ModerateDispatch implements ShouldQueue
         if (OpenAiModeration::enabled()) {
             $result = OpenAiModeration::check($dispatch);
             $screening['openai'] = $result['flagged'];
+
+            // Clear-cut cases are removed outright and the author gets a strike.
+            if ($result['remove']) {
+                $reason = config('stoop.openai_reasons.'.$result['remove'], 'Breaking the house rules');
+                $dispatch->forceFill(['status' => 'removed', 'screening' => $screening + ['auto_removed' => $result['remove']], 'moderation_reason' => $reason])->save();
+                Strikes::issue($dispatch->user, $reason, $dispatch);
+
+                return;
+            }
 
             if ($result['hold']) {
                 $dispatch->forceFill(['status' => 'held', 'screening' => $screening])->save();

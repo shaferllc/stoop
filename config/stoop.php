@@ -128,6 +128,26 @@ return [
         'illicit/violent' => 0.5,
     ],
 
+    // Scores at or above which the automatic check removes a post outright and gives the
+    // author a strike (see app/Support/Strikes.php). Everything between the hold and
+    // remove thresholds waits for a person.
+    'openai_auto_remove' => [
+        'hate' => 0.85,
+        'hate/threatening' => 0.6,
+        'harassment/threatening' => 0.7,
+        'sexual/minors' => 0.3,
+        'illicit/violent' => 0.85,
+    ],
+
+    // Plain-language reasons for automatic removals.
+    'openai_reasons' => [
+        'hate' => 'Attacking people for who they are',
+        'hate/threatening' => 'Threatening people for who they are',
+        'harassment/threatening' => 'Threats or harassment',
+        'sexual/minors' => 'Sexual content involving minors',
+        'illicit/violent' => 'Promoting violence',
+    ],
+
     // Screen every new dispatch with Claude before it goes public (needs ANTHROPIC_API_KEY).
     'model_moderation' => env('STOOP_MODEL_MODERATION', true),
 

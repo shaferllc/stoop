@@ -23,7 +23,7 @@
                 'held' => 'Held for review: this may break the house rules. Only you and moderators can see it, and a moderator will decide.',
                 'hidden' => 'Hidden after reports. A moderator is reviewing it.',
                 'scheduled' => 'Scheduled for '.$d->publish_at?->format('D M j, g:ia').'. Only you can see this.',
-                default => 'Removed by a moderator'.($d->moderation_reason ? ': '.$d->moderation_reason : '').'. You can appeal from the … menu.',
+                default => (($d->screening['auto_removed'] ?? null) ? 'Removed automatically' : 'Removed by a moderator').($d->moderation_reason ? ': '.$d->moderation_reason : '').'. You can appeal from the … menu.',
             } }}
         </div>
     @endif

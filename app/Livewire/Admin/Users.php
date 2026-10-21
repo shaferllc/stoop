@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\Penalty;
 use App\Models\User;
+use App\Support\Strikes;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -41,6 +42,7 @@ class Users extends Component
             ->when($this->filter === 'penalized', fn ($q) => $q->whereIn('id', $penalized))
             ->when($this->filter === 'unverified', fn ($q) => $q->whereNull('email_verified_at'))
             ->when($this->filter === 'bots', fn ($q) => $q->where('is_bot', true))
+            ->when($this->filter === 'ban_review', fn ($q) => $q->whereIn('id', Strikes::banCandidates()->pluck('id')))
             ->withCount('dispatches')
             ->latest()->paginate(50);
 

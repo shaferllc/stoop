@@ -22,7 +22,7 @@ class OpenAiModeration
     }
 
     /**
-     * @return array{hold: bool, flagged: array<string, float>, scores: array<string, float>}
+     * @return array{hold: bool, remove: ?string, flagged: array<string, float>, scores: array<string, float>}
      *
      * @throws RuntimeException when the check can't be completed
      */
@@ -53,6 +53,13 @@ class OpenAiModeration
         }
         arsort($flagged);
 
-        return ['hold' => $flagged !== [], 'flagged' => $flagged, 'scores' => $scores];
+        $remove = null;
+        foreach (config('stoop.openai_auto_remove') as $category => $threshold) {
+            if (($scores[$category] ?? 0) >= $threshold && (! $remove || $scores[$category] > $scores[$remove])) {
+                $remove = $category;
+            }
+        }
+
+        return ['hold' => $flagged !== [], 'remove' => $remove, 'flagged' => $flagged, 'scores' => $scores];
     }
 }
