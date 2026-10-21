@@ -1,12 +1,10 @@
-<x-layouts::stoop title="Line Cup">
-    <div class="space-y-4">
-        @include('partials.games-nav')
-        <div>
-            <h1 class="font-display text-3xl font-bold">The Line Cup</h1>
-            <p class="text-mute">Every month the six Metro lines compete. A line scores the helpfulness points its riders earn at its stations: posts from a stop, replies to neighbors there, and Best Answers. Anyone with {{ \App\Support\Rivalries::CUP_REGULAR }} or more points on the winning line is one of its regulars and gets the Line Cup crown 👑.</p>
-        </div>
-
-        @foreach ([now(config('stoop.timezone'))->format('F').' so far' => $current, now(config('stoop.timezone'))->subMonthNoOverflow()->format('F') => $last] as $heading => $cup)
+{{-- The monthly Line Cup, on the Rivalries page. --}}
+<section id="line-cup" class="space-y-3 pt-2">
+    <div>
+        <h2 class="font-display text-2xl font-bold">The Line Cup</h2>
+        <p class="text-mute">Every month the six Metro lines compete. A line scores the helpfulness points its riders earn at its stations: posts from a stop, replies to neighbors there, and Best Answers. Anyone with {{ \App\Support\Rivalries::CUP_REGULAR }} or more points on the winning line is one of its regulars and gets the Line Cup crown 👑.</p>
+    </div>
+        @foreach ([now(config('stoop.timezone'))->format('F').' so far' => $cup, now(config('stoop.timezone'))->subMonthNoOverflow()->format('F') => $lastCup] as $heading => $cup)
             @php($top = max(1, $cup->max('points')))
             <section class="rounded-xl border border-rule bg-card p-4">
                 <h2 class="text-[11px] font-semibold uppercase tracking-[0.13em] text-mute">{{ $heading }}</h2>
@@ -39,5 +37,4 @@
                 </ul>
             </section>
         @endif
-    </div>
-</x-layouts::stoop>
+</section>

@@ -1,5 +1,6 @@
 <x-layouts::stoop title="Rivalries">
     <div class="space-y-4">
+        @include('partials.games-nav')
         <div>
             <h1 class="font-display text-3xl font-bold">Rivalries</h1>
             <p class="text-mute">Neighboring stops go head to head each week, scored on helpfulness: posts from the stop, replies to neighbors there, and Best Answers. Winners get a crown on their stop page and a shout-out in the weekly email.</p>
@@ -56,5 +57,7 @@
                 @endforeach
             </ul>
         </section>
+
+        @include('partials.line-cup')
     </div>
 </x-layouts::stoop>

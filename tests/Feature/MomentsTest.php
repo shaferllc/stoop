@@ -78,7 +78,7 @@ class MomentsTest extends TestCase
         Livewire::actingAs($staff)->test(Moments::class)->call('settleGame', $game->id, 'team');
 
         $this->assertSame($before + 10, Achievements::xp($right->fresh()));
-        $this->get(route('around-town'))->assertSee('Nationals won');
+        $this->get(route('play'))->assertSee('Nationals won');
     }
 
     public function test_events_take_rated_posts_and_meetups_take_check_ins(): void

@@ -161,7 +161,7 @@ class CityGamesTest extends TestCase
         $this->assertArrayHasKey('line-cup', Achievements::unlocked($regular->fresh()));
         $this->assertArrayNotHasKey('line-cup', Achievements::unlocked($casual->fresh()));
 
-        $this->get(route('line-cup'))->assertOk()->assertSee('Line Cup')->assertSee('red line');
+        $this->get(route('rivalries'))->assertOk()->assertSee('Line Cup')->assertSee('red line');
         Sanctum::actingAs($casual, ['app']);
         $this->getJson('/api/app/line-cup')->assertOk()->assertJsonPath('data.winners.0.line', 'red');
     }

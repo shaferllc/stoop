@@ -49,11 +49,32 @@ Route::get('calendar/{token}.ics', function (string $token) {
         ->header('Content-Type', 'text/calendar; charset=UTF-8')->header('Cache-Control', 'private, max-age=900');
 })->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:30,1')->name('calendar.feed');
 
-Route::get('line-cup', fn () => view('line-cup', [
-    'current' => Rivalries::lineCup(Rivalries::monthStart()),
-    'last' => Rivalries::lineCup(Rivalries::monthStart()->subMonthNoOverflow()),
-    'winners' => Rivalries::cupWinners(6),
-]))->name('line-cup');
+// The Line Cup lives on the Rivalries page now.
+Route::redirect('line-cup', '/rivalries#line-cup')->name('line-cup');
+
+// Every game in one place.
+Route::get('play', function () {
+    $user = auth()->user();
+    $quizDone = $user && DB::table('quiz_attempts')->where('user_id', $user->id)->where('day', App\Support\DailyQuiz::today()->toDateString())->whereNotNull('completed_at')->exists();
+    $bingo = $user ? App\Support\Bingo::card($user) : null;
+    $hunts = App\Models\Hunt::running()->count();
+    $cup = Rivalries::lineCup(Rivalries::monthStart());
+
+    return view('play', [
+        'cards' => [
+            ['title' => 'The Daily', 'url' => route('quiz'), 'when' => 'Every day', 'live' => ! $quizDone, 'about' => 'Five DC questions. Keep your streak going.',
+                'status' => $user ? ($quizDone ? 'Done for today ✓' : 'Today’s quiz is waiting') : null],
+            ['title' => 'Metro Bingo', 'url' => route('bingo'), 'when' => 'This week', 'live' => true, 'about' => 'A new 5×5 card every Monday. Squares fill in as you use Stoop.',
+                'status' => $bingo ? collect($bingo['squares'])->where('marked', true)->count().' of 25 marked' : null],
+            ['title' => 'Scavenger hunts', 'url' => route('hunts'), 'when' => $hunts ? $hunts.' running' : 'Seasonal', 'live' => $hunts > 0, 'about' => 'Follow clues around the city and collect passport stamps.', 'status' => null],
+            ['title' => 'Passports', 'url' => route('passports'), 'when' => 'Any time', 'live' => false, 'about' => 'Stamps for the places on the magazine’s lists you’ve been to.', 'status' => null],
+            ['title' => 'Rivalries & Line Cup', 'url' => route('rivalries'), 'when' => 'Weekly and monthly', 'live' => true, 'about' => 'Neighborhood matchups every week, and the six lines battle for the monthly cup.',
+                'status' => ($leader = $cup->keys()->first()) && $cup->first()['points'] > 0 ? ucfirst($leader).' line leads the cup' : null],
+        ],
+        'games' => App\Models\Game::where('starts_at', '>=', now()->subDays(3))->orderBy('starts_at')->take(12)->get(),
+        'contests' => App\Models\Contest::where(fn ($q) => $q->where('closes_at', '>=', now())->orWhere('updated_at', '>=', now()->subMonth()))->latest('closes_at')->get(),
+    ]);
+})->name('play');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('bingo', MetroBingo::class)->name('bingo');

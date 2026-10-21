@@ -1,4 +1,5 @@
 <div>
+    <div class="mb-4">@include('partials.games-nav')</div>
     <h1 class="font-display text-3xl font-bold">Passports</h1>
     <p class="text-mute">Every list from the magazine is a passport. Tap “Been here” at {{ \App\Support\Passports::STAMP_AT }} of its places to earn the stamp. Stamp holders get a shout-out in the magazine.</p>
 

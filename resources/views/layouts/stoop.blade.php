@@ -78,13 +78,9 @@
                 @php($navItem = 'flex items-center rounded-md px-2.5 py-1.5 text-mute hover:bg-chip hover:text-ink')
                 <a href="{{ route('home') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('home') && ! request('line') && ! request('stop') ? 'bg-chip text-ink' : '' }}">Front Stoop</a>
                 <a href="{{ route('places') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('places*') ? 'bg-chip text-ink' : '' }}">Places</a>
-                <a href="{{ route('quiz') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('quiz') ? 'bg-chip text-ink' : '' }}">The Daily</a>
-                <a href="{{ route('around-town') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('around-town', 'events.*', 'contests.*', 'snow') ? 'bg-chip text-ink' : '' }}">Around town</a>
-                <a href="{{ route('rivalries') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('rivalries') ? 'bg-chip text-ink' : '' }}">Rivalries</a>
-                <a href="{{ route('passports') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('passports') ? 'bg-chip text-ink' : '' }}">Passports</a>
-                <a href="{{ route('happenings') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('happenings') ? 'bg-chip text-ink' : '' }}">Happenings</a>
+                <a href="{{ route('happenings') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('happenings', 'events.*', 'snow') ? 'bg-chip text-ink' : '' }}">Happenings</a>
+                <a href="{{ route('play') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('play', 'quiz', 'bingo', 'hunts', 'hunts.show', 'line-cup', 'rivalries', 'passports', 'contests.*') ? 'bg-chip text-ink' : '' }}">Play</a>
                 <a href="{{ route('lost-found') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('lost-found') ? 'bg-chip text-ink' : '' }}">Lost &amp; found</a>
-                <a href="{{ route('hunts') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('bingo', 'hunts', 'hunts.show', 'line-cup') ? 'bg-chip text-ink' : '' }}">Games</a>
                 @auth
                     <a href="{{ route('notifications') }}" wire:navigate class="{{ $navItem }} {{ request()->routeIs('notifications') ? 'bg-chip text-ink' : '' }}">
                         Notifications

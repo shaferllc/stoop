@@ -1,4 +1,5 @@
 <div>
+    <div class="mb-4">@include('partials.games-nav')</div>
     <div class="flex flex-wrap items-baseline gap-x-3">
         <h1 class="font-display text-3xl font-bold">The Daily</h1>
         <span class="font-mono text-sm text-mute">No. {{ $number }} · {{ now(config('stoop.timezone'))->format('l, F j') }}</span>

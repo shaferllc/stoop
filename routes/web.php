@@ -126,12 +126,8 @@ Route::get('@{user:username}/ridership.svg', fn (User $user) => response(Cache::
 Route::get('@{user:username}/og.png', fn (User $user) => response(Cache::remember("og:u:{$user->id}", now()->addDay(), fn () => ShareImage::forUser($user)))
     ->header('Content-Type', 'image/png')->header('Cache-Control', 'public, max-age=86400'))->name('users.og');
 
-Route::get('around-town', fn () => view('around-town', [
-    'snowDay' => Settings::snowDay(),
-    'events' => CityEvent::where('ends_at', '>=', now())->where('starts_at', '<=', now()->addMonth())->orderBy('starts_at')->get(),
-    'games' => Game::where('starts_at', '>=', now()->subDays(3))->orderBy('starts_at')->take(12)->get(),
-    'contests' => Contest::where(fn ($q) => $q->where('closes_at', '>=', now())->orWhere('updated_at', '>=', now()->subMonth()))->latest('closes_at')->get(),
-]))->name('around-town');
+// Around town was split: city events are on Happenings, game days and contests in Play.
+Route::redirect('around-town', '/play')->name('around-town');
 Route::livewire('events/{event:slug}', EventShow::class)->name('events.show');
 Route::livewire('contests/{contest:slug}', ContestShow::class)->name('contests.show');
 Route::get('snow', fn () => view('snow', [
@@ -144,6 +140,9 @@ Route::get('rivalries', fn () => view('rivalries', [
     'current' => Rivalries::matchups(Rivalries::weekStart()),
     'last' => Rivalries::matchups(Rivalries::weekStart()->subWeek()),
     'lines' => Rivalries::lineStandings(),
+    'cup' => Rivalries::lineCup(Rivalries::monthStart()),
+    'lastCup' => Rivalries::lineCup(Rivalries::monthStart()->subMonthNoOverflow()),
+    'winners' => Rivalries::cupWinners(6),
 ]))->name('rivalries');
 
 Route::middleware(['auth', 'verified'])->group(function () {
